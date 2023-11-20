@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
+import environenv = environ.Env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-zi_q9w37t#04+7gfre8#h6b#!yt%6caa*wb#mm(860lj@_piee'
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -127,11 +129,11 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'IRSDB',
-        'USER': 'irsadmin',
-        'PASSWORD': 'irspass',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': env("DB_NAME"),
+        'USER': env("DB_USER")
+        'PASSWORD': env("DB_PASSWORD"),
+        'HOST': env("DB_HOST"),
+        'PORT': env("DB_PORT"),
         'OPTIONS': {
             'init_command': "SET time_zone='+8:00';"
         }
