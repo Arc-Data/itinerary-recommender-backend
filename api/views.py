@@ -408,7 +408,7 @@ def get_bookmarks(request):
         serializer = RecentBookmarkSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
         data = serializer.data
         sorted_data = sorted(data, key=lambda x: x['datetime_created'], reverse=True)
-        return Response(sorted_data, status=status.HTTP_200_OK)
+        return Response({'bookmarks': sorted_data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -467,6 +467,7 @@ def edit_review(request, location_id):
     except Exception as e:
         return Response({'message': f'Error updating review: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def trip_bookmarks(request):
@@ -479,7 +480,8 @@ def trip_bookmarks(request):
     serializer = BookmarkLocationSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
     data = serializer.data
     sorted_data = sorted(data, key=lambda x: x['datetime_created'], reverse=True)
-    return Response(sorted_data, status=status.HTTP_200_OK)
+    return Response({'bookmarks': sorted_data}, status=status.HTTP_200_OK)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -555,20 +557,6 @@ def bookmark(request, location_id):
         bookmark = Bookmark(user=user, spot=spot)
         bookmark.save()
         return Response({'message': 'Bookmark added.'}, status=status.HTTP_201_CREATED)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def trip_bookmarks(request):
-    user = request.user
-
-    bookmarks = Bookmark.objects.filter(user=user)
-    location_ids = bookmarks.values_list('spot__location_ptr', flat=True).distinct()
-    bookmarked = Location.objects.filter(id__in=location_ids)
-
-    serializer = BookmarkLocationSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
-    
-    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])

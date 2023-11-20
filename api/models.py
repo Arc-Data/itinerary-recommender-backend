@@ -72,6 +72,8 @@ class Location(models.Model):
         default=1
     )
     is_closed = models.BooleanField(default=False)
+    email = models.EmailField(blank=True, null=True, default="")
+    contact = models.CharField(max_length=15, blank=True, null=True, default="")
 
     def save(self, *args, **kwargs):
         super(Location, self).save(*args, **kwargs)
