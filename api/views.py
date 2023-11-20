@@ -793,3 +793,51 @@ def approve_request(request, request_id):
     approval_request.save()
     
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_food(request, location_id):
+    try:
+        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+    except FoodPlace.DoesNotExist:
+        return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    item_name = request.data.get('item')
+    price = request.data.get('price')
+    image_file = request.FILES.get('image')
+
+    if not item_name or not price or not image_file:
+        return Response({"error": "item, price, and image are required fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = FoodSerializer(data={'item': item_name, 'price': price, 'image': image_file})
+    if serializer.is_valid():
+        serializer.save(location=location)
+        return Response(status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_food(request, location_id, food_id):
+    try:
+        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+        food = Food.objects.get(id=food_id, location=location)
+    except (FoodPlace.DoesNotExist, Food.DoesNotExist):
+        return Response({"error": "Food or Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    food.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_food_details(request, location_id):
+    try:
+        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+    except FoodPlace.DoesNotExist:
+        return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    foods = Food.objects.filter(location=location)
+    serializer = FoodSerializer(foods, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
