@@ -30,7 +30,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'itinerary-recommender-backend-production.up.railway.app',
-    '*'
+    'main--cebu-route.netlify.app',
+    'localhost',
+    '127.0.0.1',
 ]
 # Application definition
 
@@ -53,6 +55,9 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
