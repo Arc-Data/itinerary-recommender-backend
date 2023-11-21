@@ -1,31 +1,31 @@
-Place,Address,IsClosed,Latitude,Longitude,
-CookPub - Modern Korean Bistro,"2nd Floor, Island Central Mactan, MEPZ Ecozone, Lapu Lapu 6015 Philippines",0,10.32592629,123.9760948,
-Buko Seaside Bar and Restaurant,"Kontiki Datag Maribago, Lapu Lapu 6015 Philippines",0,10.28216659,123.9990447,
-Smooth Cafe Moalboal,"Panagsama Road, Moalboal 6032 Philippines",0,9.950073298,123.367122,
-Gold Mango Grill & Restaurant,"2 M.L. Quezon National Highway Maribago, Lapu Lapu 6015 Philippines",0,10.29162402,123.998593,
-Scape Skydeck,"M. L. Quezon National Highway Pusok, Lapu Lapu 6015 Philippines",0,10.32342493,123.9728723,
-The Three Bears,"2575 Panagsama Beach Road, Moalboal 6032 Philippines",0,9.948946311,123.3700384,
-Hungry Monkeys,"Panagsama Road, Moalboal 6032 Philippines",0,9.950134693,123.3670202,
-Zubuchon,"SM City Seaside, Cebu City 6000 Philippines",0,10.28083504,123.8817594,
-The Oriental Spice Gourmet,"Maximo V. Patalinghug Jr. Avenue‎ Basak, Lapu Lapu 6015 Philippines",0,10.29679084,123.9641892,Closed Mon-Tues
-AA BBQ,"Salinas Drive Lahug, Cebu City 6000 Philippines",0,10.32979794,123.9011611,
-Ven'z Kitchen,"Panagsama Road, Moalboal, Moalboal 6032 Philippines",0,9.950008922,123.3679104,"Closed Wednesdays, opens 12:00 PM weekends"
-Shawarma Gourmet,"Escario Central Mall Escario Street Barangay Camputhaw Escario Central Mall, Cebu City 6000 Philippines",0,10.31792622,123.8938135,
-DIP Nikkei,"Punta Engano, Mactan Island, Lapu-Lapu City Mactan Island, Cebu, Philippines, Lapu Lapu 6015 Philippines",0,10.320067,124.0360983,Closed 2:30 PM to 6 PM
-Yakski Barbecue,"268-B Don Mariano Cui Street, Cebu City 6000 Philippines",0,10.31504004,123.8899069,
-House of Lechon,"Acacia Street, Cebu City 6000 Philippines",0,10.31773233,123.9017172,
-The Pig & Palm,"Msy Tower Pescadores Road, Cebu City 6004 Philippines",0,10.31299715,123.9042512,
-Cafe Laguna,"Level 1, Ayala Center Cebu Cebu Business Park, Cebu City 6000 Philippines",0,10.31827674,123.9053501,
-Circa 1900,"Sanjercasvil Road, Gorordo Avenue, Lahug, Cebu City 6000 Philippines",0,10.32697162,123.9000915,
-Lantaw Floating Native Restaurant,Day-as Cordova Philippines,0,10.25598555,123.9331108,
-Pizzeria Michelangelo,"1 Maria Luisa Rd Paseo Saturnino Banilad, Cebu City 6000 Philippines",1,10.31787356,123.8940261,Opens 3PM Sunday
-La Buona Forchetta Da Paolo,"139 Acacia Street Corner Advent Business Center, Cebu City 6000 Philippines",0,10.32100447,123.8998379,
-Buffet 101,"Mantawe Avenue City Times Square, Mandaue Philippines",0,10.32677074,123.9326455,Closes 3PM; Reopens 5:30 PM
-Casa Verde,"Level 3, The Terraces Ayala Center, 32 Philippines",0,10.31921676,123.9049478,
-Bo's Coffee,"Ayala Center, Cebu City 6000 Philippines",0,10.31777256,123.904954,
-Lighthouse Restaurant,"Gen. Maxilom Avenue, Across Land Bank, and 2nd floor, Gaisano Country Mall, Banilad, Cebu City Phils., Cebu City, Philippines",0,10.31102387,123.9027769,"Closes 2PM, Reopens 5PM"
-Jollibee,"M. Logarta Ave, Mandaue City, Cebu",0,10.3199492,123.9263121,
-McDonald's,"Osmeña Blvd, Colon St, Cebu City, Cebu",0,10.29644113,123.8983494,
-Burger King,"Gen Maxilom Avenue, Cor Juana Osmeña St, Cebu City, 6000 Cebu",0,10.31033885,123.8949729,
-Rico's Lechon,"Mantawe Ave, Tipolo, Mandaue City, Cebu",0,10.32497476,123.9320543,
-Ribshack,"SM City Cebu Juan Luna Ave. Corner Cabahug And, Kaohsiung St, Cebu City, 6000 Cebu",0,10.31115934,123.9180815,
+Place,Address,IsClosed,Latitude,Longitude,Image
+CookPub - Modern Korean Bistro,"2nd Floor, Island Central Mactan, MEPZ Ecozone, Lapu Lapu 6015 Philippines",0,10.32592629,123.9760948,/location_images/CookPub_-_Modern_Korean_Bistro/CookPub_-_Modern_Korean_Bistro.jpg
+Buko Seaside Bar and Restaurant,"Kontiki Datag Maribago, Lapu Lapu 6015 Philippines",0,10.28216659,123.9990447,/location_images/Buko_Seaside_Bar_and_Restaurant/Buko_Seaside_Bar_and_Restaurant.jpg
+Smooth Cafe Moalboal,"Panagsama Road, Moalboal 6032 Philippines",0,9.950073298,123.367122,/location_images/Smooth_Cafe_Moalboal/Smooth_Cafe_Moalboal.jpg
+Gold Mango Grill & Restaurant,"2 M.L. Quezon National Highway Maribago, Lapu Lapu 6015 Philippines",0,10.29162402,123.998593,/location_images/Gold_Mango_Grill_%26_Restaurant/Gold_Mango_Grill__Restaurant.jpg
+Scape Skydeck,"M. L. Quezon National Highway Pusok, Lapu Lapu 6015 Philippines",0,10.32342493,123.9728723,/location_images/Scape_Skydeck/Scape_Skydeck.jpg
+The Three Bears,"2575 Panagsama Beach Road, Moalboal 6032 Philippines",0,9.948946311,123.3700384,/location_images/The_Three_Bears/The_Three_Bears.jpg
+Hungry Monkeys,"Panagsama Road, Moalboal 6032 Philippines",0,9.950134693,123.3670202,/location_images/Hungry_Monkeys/Hungry_Monkeys.jpg
+Zubuchon,"SM City Seaside, Cebu City 6000 Philippines",0,10.28083504,123.8817594,/location_images/Zubuchon/Zubuchon.jpg
+The Oriental Spice Gourmet,"Maximo V. Patalinghug Jr. Avenue‎ Basak, Lapu Lapu 6015 Philippines",0,10.29679084,123.9641892,/location_images/The_Oriental_Spice_Gourmet/The_Oriental_Spice_Gourmet.jpg
+AA BBQ,"Salinas Drive Lahug, Cebu City 6000 Philippines",0,10.32979794,123.9011611,/location_images/AA_BBQ/AA_BBQ.jpg
+Ven'z Kitchen,"Panagsama Road, Moalboal, Moalboal 6032 Philippines",0,9.950008922,123.3679104,/location_images/Ven'z_Kitchen/Venz_Kitchen.jpg
+Shawarma Gourmet,"Escario Central Mall Escario Street Barangay Camputhaw Escario Central Mall, Cebu City 6000 Philippines",0,10.31792622,123.8938135,/location_images/Shawarma_Gourmet/Shawarma_Gourmet.jpg
+DIP Nikkei,"Punta Engano, Mactan Island, Lapu-Lapu City Mactan Island, Cebu, Philippines, Lapu Lapu 6015 Philippines",0,10.320067,124.0360983,/location_images/DIP_Nikkei/DIP_Nikkei.jpg
+Yakski Barbecue,"268-B Don Mariano Cui Street, Cebu City 6000 Philippines",0,10.31504004,123.8899069,/location_images/Yakski_Barbecue/Yakski_Barbecue.jpg
+House of Lechon,"Acacia Street, Cebu City 6000 Philippines",0,10.31773233,123.9017172,/location_images/House_of_Lechon/House_of_Lechon.jpg
+The Pig & Palm,"Msy Tower Pescadores Road, Cebu City 6004 Philippines",0,10.31299715,123.9042512,/location_images/The_Pig_%26_Palm/The_Pig__Palm.jpg
+Cafe Laguna,"Level 1, Ayala Center Cebu Cebu Business Park, Cebu City 6000 Philippines",0,10.31827674,123.9053501,/location_images/Cafe_Laguna/Cafe_Laguna.jpg
+Circa 1900,"Sanjercasvil Road, Gorordo Avenue, Lahug, Cebu City 6000 Philippines",0,10.32697162,123.9000915,/location_images/Circa_1900/Circa_1900.jpg
+Lantaw Floating Native Restaurant,Day-as Cordova Philippines,0,10.25598555,123.9331108,/location_images/Lantaw_Floating_Native_Restaurant/Lantaw_Floating_Native_Restaurant.jpg
+The Pyramid,"Garden Bloc, W Geonzon St, Cebu City, 6000 Cebu",0,10.3315088,123.9049204,/location_images/The_Pyramid/The_Pyramid.jpeg
+La Buona Forchetta Da Paolo,"139 Acacia Street Corner Advent Business Center, Cebu City 6000 Philippines",0,10.32100447,123.8998379,/location_images/La_Buona_Forchetta_Da_Paolo/La_Buona_Forchetta_Da_Paolo.jpg
+Buffet 101,"Mantawe Avenue City Times Square, Mandaue Philippines",0,10.32677074,123.9326455,/location_images/Buffet_101/Buffet_101.jpg
+Casa Verde,"Level 3, The Terraces Ayala Center, 32 Philippines",0,10.31921676,123.9049478,/location_images/Casa_Verde/Casa_Verde.jpg
+Bo's Coffee,"Ayala Center, Cebu City 6000 Philippines",0,10.31777256,123.904954,/location_images/Bo's_Coffee/Bos_Coffee.jpg
+Lighthouse Restaurant,"Gen. Maxilom Avenue, Across Land Bank, and 2nd floor, Gaisano Country Mall, Banilad, Cebu City Phils., Cebu City, Philippines",0,10.31102387,123.9027769,/location_images/Lighthouse_Restaurant/Lighthouse_Restaurant.jpg
+Jollibee,"M. Logarta Ave, Mandaue City, Cebu",0,10.3199492,123.9263121,/location_images/Jollibee/Jollibee.jpg
+McDonald's,"Osmeña Blvd, Colon St, Cebu City, Cebu",0,10.29644113,123.8983494,/location_images/McDonald's/McDonalds.jpg
+Burger King,"Gen Maxilom Avenue, Cor Juana Osmeña St, Cebu City, 6000 Cebu",0,10.31033885,123.8949729,/location_images/Burger_King/Burger_King.jpg
+Rico's Lechon,"Mantawe Ave, Tipolo, Mandaue City, Cebu",0,10.32497476,123.9320543,/location_images/Rico's_Lechon/Ricos_Lechon.jpg
+Ribshack,"SM City Cebu Juan Luna Ave. Corner Cabahug And, Kaohsiung St, Cebu City, 6000 Cebu",0,10.31115934,123.9180815,/location_images/Ribshack/Ribshack.jpg
