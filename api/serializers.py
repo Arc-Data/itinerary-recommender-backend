@@ -524,3 +524,13 @@ class DayRatingSerializer(serializers.ModelSerializer):
             locations.append(serializer.data)
         
         return locations
+
+class FoodPlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodPlace
+        fields = '__all__'
+
+class FoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        fields = ['id', 'item', 'price', 'image']

@@ -66,5 +66,9 @@ urlpatterns = [
     path('requests/', get_all_ownership_requests, name="get_all_ownership_requests"),
     path('request/<int:request_id>/approve', approve_request, name="approve-request"),
 
-    path('confirm/set/preferences/', get_set_preferences, name="get_set_preferences")
+    path('confirm/set/preferences/', get_set_preferences, name="get_set_preferences"),
+
+    path('food/<int:location_id>/create/', create_food, name='create_food'),
+    path('food/<int:location_id>/', get_food_details, name='get_food_details'),
+    path('food/<int:location_id>/delete/<int:food_id>/', delete_food, name='delete_food'),
 ]

@@ -408,7 +408,7 @@ def get_bookmarks(request):
         serializer = RecentBookmarkSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
         data = serializer.data
         sorted_data = sorted(data, key=lambda x: x['datetime_created'], reverse=True)
-        return Response(sorted_data, status=status.HTTP_200_OK)
+        return Response({'bookmarks': sorted_data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -467,6 +467,7 @@ def edit_review(request, location_id):
     except Exception as e:
         return Response({'message': f'Error updating review: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def trip_bookmarks(request):
@@ -479,7 +480,8 @@ def trip_bookmarks(request):
     serializer = BookmarkLocationSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
     data = serializer.data
     sorted_data = sorted(data, key=lambda x: x['datetime_created'], reverse=True)
-    return Response(sorted_data, status=status.HTTP_200_OK)
+    return Response({'bookmarks': sorted_data}, status=status.HTTP_200_OK)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -555,20 +557,6 @@ def bookmark(request, location_id):
         bookmark = Bookmark(user=user, spot=spot)
         bookmark.save()
         return Response({'message': 'Bookmark added.'}, status=status.HTTP_201_CREATED)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def trip_bookmarks(request):
-    user = request.user
-
-    bookmarks = Bookmark.objects.filter(user=user)
-    location_ids = bookmarks.values_list('spot__location_ptr', flat=True).distinct()
-    bookmarked = Location.objects.filter(id__in=location_ids)
-
-    serializer = BookmarkLocationSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
-    
-    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
@@ -798,3 +786,51 @@ def approve_request(request, request_id):
 @permission_classes([IsAuthenticated])
 def get_set_preferences(request):
     return request.user.set_preferences
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_food(request, location_id):
+    try:
+        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+    except FoodPlace.DoesNotExist:
+        return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    item_name = request.data.get('item')
+    price = request.data.get('price')
+    image_file = request.FILES.get('image')
+
+    if not item_name or not price or not image_file:
+        return Response({"error": "item, price, and image are required fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = FoodSerializer(data={'item': item_name, 'price': price, 'image': image_file})
+    if serializer.is_valid():
+        serializer.save(location=location)
+        return Response(status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_food(request, location_id, food_id):
+    try:
+        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+        food = Food.objects.get(id=food_id, location=location)
+    except (FoodPlace.DoesNotExist, Food.DoesNotExist):
+        return Response({"error": "Food or Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    food.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_food_details(request, location_id):
+    try:
+        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+    except FoodPlace.DoesNotExist:
+        return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    foods = Food.objects.filter(location=location)
+    serializer = FoodSerializer(foods, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
