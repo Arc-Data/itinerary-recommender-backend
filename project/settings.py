@@ -29,7 +29,9 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'itinerary-recommender-backend-production.up.railway.app']
+    'itinerary-recommender-backend-production.up.railway.app',
+    '*'
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -53,7 +55,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=100),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -182,6 +184,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 STORAGES = {
     # ...
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'OPTIONS': {},
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
@@ -195,7 +201,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     'https://itinerary-recommender-backend-production.up.railway.app',
     "http://localhost:5173",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
+    "https://main--cebu-route.netlify.app"
 ]
 
 AUTH_USER_MODEL = 'api.User'

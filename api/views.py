@@ -793,3 +793,8 @@ def approve_request(request, request_id):
     approval_request.save()
     
     return Response(status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_set_preferences(request):
+    return request.user.set_preferences
