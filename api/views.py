@@ -113,8 +113,6 @@ def get_itinerary(request, itinerary_id):
 
     return Response(itinerary_serializer.data, status=status.HTTP_200_OK)
 
-        
-
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_itinerary(request, itinerary_id):
@@ -131,7 +129,6 @@ def delete_itinerary(request, itinerary_id):
 @permission_classes([IsAuthenticated])
 def update_ordering(request):
     items = request.data.get("items")
-    print(items)
 
     for order, item in enumerate(items):
         itinerary_item = ItineraryItem.objects.get(id=item["id"])
@@ -300,7 +297,6 @@ def update_itinerary_calendar(request, itinerary_id):
     start_date = datetime.datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ').date()
     end_date = datetime.datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S.%fZ').date()
 
-    print(start_date, end_date)
 
     days = []
 
@@ -391,10 +387,12 @@ def get_location_reviews(request, location_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_review(request, location_id):
-    if request.method == "GET":
-        review = get_object_or_404(Review, location_id=location_id, user=request.user)
+    review = Review.objects.get(location_id=location_id, user=request.user)
+    if review:
         review_serializer = ReviewSerializers(review)
         return Response(review_serializer.data, status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])
@@ -444,7 +442,8 @@ def create_review(request, location_id):
             comment=comment,
             rating=rating
         )
-        return Response({'message': 'Review published.'}, status=status.HTTP_201_CREATED)
+        serializers = ReviewSerializers(review)
+        return Response(serializers.data, status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({'error': f'Error creating review: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -461,7 +460,7 @@ def edit_review(request, location_id):
 
         review_serializer = ReviewSerializers(instance=review)
 
-        return Response({'message': "Updated Review Successfully", 'review': review_serializer.data}, status=status.HTTP_200_OK)
+        return Response(review_serializer.data, status=status.HTTP_200_OK)
     except Review.DoesNotExist:
         return Response({'message': 'Review not found.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
@@ -573,7 +572,6 @@ def get_location_recommendations(request, location_id):
 
     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
 
-    print (recommendation_serializers.data)
     return Response({
         'recommendations': recommendation_serializers.data
         }, status=status.HTTP_200_OK)
@@ -606,7 +604,6 @@ def get_homepage_recommendations(request):
 
     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
 
-    print (recommendation_serializers.data)
     return Response({
         'recommendations': recommendation_serializers.data
         }, status=status.HTTP_200_OK)
