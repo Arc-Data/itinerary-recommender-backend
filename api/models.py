@@ -179,11 +179,10 @@ class FoodPlace(Location):
         return self.name
 
 class Accommodation(Location):
-    contact_number=models.CharField(max_length=11, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.location_type = '3'
-        super(FoodPlace, self).save(*args, **kwargs)
+        super(Accommodation, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
