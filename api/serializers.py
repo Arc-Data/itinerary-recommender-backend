@@ -544,3 +544,23 @@ class FoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Food
         fields = ['id', 'item', 'price', 'image']
+
+class LocationTopSerializer(serializers.ModelSerializer):
+    average_rating = serializers.SerializerMethodField()
+    total_reviews = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Location
+        fields = ['id', 'name', 'average_rating', 'total_reviews']
+
+    def get_average_rating(self, obj):
+        reviews = Review.objects.filter(location=obj)
+        average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
+        return average_rating
+
+    def get_total_reviews(self, obj):
+        return Review.objects.filter(location=obj).count()
+
+class SpotBookmarkCountSerializer(serializers.Serializer):
+    location_id = serializers.IntegerField(source='id')
+    bookmark_count = serializers.IntegerField()

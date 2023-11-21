@@ -831,3 +831,97 @@ def get_food_details(request, location_id):
     foods = Food.objects.filter(location=location)
     serializer = FoodSerializer(foods, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_preference_percentages(request):
+    preferences_count = Preferences.objects.aggregate(
+        total_users=Count('user'),
+        art_users=Count('user', filter=models.Q(art=True)),
+        activity_users=Count('user', filter=models.Q(activity=True)),
+        culture_users=Count('user', filter=models.Q(culture=True)),
+        entertainment_users=Count('user', filter=models.Q(entertainment=True)),
+        history_users=Count('user', filter=models.Q(history=True)),
+        nature_users=Count('user', filter=models.Q(nature=True)),
+        religion_users=Count('user', filter=models.Q(religion=True))
+    )
+
+    preference_percentages = {}
+    total_users = preferences_count['total_users']
+    for preference, count in preferences_count.items():
+        if preference != 'total_users' and preference.endswith('_users'):
+            preference_name = preference[:-6]
+            preference_percentages[preference_name] = (count / total_users) * 100
+
+    return Response({'preference_percentages': preference_percentages}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_counts(request):
+    user_count = User.objects.count()
+    location_count = Location.objects.count()
+    spot_count = Spot.objects.count()
+    accommodation_count = Accommodation.objects.count()
+    food_place_count = FoodPlace.objects.count()
+    itinerary_count = Itinerary.objects.count()
+
+    counts = {
+        'user_count': user_count,
+        'location_count': location_count,
+        'spot_count': spot_count,
+        'accommodation_count': accommodation_count,
+        'food_place_count': food_place_count,
+        'itinerary_count': itinerary_count,
+    }
+
+    return Response({'dashboard_datacount':counts}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_top_spots(request):
+    top_spots = Spot.objects.annotate(
+        average_rating=Avg('review__rating'),
+        total_reviews=Count('review')
+    ).exclude(total_reviews=0).order_by('-average_rating', '-total_reviews')[:10]
+
+    spots = LocationTopSerializer(top_spots, many=True)
+    return Response({'top_spots': spots.data}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_top_accommodations(request):
+    top_accommodations = Accommodation.objects.annotate(
+        average_rating=Avg('review__rating'),
+        total_reviews=Count('review')
+    ).exclude(total_reviews=0).order_by('-average_rating', '-total_reviews')[:10]
+
+    accommodations = LocationTopSerializer(top_accommodations, many=True)
+    return Response({'top_accommodations': accommodations.data}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_top_foodplaces(request):
+    top_food_places = FoodPlace.objects.annotate(
+        average_rating=Avg('review__rating'),
+        total_reviews=Count('review')
+    ).exclude(total_reviews=0).order_by('-average_rating', '-total_reviews')[:10]
+
+    food_places = LocationTopSerializer(top_food_places, many=True)
+    return Response({'top_food_places': food_places.data}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_top_bookmarks(request):
+    top_bookmarked_spots = (
+        Spot.objects.annotate(bookmark_count=Count('bookmark'))
+            .order_by('-bookmark_count')[:10]
+    )
+    serializer = SpotBookmarkCountSerializer(top_bookmarked_spots, many=True)
+    return Response({'top_bookmarks':serializer.data}, status=status.HTTP_200_OK)
+

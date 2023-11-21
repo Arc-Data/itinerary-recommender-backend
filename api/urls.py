@@ -71,4 +71,12 @@ urlpatterns = [
     path('food/<int:location_id>/create/', create_food, name='create_food'),
     path('food/<int:location_id>/', get_food_details, name='get_food_details'),
     path('food/<int:location_id>/delete/<int:food_id>/', delete_food, name='delete_food'),
+
+    path('dashboard/preference/', get_preference_percentages, name='get_preference_percentages'),
+    path('dashboard/counts/', get_counts, name='get_counts'),
+    path('dashboard/top-spots/', get_top_spots, name='get_top_spots'),
+    path('dashboard/top-accommodations/', get_top_accommodations, name='get_top_accommodations'),
+    path('dashboard/top-foodplaces/', get_top_foodplaces, name='get_top_foodplaces'),
+    path('dashboard/top-bookmarks/', get_top_bookmarks, name='get_top_bookmarks'),
+
 ]
