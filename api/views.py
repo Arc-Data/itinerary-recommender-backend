@@ -771,8 +771,9 @@ def get_active_trips(request):
 def get_user_business(request):
     user = request.user
     location = Location.objects.filter(owner=user)
+    serializer = LocationBusinessSerializer(location, many=True)
 
-    return Response(status=status.HTTP_200_OK)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH"])
 def approve_request(request, request_id):

@@ -534,3 +534,18 @@ class FoodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Food
         fields = ['id', 'item', 'price', 'image']
+
+class LocationBusinessSerializer(serializers.ModelSerializer):
+    primary_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Location
+        fields = ['id', 'primary_image', 'name', 'address']
+        
+    def get_primary_image(self, obj):
+        images = obj.images.filter(is_primary_image=True)
+
+        if images:
+            return images[0].image.url
+
+        return None

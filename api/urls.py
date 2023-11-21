@@ -61,6 +61,7 @@ urlpatterns = [
     path('user/<int:user_id>/delete/', delete_user, name='delete_user'),
     path('user/', get_all_users, name='get_all_users'),
     path('user/<int:user_id>/', get_user, name='get_user'),
+    path('user/business/', get_user_business, name='get_user_business'),
     path('user/active/', get_active_trips, name="get-active-trips"),
     
     path('requests/', get_all_ownership_requests, name="get_all_ownership_requests"),
