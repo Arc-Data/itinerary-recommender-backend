@@ -24,5 +24,5 @@ class Command(BaseCommand):
                         print("Location not detected: ", location)
            
                 print(idx, spots)
-                model_itinerary = ModelItinerary.objects.create(id=idx)
+                model_itinerary = ModelItinerary.objects.create()
                 model_itinerary.locations.set(spots)

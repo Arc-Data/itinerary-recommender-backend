@@ -110,6 +110,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = ['https://itinerary-recommender-backend-production.up.railway.app']
+
 ROOT_URLCONF = 'project.urls'
 
 TEMPLATES = [
