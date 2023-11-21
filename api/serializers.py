@@ -59,12 +59,27 @@ class SpotSerializers(serializers.ModelSerializer):
 
         return bookmark
 
-
-
 class FoodPlaceSerializers(serializers.ModelSerializer):
+    fee = serializers.SerializerMethodField()
     class Meta:
         model = FoodPlace
-        exclude = []
+        fields = ['fee']
+
+    def get_fee(self, obj):
+        query_set = Food.objects.filter(location=obj.id)
+
+        if query_set.exists():
+            price_aggregation = query_set.aggregate(min_price=models.Min('price'), max_price=models.Max('price'))
+            min_price = price_aggregation.get('min_price')
+            max_price = price_aggregation.get('max_price') 
+        else:
+            min_price = 300.0
+            max_price = 300.0
+        
+        return {
+            'min_price': min_price, 
+            'max_price': max_price
+        }
 
 class AccommodationSerializers(serializers.ModelSerializer):
     class Meta:
@@ -524,11 +539,6 @@ class DayRatingSerializer(serializers.ModelSerializer):
             locations.append(serializer.data)
         
         return locations
-
-class FoodPlaceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FoodPlace
-        fields = '__all__'
 
 class FoodSerializer(serializers.ModelSerializer):
     class Meta:
