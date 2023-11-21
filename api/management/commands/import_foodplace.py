@@ -2,7 +2,7 @@ import os
 import csv
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from api.models import FoodPlace, Location
+from api.models import FoodPlace, LocationImage
 
 class Command(BaseCommand):
     help = 'Import data from CSV to FoodPlace model'
@@ -26,5 +26,13 @@ class Command(BaseCommand):
                     is_closed=is_closed,
                     location_type='2',
                 )
+
+                image_path = row['Image']
+                LocationImage.objects.create(
+                    location=foodplace,
+                    image=image_path,
+                    is_primary_image=True
+                )
+
                 print("Imported " + foodplace.name)
         self.stdout.write(self.style.SUCCESS('Data imported successfully'))
