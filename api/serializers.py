@@ -76,7 +76,7 @@ class FoodPlaceSerializers(serializers.ModelSerializer):
 class AccommodationSerializers(serializers.ModelSerializer):
     class Meta:
         model = Accommodation
-        exclude = []
+        fields = []
 
 class LocationQuerySerializers(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
