@@ -538,7 +538,6 @@ def get_location_recommendations(request, location_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_homepage_recommendations(request):
-
     user = request.user
 
     preferences = [
@@ -550,16 +549,21 @@ def get_homepage_recommendations(request):
         user.preferences.entertainment,
         user.preferences.culture
     ]
+
+    print(preferences)
     
     preferences = np.array(preferences, dtype=int)
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(preferences)
+    print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
+        print(recommendation)
         recommendations.append(recommendation)
 
+    print(recommendations)
     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
 
     return Response({

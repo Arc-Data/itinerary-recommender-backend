@@ -166,4 +166,5 @@ class RecommendationsManager():
         # result_with_scores.head()
         top_4_ids = result_with_scores.head(4)['ID'].tolist()
 
+        print(top_4_ids)
         return top_4_ids
