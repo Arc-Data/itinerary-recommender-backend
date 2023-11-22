@@ -123,8 +123,7 @@ class LocationQuerySerializers(serializers.ModelSerializer):
                 'max_price': max_price
             }
         
-        else:
-            return None
+        return None
 
     def get_tags(self, obj):
         if obj.location_type == "1":
@@ -161,7 +160,7 @@ class LocationPlanSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'primary_image', 'address', 'longitude', 'latitude', 'min_cost', 'max_cost', 'opening', 'closing']
+        fields = ['id', 'name', 'primary_image', 'address', 'longitude', 'latitude', 'min_cost', 'max_cost', 'opening', 'closing', 'location_type']
 
     def get_primary_image(self, obj):
         primary_image = obj.images.filter(is_primary_image=True).first()

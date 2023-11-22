@@ -50,6 +50,8 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         if hide:
             queryset = queryset.filter(is_closed=False)
 
+        queryset = queryset.exclude(location_type=3)
+
         return queryset
     
 class CustomNumberPagination(PageNumberPagination):
@@ -896,3 +898,17 @@ def get_top_bookmarks(request):
     serializer = BookmarkCountSerializer(top_bookmarked_locations, many=True)
     return Response({'top_bookmarks':serializer.data}, status=status.HTTP_200_OK)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def edit_itinerary(request, itinerary_id):
+    number_of_people = request.data.get("number_of_people")
+    budget = request.data.get("budget")
+    itinerary = Itinerary.objects.get(id=itinerary_id)
+
+    if request.user != itinerary.user:
+        return Response({'message': "Access Denied"}, status=status.HTTP_403_FORBIDDEN)
+    else:
+        itinerary.number_of_people = number_of_people
+        itinerary.budget = budget
+        itinerary.save()
+        return Response({'message': "Itinerary budget and group updated"}, status=status.HTTP_200_OK)
