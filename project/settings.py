@@ -31,6 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'itinerary-recommender-backend-production.up.railway.app',
     'main--cebu-route.netlify.app',
+    'cebu-route.netlify.app',
     'localhost',
     '127.0.0.1',
 ]
@@ -209,7 +210,8 @@ CORS_ALLOWED_ORIGINS = [
     'https://itinerary-recommender-backend-production.up.railway.app',
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://main--cebu-route.netlify.app"
+    "https://main--cebu-route.netlify.app",
+    "https://cebu-route.netlify.app/",
 ]
 
 AUTH_USER_MODEL = 'api.User'
