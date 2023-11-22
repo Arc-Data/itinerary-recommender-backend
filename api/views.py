@@ -72,7 +72,6 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
 
-
         if query:
             queryset = queryset.filter(name__istartswith=query)
 
@@ -675,10 +674,25 @@ def get_ownership_requests(request):
     return Response(serializers.data, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_all_ownership_requests(request):
     requests = OwnershipRequest.objects.filter(is_approved=False)
     serializer = OwnershipRequestSerializer(requests, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def approve_request(request, request_id):
+    approval_request = OwnershipRequest.objects.get(id=request_id)
+    approval_request.is_approved=True
+    approval_request.save()
+
+    user = approval_request.user
+    location = approval_request.location
+    print(user, location)
+    location.owner = user
+
+    return Response(status=status.HTTP_200_OK)
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
@@ -768,16 +782,10 @@ def get_active_trips(request):
 def get_user_business(request):
     user = request.user
     location = Location.objects.filter(owner=user)
+    print(location)
+    serializer = LocationBusinessSerializer(location, many=True)
 
-    return Response(status=status.HTTP_200_OK)
-
-@api_view(["PATCH"])
-def approve_request(request, request_id):
-    approval_request = OwnershipRequest(id=request_id)
-    approval_request.is_approved=True
-    approval_request.save()
-    
-    return Response(status=status.HTTP_200_OK)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

@@ -235,14 +235,6 @@ class Review(models.Model):
     rating = models.PositiveIntegerField()
     datetime_created = models.DateTimeField(auto_now_add=True)
 
-class Ownership(models.Model):
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    approval_status = models.BooleanField(default=False)
-
-    class Meta:
-        unique_together = ('owner', 'location')
-
 class Food(models.Model):
     location = models.ForeignKey(FoodPlace, on_delete=models.CASCADE)
     item = models.CharField(max_length=100)
