@@ -69,8 +69,8 @@ class FoodPlaceSerializers(serializers.ModelSerializer):
             max_price = 300.0
         
         return {
-            'min_price': min_price, 
-            'max_price': max_price
+            'min': min_price, 
+            'max': max_price
         }
 
 class AccommodationSerializers(serializers.ModelSerializer):
@@ -177,6 +177,18 @@ class LocationPlanSerializers(serializers.ModelSerializer):
 
             if spot:
                 return spot.get_max_cost
+            
+        elif obj.location_type == "2":
+            query_set = Food.objects.filter(location=obj.id)
+
+            if query_set.exists():
+                price_aggregation = query_set.aggregate(max_price=models.Max('price'))
+                max_price = price_aggregation.get('max_price') 
+            else:
+                max_price = 300.0
+        
+            return max_price
+
         return None
             
     def get_min_cost(self, obj):
@@ -185,6 +197,18 @@ class LocationPlanSerializers(serializers.ModelSerializer):
 
             if spot:
                 return spot.get_min_cost
+            
+        elif obj.location_type == "2":
+            query_set = Food.objects.filter(location=obj.id)
+
+            if query_set.exists():
+                price_aggregation = query_set.aggregate(min_price=models.Min('price'))
+                min_price = price_aggregation.get('min_price') 
+            else:
+                min_price = 300.0
+        
+            return min_price
+        
         return None
 
     def get_opening(self, obj):
