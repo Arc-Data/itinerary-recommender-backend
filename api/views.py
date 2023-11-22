@@ -386,7 +386,7 @@ def get_location_reviews(request, location_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_review(request, location_id):
-    review = Review.objects.get(location_id=location_id, user=request.user)
+    review = Review.objects.filter(location_id=location_id, user=request.user).first()
     if review:
         review_serializer = ReviewSerializers(review)
         return Response(review_serializer.data, status=status.HTTP_200_OK)

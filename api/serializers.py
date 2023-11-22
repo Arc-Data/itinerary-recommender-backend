@@ -54,12 +54,12 @@ class SpotSerializers(serializers.ModelSerializer):
 class FoodPlaceSerializers(serializers.ModelSerializer):
     class Meta:
         model = FoodPlace
-        exclude = []
+        fields = []
 
 class AccommodationSerializers(serializers.ModelSerializer):
     class Meta:
         model = Accommodation
-        exclude = []
+        fields = []
 
 class LocationQuerySerializers(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
