@@ -681,16 +681,15 @@ def get_all_ownership_requests(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
 def approve_request(request, request_id):
-    approval_request = OwnershipRequest(id=request_id)
+    approval_request = OwnershipRequest.objects.get(id=request_id)
     approval_request.is_approved=True
     approval_request.save()
 
-    owner = approval_request.owner
+    owner = approval_request.user
     location = approval_request.location
     location.owner = owner
-
-    print("Approved!")
 
     return Response(status=status.HTTP_200_OK)
 
