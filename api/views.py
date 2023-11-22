@@ -28,7 +28,7 @@ class UserRegistrationView(CreateAPIView):
 
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 
-class LocationViewSet(viewsets.ReadOnlyModelViewSet):
+class LocationPlanViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationQuerySerializers
     filter_backends = [SearchFilter]
@@ -51,6 +51,30 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(is_closed=False)
 
         queryset = queryset.exclude(location_type=3)
+
+        return queryset
+
+class LocationViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Location.objects.all()
+    serializer_class = LocationQuerySerializers
+    filter_backends = [SearchFilter]
+    search_fields = ['name']
+
+    action = {
+        'list': 'list',
+    }
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.query_params.get('query', None)
+        hide = self.request.query_params.get('hide', None) 
+
+
+        if query:
+            queryset = queryset.filter(name__istartswith=query)
+
+        if hide:
+            queryset = queryset.filter(is_closed=False)
 
         return queryset
     

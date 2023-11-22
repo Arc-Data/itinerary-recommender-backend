@@ -17,6 +17,7 @@ urlpatterns = [
     path('location/paginated/', PaginatedLocationViewSet.as_view({'get': 'list'}, name="paginated_locations")),
 
     path('location/', LocationViewSet.as_view({'get': 'list'}), name="locations"),
+    path('location/plan/', LocationPlanViewSet.as_view({'get': 'list'}), name="locations-plan"),
     path('location/<int:id>/', get_location, name='location-detail'),
     path('location/<int:location_id>/bookmark/', bookmark, name='bookmark'),
     
