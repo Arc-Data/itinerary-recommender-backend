@@ -18,6 +18,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['set_preferences'] = user.set_preferences
         return token
 
+
+#Model Serializers
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -73,11 +75,23 @@ class FoodPlaceSerializers(serializers.ModelSerializer):
             'max': max_price
         }
 
+class FoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Food
+        fields = ['id', 'item', 'price', 'image']
+
 class AccommodationSerializers(serializers.ModelSerializer):
     class Meta:
         model = Accommodation
         fields = []
 
+class ReviewSerializers(serializers.ModelSerializer):
+    user = UserSerializers()
+    class Meta:
+        model = Review
+        exclude = ['location']
+
+#Location-related Serializers
 class LocationQuerySerializers(serializers.ModelSerializer):
     tags = serializers.SerializerMethodField()
     primary_image = serializers.SerializerMethodField()
@@ -295,6 +309,41 @@ class LocationSerializers(serializers.ModelSerializer):
     def get_images(self, obj):
         return [image.image.url for image in obj.images.all()]
 
+
+class LocationTopSerializer(serializers.ModelSerializer):
+    average_rating = serializers.SerializerMethodField()
+    total_reviews = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Location
+        fields = ['id', 'name', 'average_rating', 'total_reviews']
+
+    def get_average_rating(self, obj):
+        reviews = Review.objects.filter(location=obj)
+        average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
+        return average_rating
+
+    def get_total_reviews(self, obj):
+        return Review.objects.filter(location=obj).count()
+
+
+class LocationBusinessSerializer(serializers.ModelSerializer):
+    primary_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Location
+        fields = ['id', 'primary_image', 'name', 'address']
+        
+    def get_primary_image(self, obj):
+        images = obj.images.filter(is_primary_image=True)
+
+        if images:
+            return images[0].image.url
+
+        return None
+
+
+#Spot-related Serializers
 class SpotDetailSerializers(serializers.ModelSerializer):
     location_reviews = serializers.SerializerMethodField()
 
@@ -306,12 +355,14 @@ class SpotDetailSerializers(serializers.ModelSerializer):
         location_reviews = obj.review_set.all()
         return ReviewSerializers(location_reviews, many=True).data
 
-class ReviewSerializers(serializers.ModelSerializer):
-    user = UserSerializers()
-    class Meta:
-        model = Review
-        exclude = ['location']
 
+class SpotPopularSerializers(serializers.ModelSerializer):
+
+    class Meta:
+        model = Spot
+        fields = ['id', 'name', 'description']
+
+#Itinerary Serializers
 class ItineraryListSerializers(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     trip_duration = serializers.SerializerMethodField()
@@ -351,12 +402,6 @@ class ItinerarySerializers(serializers.ModelSerializer):
     class Meta:
         model = Itinerary
         fields = ['id', 'budget', 'number_of_people', 'user', 'name']
-
-
-class DayDetailSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = Day
-        fields = '__all__'
             
     
 class ItineraryItemSerializer(serializers.ModelSerializer):
@@ -367,6 +412,12 @@ class ItineraryItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'location', 'day', 'details']
 
 
+# Day Serializers
+class DayDetailSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Day
+        fields = '__all__'
+
 class DaySerializers(serializers.ModelSerializer):
     itinerary_items = ItineraryItemSerializer(source='itineraryitem_set', many=True)
 
@@ -374,125 +425,6 @@ class DaySerializers(serializers.ModelSerializer):
         model = Day
         fields = '__all__'
 
-
-class LocationRecommenderSerializers(serializers.ModelSerializer):
-    fee = serializers.SerializerMethodField()
-    schedule = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Location
-        fields = ['id', 'name', 'fee', 'schedule']
-    
-    def get_fee(self, obj):
-        if obj.location_type == "1":
-            spot = Spot.objects.get(pk=obj.id)
-
-            if spot:
-                return {
-                    "min": spot.get_min_cost,
-                    "max": spot.get_max_cost
-                } 
-
-        return None
-    
-    def get_schedule(self, obj):
-        if obj.location_type == "1":
-            spot = Spot.objects.get(pk=obj.id)
-
-            if spot:
-                return {
-                    "opening": spot.opening_time,
-                    "closing": spot.closing_time 
-                }
-
-        return None    
-
-class ModelItinerarySerializers(serializers.ModelSerializer):
-    locations = LocationRecommenderSerializers(many=True)
-
-    class Meta:
-        model = ModelItinerary
-        fields = '__all__'
-
-
-class SpotPopularSerializers(serializers.ModelSerializer):
-
-    class Meta:
-        model = Spot
-        fields = ['id', 'name', 'description']
-
-
-class BookmarkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Bookmark
-        fields = '__all__'
-
-
-class RecentBookmarkSerializer(serializers.ModelSerializer):
-    primary_image = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Location
-        fields = ('id', 'name', 'primary_image')
-
-    def get_primary_image(self, obj):
-        primary_image = obj.images.filter(is_primary_image=True).first()
-
-        if primary_image:
-            return primary_image.image.url
-
-        return None
-    
-class BookmarkLocationSerializer(serializers.ModelSerializer):
-    details = LocationQuerySerializers(source='location', read_only=True)
-
-    class Meta:
-        model = Bookmark
-        fields = ['id', 'details']
-    
-class RecommendedLocationSerializer(serializers.ModelSerializer):
-    primary_image = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
-    ratings = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Location
-        fields = ('id', 'name', 'primary_image', 'tags', 'ratings')
-
-    def get_primary_image(self, obj):
-        primary_image = obj.images.filter(is_primary_image=True).first()
-
-        if primary_image:
-            return primary_image.image.url
-
-        return None
-    
-    def get_tags(self, obj):
-        if obj.location_type == "1":
-            spot = Spot.objects.get(pk=obj.id)
-        
-            if spot:
-                return [tag.name for tag in spot.tags.all()]
-        
-        return None
-    
-    def get_ratings(self, obj):
-        reviews = Review.objects.filter(location_id=obj.id)
-        average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
-
-        return {
-            'total_reviews': reviews.count(),
-            'average_rating': average_rating
-        }
-
-class OwnershipRequestSerializer(serializers.ModelSerializer):
-    details = LocationBasicSerializer(source='location', read_only=True)
-    requester = UserSerializers(source='user')
-
-    class Meta:
-        model = OwnershipRequest
-        fields = ['id', 'is_approved', 'timestamp', 'details', 'requester']
-    
 
 class DayRatingsSerializer(serializers.ModelSerializer):
     locations = serializers.SerializerMethodField()
@@ -550,42 +482,119 @@ class DayRatingSerializer(serializers.ModelSerializer):
         
         return locations
 
-class FoodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Food
-        fields = ['id', 'item', 'price', 'image']
-
-class LocationTopSerializer(serializers.ModelSerializer):
-    average_rating = serializers.SerializerMethodField()
-    total_reviews = serializers.SerializerMethodField()
+class LocationRecommenderSerializers(serializers.ModelSerializer):
+    fee = serializers.SerializerMethodField()
+    schedule = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'average_rating', 'total_reviews']
+        fields = ['id', 'name', 'fee', 'schedule']
+    
+    def get_fee(self, obj):
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
 
-    def get_average_rating(self, obj):
-        reviews = Review.objects.filter(location=obj)
-        average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
-        return average_rating
+            if spot:
+                return {
+                    "min": spot.get_min_cost,
+                    "max": spot.get_max_cost
+                } 
 
-    def get_total_reviews(self, obj):
-        return Review.objects.filter(location=obj).count()
+        return None
+    
+    def get_schedule(self, obj):
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
+
+            if spot:
+                return {
+                    "opening": spot.opening_time,
+                    "closing": spot.closing_time 
+                }
+
+        return None    
+
+class ModelItinerarySerializers(serializers.ModelSerializer):
+    locations = LocationRecommenderSerializers(many=True)
+
+    class Meta:
+        model = ModelItinerary
+        fields = '__all__'
+
+#Bookmark Serializers
+class BookmarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bookmark
+        fields = '__all__'
+
+class RecentBookmarkSerializer(serializers.ModelSerializer):
+    primary_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Location
+        fields = ('id', 'name', 'primary_image')
+
+    def get_primary_image(self, obj):
+        primary_image = obj.images.filter(is_primary_image=True).first()
+
+        if primary_image:
+            return primary_image.image.url
+
+        return None
+    
+class BookmarkLocationSerializer(serializers.ModelSerializer):
+    details = LocationQuerySerializers(source='location', read_only=True)
+
+    class Meta:
+        model = Bookmark
+        fields = ['id', 'details']
 
 class BookmarkCountSerializer(serializers.Serializer):
     location_id = serializers.IntegerField(source='id')
     bookmark_count = serializers.IntegerField()
 
-class LocationBusinessSerializer(serializers.ModelSerializer):
+#Recommender Serializers
+class RecommendedLocationSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
-
+    tags = serializers.SerializerMethodField()
+    ratings = serializers.SerializerMethodField()
+    
     class Meta:
         model = Location
-        fields = ['id', 'primary_image', 'name', 'address']
-        
-    def get_primary_image(self, obj):
-        images = obj.images.filter(is_primary_image=True)
+        fields = ('id', 'name', 'primary_image', 'tags', 'ratings')
 
-        if images:
-            return images[0].image.url
+    def get_primary_image(self, obj):
+        primary_image = obj.images.filter(is_primary_image=True).first()
+
+        if primary_image:
+            return primary_image.image.url
 
         return None
+    
+    def get_tags(self, obj):
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
+        
+            if spot:
+                return [tag.name for tag in spot.tags.all()]
+        
+        return None
+    
+    def get_ratings(self, obj):
+        reviews = Review.objects.filter(location_id=obj.id)
+        average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
+
+        return {
+            'total_reviews': reviews.count(),
+            'average_rating': average_rating
+        }
+
+
+#Ownership Request
+class OwnershipRequestSerializer(serializers.ModelSerializer):
+    details = LocationBasicSerializer(source='location', read_only=True)
+    requester = UserSerializers(source='user')
+
+    class Meta:
+        model = OwnershipRequest
+        fields = ['id', 'is_approved', 'timestamp', 'details', 'requester']
