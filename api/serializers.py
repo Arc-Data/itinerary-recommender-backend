@@ -143,28 +143,36 @@ class LocationPlanSerializers(serializers.ModelSerializer):
         return None
     
     def get_max_cost(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
 
-        if spot:
-            return spot.get_max_cost
+            if spot:
+                return spot.get_max_cost
+        return None
             
     def get_min_cost(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
 
-        if spot:
-            return spot.get_min_cost
+            if spot:
+                return spot.get_min_cost
+        return None
 
     def get_opening(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
 
-        if spot:
-            return spot.opening_time
-        
+            if spot:
+                return spot.opening_time
+        return None
+
     def get_closing(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
 
-        if spot:
-            return spot.closing_time
+            if spot:
+                return spot.closing_time
+        return None
 
 class LocationBasicSerializer(serializers.ModelSerializer):
 
@@ -325,24 +333,26 @@ class LocationRecommenderSerializers(serializers.ModelSerializer):
         fields = ['id', 'name', 'fee', 'schedule']
     
     def get_fee(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
 
-        if spot:
-            return {
-                "min": spot.get_min_cost,
-                "max": spot.get_max_cost
-            } 
+            if spot:
+                return {
+                    "min": spot.get_min_cost,
+                    "max": spot.get_max_cost
+                } 
 
         return None
     
     def get_schedule(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
 
-        if spot:
-            return {
-                "opening": spot.opening_time,
-                "closing": spot.closing_time 
-            }
+            if spot:
+                return {
+                    "opening": spot.opening_time,
+                    "closing": spot.closing_time 
+                }
 
         return None    
 
@@ -407,10 +417,11 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
         return None
     
     def get_tags(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
         
-        if spot:
-            return [tag.name for tag in spot.tags.all()]
+            if spot:
+                return [tag.name for tag in spot.tags.all()]
         
         return None
     
@@ -509,7 +520,7 @@ class LocationTopSerializer(serializers.ModelSerializer):
     def get_total_reviews(self, obj):
         return Review.objects.filter(location=obj).count()
 
-class SpotBookmarkCountSerializer(serializers.Serializer):
+class BookmarkCountSerializer(serializers.Serializer):
     location_id = serializers.IntegerField(source='id')
     bookmark_count = serializers.IntegerField()
 

@@ -901,10 +901,10 @@ def get_top_foodplaces(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_top_bookmarks(request):
-    top_bookmarked_spots = (
-        Spot.objects.annotate(bookmark_count=Count('bookmark'))
+    top_bookmarked_locations = (
+        Location.objects.annotate(bookmark_count=Count('bookmark'))
             .order_by('-bookmark_count')[:10]
     )
-    serializer = SpotBookmarkCountSerializer(top_bookmarked_spots, many=True)
+    serializer = BookmarkCountSerializer(top_bookmarked_locations, many=True)
     return Response({'top_bookmarks':serializer.data}, status=status.HTTP_200_OK)
 
