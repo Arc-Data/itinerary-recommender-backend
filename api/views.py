@@ -393,19 +393,13 @@ def get_user_review(request, location_id):
 
     return Response(status=status.HTTP_404_NOT_FOUND)
 
-
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def get_bookmarks(request):
-    user = request.user
-    if request.method == "GET":
-        bookmarks = Bookmark.objects.filter(user=user)
-        location_ids = bookmarks.values_list('spot__location_ptr', flat=True).distinct()
-        bookmarked = Location.objects.filter(id__in=location_ids)
-        serializer = RecentBookmarkSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
-        data = serializer.data
-        sorted_data = sorted(data, key=lambda x: x['datetime_created'], reverse=True)
-        return Response({'bookmarks': sorted_data}, status=status.HTTP_200_OK)
+    user = User.objects.get(id=1)
+    bookmarks = Bookmark.objects.filter(user=user)
+
+    serializer = BookmarkLocationSerializer(bookmarks, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
