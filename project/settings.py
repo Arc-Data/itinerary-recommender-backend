@@ -211,7 +211,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://main--cebu-route.netlify.app",
-    "https://cebu-route.netlify.app/",
+    "https://cebu-route.netlify.app",
 ]
 
 AUTH_USER_MODEL = 'api.User'
