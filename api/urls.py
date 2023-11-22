@@ -50,7 +50,6 @@ urlpatterns = [
     path('recommendations/homepage/', get_homepage_recommendations, name='get_homepage_recommendations'), 
 
     path('bookmarks/', get_bookmarks, name='get_bookmarks'),
-    path('trip-bookmarks/', trip_bookmarks, name='trip_bookmarks'),
 
     path('location/<int:location_id>/reviews/', get_location_reviews, name='get_location_reviews'),
     path('location/<int:location_id>/reviews/user/', get_user_review, name='get_user_review'),

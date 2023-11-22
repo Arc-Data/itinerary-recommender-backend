@@ -83,10 +83,11 @@ class LocationQuerySerializers(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
     schedule = serializers.SerializerMethodField()
     fee = serializers.SerializerMethodField()
+    ratings = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ('tags', 'id', 'name', 'primary_image', 'address', 'schedule', 'fee')
+        fields = ('tags', 'id', 'name', 'primary_image', 'address', 'schedule', 'fee', 'ratings')
 
     def get_schedule(self, obj):
         if obj.location_type == "1":
@@ -104,9 +105,26 @@ class LocationQuerySerializers(serializers.ModelSerializer):
             return {
                 "min": spot.get_min_cost,
                 "max": spot.get_max_cost
-            } 
+            }
 
-        return None
+        elif obj.location_type =="2" :
+            query_set = Food.objects.filter(location=obj.id)
+
+            if query_set.exists():
+                price_aggregation = query_set.aggregate(min_price=models.Min('price'), max_price=models.Max('price'))
+                min_price = price_aggregation.get('min_price')
+                max_price = price_aggregation.get('max_price') 
+            else:
+                min_price = 300.0
+                max_price = 300.0
+        
+            return {
+                'min_price': min_price, 
+                'max_price': max_price
+            }
+        
+        else:
+            return None
 
     def get_tags(self, obj):
         if obj.location_type == "1":
@@ -122,6 +140,17 @@ class LocationQuerySerializers(serializers.ModelSerializer):
             return primary_image.image.url
 
         return None
+
+    def get_ratings(self, obj):
+        reviews = Review.objects.filter(location_id=obj.id)
+        average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
+        total_count = reviews.count()
+
+        return {
+            'total_reviews': reviews.count(),
+            'average_rating': round(average_rating, 2),
+        }
+
     
 class LocationPlanSerializers(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
@@ -191,9 +220,8 @@ class LocationSerializers(serializers.ModelSerializer):
         fields = ('id', 'location_type', 'name', 'address', 'description', 'latitude', 'longitude',  'images', 'details', 'rating_percentages', 'is_bookmarked')
 
     def get_details(self, obj):
-        user = self.context.get("user")
         if obj.location_type == '1':
-            serializer = SpotSerializers(Spot.objects.get(pk=obj.id), context={'user': user})
+            serializer = SpotSerializers(Spot.objects.get(pk=obj.id))
             return serializer.data
         elif obj.location_type == '2':
             serializer = FoodPlaceSerializers(FoodPlace.objects.get(pk=obj.id))
@@ -237,7 +265,7 @@ class LocationSerializers(serializers.ModelSerializer):
 
         return {
             'total_reviews': reviews.count(),
-            'average_rating': average_rating,
+            'average_rating': round(average_rating, 2),
             'ratings': rating_data,
         }
 
