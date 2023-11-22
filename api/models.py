@@ -114,14 +114,15 @@ class CustomFee(models.Model):
 
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    spot = models.ForeignKey("Spot", on_delete=models.CASCADE)
+    location = models.ForeignKey("Location", on_delete=models.CASCADE)
     datetime_created = models.DateTimeField(default=timezone.now)
+    
     class Meta:
-        unique_together = ('user', 'spot')
+        unique_together = ('user', 'location')
         ordering = ['-datetime_created']
 
     def __str__(self):
-        return f"{self.user.get_full_name} bookmarked {self.spot.name}"
+        return f"{self.user.get_full_name()} bookmarked {self.location.name}"
 
 def location_image_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -141,7 +142,6 @@ class LocationImage(models.Model):
 class Spot(Location):
     fees = models.PositiveIntegerField(blank=True, null=True)
     expected_duration = models.DurationField(default=timedelta(hours=1))
-    interested = models.ManyToManyField(User, through=Bookmark, related_name="bookmarks")
     tags = models.ManyToManyField("Tag", related_name="spots")
     opening_time = models.TimeField(blank=True, null=True)
     closing_time = models.TimeField(blank=True, null=True)

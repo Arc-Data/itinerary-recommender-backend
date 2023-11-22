@@ -393,36 +393,28 @@ def get_user_review(request, location_id):
 
     return Response(status=status.HTTP_404_NOT_FOUND)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_bookmarks(request):
     user = request.user
-    if request.method == "GET":
-        bookmarks = Bookmark.objects.filter(user=user)
-        location_ids = bookmarks.values_list('spot__location_ptr', flat=True).distinct()
-        bookmarked = Location.objects.filter(id__in=location_ids)
-        serializer = RecentBookmarkSerializer(bookmarked, many=True, context={'bookmarks': bookmarks, 'user': user})
-        data = serializer.data
-        sorted_data = sorted(data, key=lambda x: x['datetime_created'], reverse=True)
-        return Response({'bookmarks': sorted_data}, status=status.HTTP_200_OK)
+    bookmarks = Bookmark.objects.filter(user=user)
+
+    serializer = BookmarkLocationSerializer(bookmarks, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def bookmark(request, location_id):
     user = request.user
-    spot = get_object_or_404(Spot, id=location_id)
+    location = Location.objects.get(id=location_id)
+    existing_bookmark = Bookmark.objects.filter(user=user, location=location).first()
 
-    existing_bookmark = Bookmark.objects.filter(user=user, spot=spot).first()
     if existing_bookmark:
         existing_bookmark.delete()
-        return Response({'message': 'Bookmark deleted.'}, status=status.HTTP_201_CREATED)
-
+        return Response({'message': 'Bookmark deleted.'}, status=status.HTTP_200_OK)
     else:
-        bookmark = Bookmark(user=user, spot=spot)
-        bookmark.save()
+        Bookmark.objects.create(user=user, location=location)
         return Response({'message': 'Bookmark added.'}, status=status.HTTP_201_CREATED)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -539,23 +531,6 @@ def delete_location(request, id):
         return Response(status=status.HTTP_204_NO_CONTENT)
     except Location.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def bookmark(request, location_id):
-    user = request.user
-    spot = get_object_or_404(Spot, id=location_id)
-
-    existing_bookmark = Bookmark.objects.filter(user=user, spot=spot).first()
-    if existing_bookmark:
-        existing_bookmark.delete()
-        return Response({'message': 'Bookmark deleted.'}, status=status.HTTP_201_CREATED)
-
-    else:
-        bookmark = Bookmark(user=user, spot=spot)
-        bookmark.save()
-        return Response({'message': 'Bookmark added.'}, status=status.HTTP_201_CREATED)
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

@@ -32,16 +32,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validated_data['password'] = make_password(validated_data['password'])
         user = get_user_model().objects.create(**validated_data)
         return user
-    
+
 class SpotSerializers(serializers.ModelSerializer):
     min_fee = serializers.SerializerMethodField()
     max_fee = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
-    is_bookmarked = serializers.SerializerMethodField()
 
     class Meta:
         model = Spot
-        fields = ('min_fee', 'max_fee', 'opening_time', 'closing_time', 'tags', 'is_bookmarked')
+        fields = ('min_fee', 'max_fee', 'opening_time', 'closing_time', 'tags')
 
     def get_min_fee(self, obj):
         return obj.get_min_cost
@@ -51,13 +50,6 @@ class SpotSerializers(serializers.ModelSerializer):
 
     def get_tags(self, obj):
         return [tag.name for tag in obj.tags.all()] 
-
-    def get_is_bookmarked(self, obj):
-        user = self.context.get('user')
-        spot_id = obj.id
-        bookmark = Bookmark.objects.filter(user_id=user, spot_id=spot_id).exists()
-
-        return bookmark
 
 class FoodPlaceSerializers(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
@@ -155,7 +147,7 @@ class LocationPlanSerializers(serializers.ModelSerializer):
 
         if spot:
             return spot.get_max_cost
-
+            
     def get_min_cost(self, obj):
         spot = Spot.objects.get(pk=obj.id)
 
@@ -174,7 +166,6 @@ class LocationPlanSerializers(serializers.ModelSerializer):
         if spot:
             return spot.closing_time
 
-
 class LocationBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -185,10 +176,11 @@ class LocationSerializers(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     details = serializers.SerializerMethodField()
     rating_percentages = serializers.SerializerMethodField()
+    is_bookmarked = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ('id', 'location_type', 'name', 'address', 'description', 'latitude', 'longitude',  'images', 'details', 'rating_percentages')
+        fields = ('id', 'location_type', 'name', 'address', 'description', 'latitude', 'longitude',  'images', 'details', 'rating_percentages', 'is_bookmarked')
 
     def get_details(self, obj):
         user = self.context.get("user")
@@ -203,6 +195,10 @@ class LocationSerializers(serializers.ModelSerializer):
             return serializer.data
         
         return None
+    
+    def get_is_bookmarked(self, obj):
+        user = self.context.get("user")
+        return Bookmark.objects.filter(location=obj, user=user).exists()
 
     def get_rating_percentages(self, obj):
         reviews = Review.objects.filter(location_id=obj.id)
@@ -373,10 +369,10 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
 class RecentBookmarkSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
-    datetime_created = serializers.SerializerMethodField()
+
     class Meta:
         model = Location
-        fields = ('id', 'name', 'primary_image', 'datetime_created')
+        fields = ('id', 'name', 'primary_image')
 
     def get_primary_image(self, obj):
         primary_image = obj.images.filter(is_primary_image=True).first()
@@ -385,59 +381,14 @@ class RecentBookmarkSerializer(serializers.ModelSerializer):
             return primary_image.image.url
 
         return None
-    
-    def get_datetime_created(self, obj):
-        location_id = obj.id
-        user_id = self.context.get('user').id
-        bookmark = self.context.get('bookmarks').filter(spot__location_ptr=location_id, user=user_id).first()
-
-        return bookmark.datetime_created
     
 class BookmarkLocationSerializer(serializers.ModelSerializer):
-    fee = serializers.SerializerMethodField()
-    schedule = serializers.SerializerMethodField()
-    primary_image = serializers.SerializerMethodField()
-    datetime_created = serializers.SerializerMethodField()
+    details = LocationQuerySerializers(source='location', read_only=True)
 
     class Meta:
-        model = Location
-        fields = ['id', 'name', 'address', 'fee', 'schedule', 'primary_image', 'datetime_created']
+        model = Bookmark
+        fields = ['id', 'details']
     
-    def get_fee(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
-
-        if spot:
-            return {
-                "min": spot.get_min_cost,
-                "max": spot.get_max_cost
-            } 
-        return None
-    
-    def get_schedule(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
-
-        if spot:
-            return {
-                "opening": spot.opening_time,
-                "closing": spot.closing_time 
-            }
-        return None
-
-    def get_primary_image(self, obj):
-        primary_image = obj.images.filter(is_primary_image=True).first()
-
-        if primary_image:
-            return primary_image.image.url
-
-        return None
-    
-    def get_datetime_created(self, obj):
-        location_id = obj.id
-        user_id = self.context.get('user').id
-        bookmark = self.context.get('bookmarks').filter(spot__location_ptr=location_id, user=user_id).first()
-
-        return bookmark.datetime_created    
-
 class RecommendedLocationSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
