@@ -131,7 +131,6 @@ class LocationPlanSerializers(serializers.ModelSerializer):
         if spot:
             return spot.get_max_cost
             
-
     def get_min_cost(self, obj):
         spot = Spot.objects.get(pk=obj.id)
 
@@ -160,10 +159,11 @@ class LocationSerializers(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     details = serializers.SerializerMethodField()
     rating_percentages = serializers.SerializerMethodField()
+    is_bookmarked = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ('id', 'location_type', 'name', 'address', 'description', 'latitude', 'longitude',  'images', 'details', 'rating_percentages')
+        fields = ('id', 'location_type', 'name', 'address', 'description', 'latitude', 'longitude',  'images', 'details', 'rating_percentages', 'is_bookmarked')
 
     def get_details(self, obj):
         user = self.context.get("user")
@@ -178,6 +178,10 @@ class LocationSerializers(serializers.ModelSerializer):
             return serializer.data
         
         return None
+    
+    def get_is_bookmarked(self, obj):
+        user = self.context.get("user")
+        return Bookmark.objects.filter(location=obj, user=user).exists()
 
     def get_rating_percentages(self, obj):
         reviews = Review.objects.filter(location_id=obj.id)

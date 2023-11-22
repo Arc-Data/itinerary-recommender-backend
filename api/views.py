@@ -394,8 +394,9 @@ def get_user_review(request, location_id):
     return Response(status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_bookmarks(request):
-    user = User.objects.get(id=1)
+    user = request.user
     bookmarks = Bookmark.objects.filter(user=user)
 
     serializer = BookmarkLocationSerializer(bookmarks, many=True)
@@ -404,19 +405,23 @@ def get_bookmarks(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def bookmark(request, location_id):
+    location_id = int(location_id)
+    print(location_id)
     user = request.user
-    spot = get_object_or_404(Spot, id=location_id)
 
-    existing_bookmark = Bookmark.objects.filter(user=user, spot=spot).first()
+    try:
+        location = Location.objects.get(id=location_id)
+    except Location.DoesNotExist:
+        return Response({'message': 'Location not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    existing_bookmark = Bookmark.objects.filter(user=user, location=location).first()
+
     if existing_bookmark:
         existing_bookmark.delete()
-        return Response({'message': 'Bookmark deleted.'}, status=status.HTTP_201_CREATED)
-
+        return Response({'message': 'Bookmark deleted.'}, status=status.HTTP_200_OK)
     else:
-        bookmark = Bookmark(user=user, spot=spot)
-        bookmark.save()
+        bookmark = Bookmark.objects.create(user=user, location=location)
         return Response({'message': 'Bookmark added.'}, status=status.HTTP_201_CREATED)
-
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -540,13 +545,13 @@ def bookmark(request, location_id):
     user = request.user
     spot = get_object_or_404(Spot, id=location_id)
 
-    existing_bookmark = Bookmark.objects.filter(user=user, spot=spot).first()
+    existing_bookmark = Bookmark.objects.filter(user=user, location=location).first()
     if existing_bookmark:
         existing_bookmark.delete()
         return Response({'message': 'Bookmark deleted.'}, status=status.HTTP_201_CREATED)
 
     else:
-        bookmark = Bookmark(user=user, spot=spot)
+        bookmark = Bookmark(user=user, location=location)
         bookmark.save()
         return Response({'message': 'Bookmark added.'}, status=status.HTTP_201_CREATED)
 
