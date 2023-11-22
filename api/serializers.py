@@ -82,20 +82,18 @@ class LocationQuerySerializers(serializers.ModelSerializer):
         fields = ('tags', 'id', 'name', 'primary_image', 'address', 'schedule', 'fee')
 
     def get_schedule(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
-
-        if spot:
+        if obj.location_type == "1":
+            spot = Spot.objects.get(id=obj.id)
             return {
                 "opening": spot.opening_time,
                 "closing": spot.closing_time 
-            }
+            } 
 
         return None    
     
     def get_fee(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
-
-        if spot:
+        if obj.location_type == "1":
+            spot = Spot.objects.get(id=obj.id)
             return {
                 "min": spot.get_min_cost,
                 "max": spot.get_max_cost
@@ -104,13 +102,12 @@ class LocationQuerySerializers(serializers.ModelSerializer):
         return None
 
     def get_tags(self, obj):
-        spot = Spot.objects.get(pk=obj.id)
-        
-        if spot:
+        if obj.location_type == "1":
+            spot = Spot.objects.get(id=obj.id)
             return [tag.name for tag in spot.tags.all()]
 
-        return None 
-    
+        return None
+
     def get_primary_image(self, obj):
         primary_image = obj.images.filter(is_primary_image=True).first()
 
