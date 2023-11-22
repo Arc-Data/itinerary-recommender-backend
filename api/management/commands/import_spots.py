@@ -49,7 +49,8 @@ class Command(BaseCommand):
                     fees=row['Fee'] if row['Fee'] != '' else None,
                     opening_time=opening_time,
                     location_type='1',
-                    closing_time=closing_time 
+                    closing_time=closing_time,
+                    description=row['Description']
                 )
 
                 if spot.fees == None:

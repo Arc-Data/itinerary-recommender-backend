@@ -60,7 +60,7 @@ class Location(models.Model):
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=250, unique=True)
     address = models.CharField(max_length=250)
-    description = models.CharField(default="No Description Provided.", max_length=500)
+    description = models.CharField(default="No Description Provided.", max_length=1200)
     latitude = models.FloatField()
     longitude = models.FloatField()
     location_type = models.CharField(
