@@ -105,6 +105,7 @@ class RecommendationsManager():
         # recommendation portion
         if selected_location.empty:
             print(f"Location not found.")
+            return None
         else:
             selected_vector = selected_location[tags_columns].values.reshape(1, -1)
             all_vectors = locations_data[locations_data['ID'] != selected_location_id][tags_columns].values
@@ -129,7 +130,7 @@ class RecommendationsManager():
             # result_with_scores.head()
             top_4_ids = result_with_scores.head(4)['ID'].tolist()
 
-        return top_4_ids
+            return top_4_ids
     
     def get_homepage_recommendation(self, user_preference):
         

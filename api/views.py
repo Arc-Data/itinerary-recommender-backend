@@ -687,9 +687,10 @@ def approve_request(request, request_id):
     approval_request.is_approved=True
     approval_request.save()
 
-    owner = approval_request.user
+    user = approval_request.user
     location = approval_request.location
-    location.owner = owner
+    print(user, location)
+    location.owner = user
 
     return Response(status=status.HTTP_200_OK)
 
@@ -781,6 +782,7 @@ def get_active_trips(request):
 def get_user_business(request):
     user = request.user
     location = Location.objects.filter(owner=user)
+    print(location)
     serializer = LocationBusinessSerializer(location, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
