@@ -152,12 +152,11 @@ class LocationQuerySerializers(serializers.ModelSerializer):
         if primary_image:
             return primary_image.image.url
 
-        return None
+        return "/media/location_images/Placeholder.png"
 
     def get_ratings(self, obj):
         reviews = Review.objects.filter(location_id=obj.id)
         average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
-        total_count = reviews.count()
 
         return {
             'total_reviews': reviews.count(),
@@ -307,7 +306,13 @@ class LocationSerializers(serializers.ModelSerializer):
         }
 
     def get_images(self, obj):
-        return [image.image.url for image in obj.images.all()]
+        images = [image.image.url for image in obj.images.all()]
+        
+        if not images:
+            default_image_url = "/media/location_images/Placeholder.png"
+            return [default_image_url]
+
+        return images
 
 
 class LocationTopSerializer(serializers.ModelSerializer):
