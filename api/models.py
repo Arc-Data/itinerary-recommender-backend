@@ -134,7 +134,7 @@ def location_image_path(instance, filename):
 
 class LocationImage(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to=location_image_path, default='location_images/Background.jpg', max_length=512)
+    image = models.ImageField(upload_to=location_image_path, default='location_images/DefaultLocationImage.jpg', max_length=512)
     is_primary_image = models.BooleanField(default=False)
 
     def __str__(self):
