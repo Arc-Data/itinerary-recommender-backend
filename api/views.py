@@ -637,18 +637,31 @@ def create_ownership_request(request):
     longitude = request.data.get('longitude')
     latitude = request.data.get('latitude')
     location_type = request.data.get('type')
+    website = request.data.get('website')
+    contact = request.data.get('contact')
+    email = request.data.get('email')
+    image = request.data.get('image')
 
     location = Location.objects.create(
         name=name,
         address=address,
         latitude=latitude,
         longitude=longitude,
-        location_type=location_type
+        location_type=location_type,
+        website=website,
+        contact=contact,
+        email=email
     )
 
     OwnershipRequest.objects.create(
         user=user,
         location=location
+    )
+
+    LocationImage.objects.create(
+        image=image,
+        location=location,
+        is_primary_image=True
     )
 
     return Response(status=status.HTTP_200_OK)
@@ -816,12 +829,11 @@ def delete_food(request, location_id, food_id):
     food.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_food_details(request, location_id):
     try:
-        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+        location = FoodPlace.objects.get(id=location_id)
     except FoodPlace.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
