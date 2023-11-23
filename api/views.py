@@ -1050,7 +1050,7 @@ def get_service_details(request, location_id):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def get_all_completed_days(request):
     completed_days = Day.objects.filter(completed=True, rating__gt=0)
 

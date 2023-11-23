@@ -434,6 +434,16 @@ class ItineraryItemSerializer(serializers.ModelSerializer):
         model = ItineraryItem
         fields = ['id', 'location', 'day', 'details']
 
+class ItineraryItemNameSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ItineraryItem
+        fields = ['id', 'location']
+
+    def get_location(self, obj):
+        return {'id':obj.location.id,'name': obj.location.name}
+
 
 # Day Serializers
 class DayDetailSerializers(serializers.ModelSerializer):
@@ -507,15 +517,14 @@ class DayRatingSerializer(serializers.ModelSerializer):
 
 class CompletedDaySerializer(serializers.ModelSerializer):
     itinerary_items = serializers.SerializerMethodField()
-    user = UserSerializers(source='itinerary.user', read_only=True)
 
     class Meta:
         model = Day
-        fields = ['id', 'date', 'itinerary', 'completed', 'rating', 'itinerary_items','user']
+        fields = ['id', 'rating', 'itinerary_items']
 
     def get_itinerary_items(self, obj):
         itinerary_items = ItineraryItem.objects.filter(day=obj, location__location_type='1')
-        return ItineraryItemSerializer(itinerary_items, many=True).data
+        return ItineraryItemNameSerializer(itinerary_items, many=True).data
 
 class LocationRecommenderSerializers(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
