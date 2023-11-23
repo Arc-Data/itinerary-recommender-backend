@@ -594,7 +594,15 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
 class OwnershipRequestSerializer(serializers.ModelSerializer):
     details = LocationBasicSerializer(source='location', read_only=True)
     requester = UserSerializers(source='user')
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = OwnershipRequest
-        fields = ['id', 'is_approved', 'timestamp', 'details', 'requester']
+        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image')
+
+    def get_image(self, obj):
+        primary_image = obj.location.images.filter(is_primary_image=True).first()
+
+        if primary_image:
+            return primary_image.image.url
+        return None
