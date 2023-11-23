@@ -803,6 +803,30 @@ def get_specific_business(request, location_id):
     return Response({'business': serializer.data}, status=status.HTTP_200_OK)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def edit_business(request, location_id):
+    user = request.user
+
+    try:
+        location = Location.objects.get(owner=user, id=location_id)
+    except Location.DoesNotExist:
+        return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    location.name = request.data.get('name', location.name)
+    location.address = request.data.get('address', location.address)
+    location.longitude = request.data.get('longitude', location.longitude)
+    location.latitude = request.data.get('latitude', location.latitude)
+    location.location_type = request.data.get('type', location.location_type)
+    location.website = request.data.get('website', location.website)
+    location.contact = request.data.get('contact', location.contact)
+    location.email = request.data.get('email', location.email)
+    
+    location.save()
+
+    return Response(status=status.HTTP_200_OK)
+
+
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_user_business(request, location_id):
