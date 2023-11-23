@@ -791,16 +791,16 @@ def get_user_business(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(["DELETE"])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_specific_business(request, location_id):
     user = request.user
     try: 
-        location = Location.objects.filter(owner=user, id=location_id)
+        location = Location.objects.get(owner=user, id=location_id)
     except (Location.DoesNotExist):
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
     serializer = LocationBusinessManageSerializer(location)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response({'business': serializer.data}, status=status.HTTP_200_OK)
 
 
 @api_view(["DELETE"])

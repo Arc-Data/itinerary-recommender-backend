@@ -350,15 +350,22 @@ class LocationBusinessSerializer(serializers.ModelSerializer):
         if images:
             return images[0].image.url
 
-        return None
+        return "/media/location_images/Placeholder.png"
 
 class LocationBusinessManageSerializer(serializers.ModelSerializer):
-    details = LocationBasicSerializer(source='location')
-
+    image = serializers.SerializerMethodField()
     class Meta:
         model = Location
-        fields = ['details']
+        exclude = []
+    
+    def get_image(self, obj):
+        images = obj.images.filter(is_primary_image=True)
 
+        if images:
+            return images[0].image.url
+
+        return "/media/location_images/Placeholder.png"
+    
 #Spot-related Serializers
 class SpotDetailSerializers(serializers.ModelSerializer):
     location_reviews = serializers.SerializerMethodField()
