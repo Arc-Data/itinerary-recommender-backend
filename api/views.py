@@ -631,6 +631,7 @@ def get_user(request, user_id):
 @permission_classes([IsAuthenticated])
 def create_ownership_request(request):
     user = request.user
+    print(user)
 
     name = request.data.get('name')
     address = request.data.get('address')
@@ -691,8 +692,8 @@ def approve_request(request, request_id):
 
     user = approval_request.user
     location = approval_request.location
-    print(user, location)
     location.owner = user
+    location.save()
 
     return Response(status=status.HTTP_200_OK)
 
