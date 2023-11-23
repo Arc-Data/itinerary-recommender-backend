@@ -388,7 +388,7 @@ class ItineraryListSerializers(serializers.ModelSerializer):
                 url = LocationImage.objects.get(is_primary_image=True, location=location).image.url
                 return url
 
-        return "/media/location_images/Background.jpg"
+        return "/media/location_images/DefaultLocationImage.jpg"
 
     def get_trip_duration(self, object):
         days = Day.objects.filter(itinerary=object)
