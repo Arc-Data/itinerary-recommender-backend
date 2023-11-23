@@ -85,6 +85,11 @@ class AccommodationSerializers(serializers.ModelSerializer):
         model = Accommodation
         fields = []
 
+class ServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ['id', 'item', 'description', 'price', 'image']
+
 class ReviewSerializers(serializers.ModelSerializer):
     user = UserSerializers()
     class Meta:

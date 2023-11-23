@@ -974,3 +974,52 @@ def edit_itinerary(request, itinerary_id):
         itinerary.budget = budget
         itinerary.save()
         return Response({'message': "Itinerary budget and group updated"}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_service(request, location_id):
+    try:
+        location = Accommodation.objects.get(id=location_id, owner=request.user)
+    except Accommodation.DoesNotExist:
+        return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    item_name = request.data.get('item')
+    description = request.data.get('description')
+    price = request.data.get('price')
+    image_file = request.FILES.get('image')
+
+    if not item_name or not description or not price or not image_file:
+        return Response({"error": "item, price, description and image are required fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = ServiceSerializer(data={'item': item_name, 'price': price, 'description': description, 'image': image_file})
+    if serializer.is_valid():
+        serializer.save(location=location)
+        return Response(status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_service(request, location_id, service_id):
+    try:
+        location = Accommodation.objects.get(id=location_id, owner=request.user)
+        service = Service.objects.get(id=service_id, location=location)
+    except (Accommodation.DoesNotExist, Service.DoesNotExist):
+        return Response({"error": "Food or Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    service.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_service_details(request, location_id):
+    try:
+        location = Accommodation.objects.get(id=location_id)
+    except Accommodation.DoesNotExist:
+        return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+
+    service = Service.objects.filter(location=location)
+    serializer = ServiceSerializer(service, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
