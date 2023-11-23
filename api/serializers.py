@@ -342,6 +342,12 @@ class LocationBusinessSerializer(serializers.ModelSerializer):
 
         return None
 
+class LocationBusinessManageSerializer(serializers.ModelSerializer):
+    details = LocationBasicSerializer(source='location')
+
+    class Meta:
+        model = Location
+        fields = ['details']
 
 #Spot-related Serializers
 class SpotDetailSerializers(serializers.ModelSerializer):
