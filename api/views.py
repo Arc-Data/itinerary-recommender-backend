@@ -69,7 +69,6 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
 
-
         if query:
             queryset = queryset.filter(name__istartswith=query)
 
@@ -97,12 +96,21 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
+        location_type = self.request.query_params.get('type', None)
 
         if query:
             queryset = queryset.filter(name__istartswith=query)
 
         if hide:
             queryset = queryset.filter(is_closed=False)
+
+        if location_type:
+            if location_type == "spot":
+                queryset = queryset.filter(location_type=1)
+            elif location_type == "foodplace":
+                queryset = queryset.filter(location_type=2)
+            elif location_type == "accommodation":
+                queryset = queryset.filter(location_type=3)
 
         return queryset
     
