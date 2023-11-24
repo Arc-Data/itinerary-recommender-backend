@@ -453,10 +453,19 @@ class DayDetailSerializers(serializers.ModelSerializer):
 
 class DaySerializers(serializers.ModelSerializer):
     itinerary_items = ItineraryItemSerializer(source='itineraryitem_set', many=True)
-
+    date_status = serializers.SerializerMethodField()
     class Meta:
         model = Day
         fields = '__all__'
+    
+    def get_date_status(self, obj):
+        current_date = timezone.now().date()
+        if obj.date == current_date:
+            return "ongoing"
+        elif obj.date < current_date:
+            return "past due"
+        else:
+            return "soon"
 
 
 class DayRatingsSerializer(serializers.ModelSerializer):
