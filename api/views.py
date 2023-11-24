@@ -218,9 +218,8 @@ def create_itinerary(request):
 
     if itinerary_serializer.is_valid():
         itinerary = itinerary_serializer.save()
-
-        current_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        current_date = datetime.datetime.strptime(start_date, '%m/%d/%Y')
+        end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y')
         
         order = 1
         while current_date <= end_date:
@@ -337,9 +336,8 @@ def update_itinerary_calendar(request, itinerary_id):
     itinerary = Itinerary.objects.get(pk=itinerary_id)
     Day.objects.filter(itinerary=itinerary).delete()
 
-    start_date = datetime.datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S.%fZ').date()
-    end_date = datetime.datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S.%fZ').date()
-
+    start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
+    end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
 
     days = []
 
@@ -350,7 +348,6 @@ def update_itinerary_calendar(request, itinerary_id):
         )
 
         days.append(day)
-
         start_date += timedelta(days=1)
 
 
