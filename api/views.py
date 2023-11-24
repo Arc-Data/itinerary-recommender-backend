@@ -550,6 +550,29 @@ def create_location(request):
 
     return Response(response_data, status=status.HTTP_200_OK)
 
+@api_view(["PATCH"])
+def edit_location(request, id):
+    location_type = request.data.get("type")
+    name = request.data.get("name")
+    address = request.data.get("address")
+    latitude = request.data.get("latitude")
+    longitude = request.data.get("longitude")
+    description = request.data.get("description")
+
+    location = Location.objects.get(id=id)
+    
+    location.type = location_type
+    location.name = name
+    location.address = address
+    location.latitude = latitude
+    location.longitude = longitude
+    location.description = description
+
+    location.save()
+
+    return Response(status=status.HTTP_200_OK)
+
+
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_location(request, id):
