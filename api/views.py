@@ -1098,7 +1098,7 @@ def get_all_completed_days(request):
 
 
 @api_view(["GET"])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def get_event(request):
     location = get_object_or_404(Location, id=1)
     serializer = SampleLocationSerializer(location)

@@ -644,5 +644,3 @@ class SampleLocationSerializer(serializers.ModelSerializer):
             return EventSerializer(spot.nearby_events, many=True).data
         
         return None
-
-
