@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Case, When, Value, BooleanField
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, viewsets
@@ -84,10 +83,8 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
                 queryset = queryset.filter(location_type=2)
             elif location_type == "accommodation":
                 queryset = queryset.filter(location_type=3)
-
-        ownership_request_ids = OwnershipRequest.objects.filter(is_approved=False).values_list('location_id', flat=True)
-        queryset = queryset.exclude(id__in=ownership_request_ids)
-
+            
+        
         return queryset
     
 class CustomNumberPagination(PageNumberPagination):

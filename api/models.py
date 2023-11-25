@@ -77,6 +77,30 @@ class Location(models.Model):
     email = models.EmailField(blank=True, null=True)
     contact = models.CharField(max_length=15, blank=True, null=True, default="")
 
+    @property
+    def get_min_cost(self):
+        if self.location_type == "1":
+            spot = Spot.objects.get(id=self.id)
+            return spot.get_min_cost
+
+        elif self.location_type == "2":
+            foodplace = FoodPlace.objects.get(id=self.id)
+            return foodplace.get_min_cost
+
+        return 0
+
+    @property    
+    def get_max_cost(self):
+        if self.location_type == "1":
+            spot = Spot.objects.get(id=self.id)
+            return spot.get_max_cost
+
+        elif self.location_type == "2":
+            foodplace = FoodPlace.objects.get(id=self.id)
+            return foodplace.get_max_cost
+
+        return 0
+    
     def save(self, *args, **kwargs):
         super(Location, self).save(*args, **kwargs)
 
@@ -178,6 +202,14 @@ class FoodPlace(Location):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def get_min_cost(self):
+        return Food.objects.filter(location=self).order_by('price').first().price
+
+    @property
+    def get_max_cost(self):
+        return Food.objects.filter(location=self).order_by('-price').first().price
 
 class Accommodation(Location):
 
