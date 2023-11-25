@@ -90,5 +90,6 @@ urlpatterns = [
     path('dashboard/top-foodplaces/', get_top_foodplaces, name='get_top_foodplaces'),
     path('dashboard/top-bookmarks/', get_top_bookmarks, name='get_top_bookmarks'),
 
+    #Test URL
     path('sample/', get_event, name='get_event'),
 ]

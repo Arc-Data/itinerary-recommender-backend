@@ -175,10 +175,11 @@ class LocationPlanSerializers(serializers.ModelSerializer):
     min_cost = serializers.SerializerMethodField()
     opening = serializers.SerializerMethodField()
     closing = serializers.SerializerMethodField()
+    event = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'primary_image', 'address', 'longitude', 'latitude', 'min_cost', 'max_cost', 'opening', 'closing', 'location_type']
+        fields = ['id', 'name', 'primary_image', 'address', 'longitude', 'latitude', 'min_cost', 'max_cost', 'opening', 'closing', 'location_type', 'event']
 
     def get_primary_image(self, obj):
         primary_image = obj.images.filter(is_primary_image=True).first()
@@ -209,6 +210,11 @@ class LocationPlanSerializers(serializers.ModelSerializer):
             if spot:
                 return spot.closing_time
         return None
+    
+    def get_event(self, obj):
+        location = Location.objects.get(pk=obj.id)
+        return EventSerializer(location.nearby_events, many=True).data
+
 
 class LocationBasicSerializer(serializers.ModelSerializer):
 
@@ -632,6 +638,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+#Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()
     class Meta:
@@ -639,8 +646,5 @@ class SampleLocationSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'event')
 
     def get_event(self, obj):
-        if obj.location_type == "1":
-            spot = Spot.objects.get(pk=obj.id)
-            return EventSerializer(spot.nearby_events, many=True).data
-        
-        return None
+        location = Location.objects.get(pk=obj.id)
+        return EventSerializer(location.nearby_events, many=True).data

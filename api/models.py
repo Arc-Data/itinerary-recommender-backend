@@ -118,6 +118,29 @@ class Location(models.Model):
             accommodation.__dict__.update(self.__dict__)
             accommodation.save()
 
+    @property
+    def nearby_events(self, radius_meters=750):
+        # Get the current date
+        current_date = timezone.now().date()
+
+        # Filter events where the current date is within the range of start_date and end_date
+        nearby_events = Event.objects.filter(
+            start_date__lte=current_date,
+            end_date__gte=current_date
+        )
+
+        # Get the coordinates of the spot
+        spot_coordinates = (self.latitude, self.longitude)
+
+        # Filter events that are within the specified radius from the spot
+        nearby_events = [
+            event for event in nearby_events
+            if haversine(spot_coordinates, (event.latitude, event.longitude), unit=Unit.METERS) <= radius_meters
+        ]
+        print(nearby_events)
+
+        return nearby_events
+
     def __str__(self):
         return self.name
 
@@ -174,29 +197,6 @@ class Spot(Location):
 
     def __str__(self):
         return self.name
-
-    @property
-    def nearby_events(self, radius_meters=750):
-        # Get the current date
-        current_date = timezone.now().date()
-
-        # Filter events where the current date is within the range of start_date and end_date
-        nearby_events = Event.objects.filter(
-            start_date__lte=current_date,
-            end_date__gte=current_date
-        )
-
-        # Get the coordinates of the spot
-        spot_coordinates = (self.latitude, self.longitude)
-
-        # Filter events that are within the specified radius from the spot
-        nearby_events = [
-            event for event in nearby_events
-            if haversine(spot_coordinates, (event.latitude, event.longitude), unit=Unit.METERS) <= radius_meters
-        ]
-        print(nearby_events)
-
-        return nearby_events
 
     @property
     def get_min_cost(self):

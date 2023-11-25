@@ -1096,11 +1096,11 @@ def get_all_completed_days(request):
 
     return Response(serializer.data)
 
-
+#Test Views
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_event(request):
-    location = get_object_or_404(Location, id=1)
+    location = get_object_or_404(Location, id=98)
     serializer = SampleLocationSerializer(location)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
