@@ -635,7 +635,7 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = ['id', 'name', 'longitude', 'latitude']
 
 
 #Sample Serializers
