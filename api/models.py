@@ -9,8 +9,9 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils import timezone
 from django.db.models import Count
+from haversine import haversine, Unit
 
-import os
+import os, math
 
 class User(AbstractUser):
     username = None
@@ -173,7 +174,30 @@ class Spot(Location):
 
     def __str__(self):
         return self.name
-    
+
+    @property
+    def nearby_events(self, radius_meters=750):
+        # Get the current date
+        current_date = timezone.now().date()
+
+        # Filter events where the current date is within the range of start_date and end_date
+        nearby_events = Event.objects.filter(
+            start_date__lte=current_date,
+            end_date__gte=current_date
+        )
+
+        # Get the coordinates of the spot
+        spot_coordinates = (self.latitude, self.longitude)
+
+        # Filter events that are within the specified radius from the spot
+        nearby_events = [
+            event for event in nearby_events
+            if haversine(spot_coordinates, (event.latitude, event.longitude), unit=Unit.METERS) <= radius_meters
+        ]
+        print(nearby_events)
+
+        return nearby_events
+
     @property
     def get_min_cost(self):
         if hasattr(self, 'custom_fee') and self.custom_fee.min_cost is not None:
@@ -188,6 +212,7 @@ class Spot(Location):
         else:
             return self.fees if self.fees is not None else None
         
+
 class Tag(models.Model):
     name = models.CharField(max_length=50)
 
@@ -280,3 +305,15 @@ class Service(models.Model):
     description = models.CharField(max_length=500)
     price = models.FloatField()
     image = models.ImageField(blank=True, null=True, upload_to='location_service/')
+
+
+class Event(models.Model):
+    name = models.CharField(max_length=100)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    description = models.CharField(max_length=900)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
+    def __str__(self):
+        return self.name

@@ -624,3 +624,25 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
         if primary_image:
             return primary_image.image.url
         return None
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
+
+
+class SampleLocationSerializer(serializers.ModelSerializer):
+    event = serializers.SerializerMethodField()
+    class Meta:
+        model = Location
+        fields = ('id', 'name', 'event')
+
+    def get_event(self, obj):
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
+            return EventSerializer(spot.nearby_events, many=True).data
+        
+        return None
+
+

@@ -20,3 +20,5 @@ admin.site.register(Tag)
 admin.site.register(Bookmark)
 admin.site.register(Food)
 admin.site.register(Service)
+admin.site.register(Event)
+
