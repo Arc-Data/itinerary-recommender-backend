@@ -250,6 +250,7 @@ class Itinerary(models.Model):
     number_of_people = models.PositiveIntegerField(default=1)
     budget = models.FloatField(default=0)
     name = models.CharField(max_length=60, default="My Trip")
+    
     class Meta:
         ordering = ['-id']
 
