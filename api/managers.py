@@ -67,7 +67,7 @@ class RecommendationsManager():
         normalized_data['similarity'] = normalized_data.apply(calculate_cosine_similarity, axis=1)
 
         #sort recommendations by descending & limit 
-        limit = 5
+        limit = 8
         recommended_itineraries = normalized_data.sort_values(by='similarity', ascending=False)
         recommended_itineraries = recommended_itineraries.head(limit)
         recommended_itineraries = recommended_itineraries.sample(frac=1).reset_index(drop=True)
