@@ -196,6 +196,7 @@ class Spot(Location):
     tags = models.ManyToManyField("Tag", related_name="spots")
     opening_time = models.TimeField(blank=True, null=True)
     closing_time = models.TimeField(blank=True, null=True)
+    activity = models.ManyToManyField("Activity", related_name="spots")
 
     def __str__(self):
         return self.name
@@ -319,6 +320,13 @@ class Event(models.Model):
     description = models.CharField(max_length=900)
     latitude = models.FloatField()
     longitude = models.FloatField()
+
+    def __str__(self):
+        return self.name
+    
+
+class Activity(models.Model):
+    name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
