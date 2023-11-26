@@ -570,6 +570,7 @@ class BookmarkLocationSerializer(serializers.ModelSerializer):
 class BookmarkCountSerializer(serializers.Serializer):
     location_id = serializers.IntegerField(source='id')
     bookmark_count = serializers.IntegerField()
+    location_name = serializers.CharField(source='name')
 
 #Recommender Serializers
 class RecommendedLocationSerializer(serializers.ModelSerializer):
