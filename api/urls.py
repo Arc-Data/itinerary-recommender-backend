@@ -69,7 +69,7 @@ urlpatterns = [
     path('user/business/<int:location_id>/', get_specific_business, name='get_specific_business'),
     path('user/business/<int:location_id>/edit/', edit_business, name='edit_business'),
     path('user/active/', get_active_trips, name="get-active-trips"),
-    path('user/business/<int:location_id/stats/', get_business_stats, name='get_business_stats'),
+    path('user/business/<int:location_id>/stats/', get_business_stats, name='get_business_stats'),
     
     path('requests/', get_all_ownership_requests, name="get_all_ownership_requests"),
     path('request/<int:request_id>/approve/', approve_request, name="approve-request"),
