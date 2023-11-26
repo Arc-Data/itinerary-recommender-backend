@@ -840,7 +840,7 @@ def get_specific_business(request, location_id):
     if location.location_type == "1":
         spot = Spot.objects.get(id=location_id)
         serializer = SpotBusinessManageSerializer(spot)
-        return({'business': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'business': serializer.data}, status=status.HTTP_200_OK)
     
     serializer = LocationBusinessManageSerializer(location)
     return Response({'business': serializer.data}, status=status.HTTP_200_OK)
