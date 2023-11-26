@@ -21,4 +21,5 @@ admin.site.register(Bookmark)
 admin.site.register(Food)
 admin.site.register(Service)
 admin.site.register(Event)
-
+admin.site.register(AudienceType)
+admin.site.register(FeeType)

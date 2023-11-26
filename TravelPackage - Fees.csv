@@ -1,0 +1,133 @@
+Place,City/ Part of,Fee Type,is_required,audience,price,Description
+Temple of Leah,Cebu City,Entrance,1,General,100,
+Cebu Taoist Temple,Cebu City,Entrance,1,General,0,
+Mactan Shrine,Cebu City,Entrance,1,General,0,
+Magellan's Cross,Cebu City,Entrance,1,General,0,
+Basilica Minore Del Santo Nino,Cebu City,Entrance,1,General,0,
+Fort San Pedro,Cebu City,Entrance,1,General,30,
+Upside Down World,Mandaue City,Entrance,1,General,250,
+Casa Gorordo Museum,Cebu City,Entrance,1,Regular,100,
+Casa Gorordo Museum,,Entrance,1,Students,50,
+Casa Gorordo Museum,,Entrance,1,Person with disability,50,
+Casa Gorordo Museum,,Entrance,1,Seniors,50,
+Cebu Provincial Museum,Cebu City,Entrance,1,Adult,30,
+Cebu Provincial Museum,,Entrance,1,Students,10,
+Cebu Provincial Museum,,Entrance,1,Senior Citizen,10,
+Jesuit House Museum,Cebu City,Entrance,1,General,50,
+Yap-San Diego Ancestral House,Cebu City,Entrance,1,Adult,100,
+Yap-San Diego Ancestral House,,Entrance,1,Seniors,50,
+Yap-San Diego Ancestral House,,Entrance,1,Students,50,
+Island Eco Tourism Park,Lapu Lapu City,Entrance,1,General,20,
+Island Eco Tourism Park,,Table Rental,0,General,100,per day
+Island Eco Tourism Park,,Bike Rental,0,General,10,per hour
+Island Eco Tourism Park,,Paddle Boat Rental,0,General,100,per hour
+Halad Museum,Cebu City,Entrance,1,General,10,
+BPI Museum,Cebu City,Entrance,1,General,0,
+Jumalon Butterfly Sanctuary And Art Gallery,Cebu City,Entrance,1,Children,50,12 years old below
+Jumalon Butterfly Sanctuary And Art Gallery,Cebu City,Entrance,1,Adult,100,13 years old above
+Heritage of Cebu Monument,Cebu City,Entrance,1,General,0,
+Kabang Falls (Budlaan Falls),Cebu City,Entrance,1,General,0,
+Cebu Happy World Museum,Cebu City,Entrance,1,Adult,350,19 years old above
+Cebu Happy World Museum,,Entrance,1,Children,250,4 to 18 years old
+Cebu Happy World Museum,,Entrance,1,Person with disability,250,
+Cebu Happy World Museum,,Entrance,1,Senior Citizen,250,
+Bagacay Point Lighthouse,Liloan,Entrance,1,General,0,
+Cebu Metropolitan Cathedral,Cebu City,Entrance,1,General,0,
+D' Family Park,Cebu City,Entrance,1,Adult,15,
+D' Family Park,Cebu City,Entrance,1,Children,10,
+D' Family Park,,Car Parking,0,General,25,
+D' Family Park,,Motorcycle Parking,0,General,10,
+D' Family Park,,Swimming,0,Adult,35,
+D' Family Park,,Swimming,0,Children,25,
+Crocolandia ,Talisay,Entrance,1,Adult,200,
+Crocolandia ,,Entrance,1,Children,150,
+Sirao Garden,Cebu City,Entrance,1,Regular,100,
+Sirao Garden,,Entrance,1,Person with disability,80,
+Sirao Garden,,Entrance,1,Senior Citizen,80,
+Sirao Garden,,Entrance,1,Children,50,4-12 years old
+Millennium Park,Lapu-Lapu City,Entrance,1,General,0,
+Kawasan Falls,Alegria,Entrance,1,General,45,
+Kawasan Falls,Alegria,Parking,0,General,50,
+Kawasan Falls,,Canyoneering,0,General,1500,
+Terrazas de Flores Botanical Garden,Cebu City,Entrance,1,General,100,
+Genesis Valley,Cebu City,Entrance (Reservation),1,Adult,150,Reservation
+Genesis Valley,Cebu City,Entrance (Reservation),1,Children,100,Reservation
+Genesis Valley,Cebu City,Entrance (Walk-in),1,Adult,200,Walk-in
+Genesis Valley,Cebu City,Entrance (Walk-in),1,Children,150,Walk-in
+Cebu Ocean Park,Cebu City,Entrance,1,General,550,
+Carmelite Monastery,Cebu City,Entrance,1,General,0,
+Virgen de la Regla National Shrine,Lapu-Lapu City,Entrance,1,General,0,
+Buwakan ni Alejandra,Balamban,Entrance,1,Adults,100,Age 11-59
+Buwakan ni Alejandra,Balamban,Entrance,1,Children,75,Age 6-10
+Buwakan ni Alejandra,Balamban,Entrance,1,Senior Citizen,75,
+Buwakan ni Alejandra,Balamban,Entrance,1,Person with disability,75,
+Tumalog Falls,,Entrance,1,General,50,
+Bluewater Resort Sumilon Island,,Weekday,1,Adult,2000,"Weekday Fee, with access to resort, no accommodation"
+Bluewater Resort Sumilon Island,,Weekend,1,Adult,2500,"Weekend Fee, with access to resort, no accommodation"
+Bluewater Resort Sumilon Island,,Weekday,1,Children,1000,"Weekday Fee, with access to resort, no accommodation"
+Bluewater Resort Sumilon Island,,Weekend,1,Children,1250,"Weekend Fee, with access to resort, no accommodation"
+Sumilon Island Sandbar,,Boat Transportation,1,General,1500,
+Sumilon Island Sandbar,,Environmental,1,General,50,
+Canyoneering Cebu Badian Adventure,,Canyoneering,1,General,1500,
+Oslob Whale Shark Watching,,Whale Shark Watching,1,General,500,"Good for 30 minutes, inclusive of boat ride, snorkeling gear"
+Oslob Whale Shark Watching,,Scuba Diving,0,General,1000,"Good for 1 hour, diving gear not included"
+La Vie in the Sky,,Entrance,1,General,100,
+Tops Lookout,,Entrance,1,General,100,
+Simala Shrine (Monastery of the Holy Eucharist),,Entrance,1,General,0,
+Alegre Guitar Factory,,Entrance,1,General,0,
+Sachiko's Little Kyoto,,Entrance,1,General,100,
+Adventure Cafe and Zipline,,Entrance,1,General,0,
+Adventure Cafe and Zipline,,Zipline,0,General,200,per ride
+Adventure Cafe and Zipline,,Environmental,1,General,5,
+Chapel of San Pedro Calungsod,,Entrance,1,General,0,
+Mountain View Nature's Park,,Entrance,1,General,50,
+Mountain View Nature's Park,,Swimming,0,General,150,
+Osmena Peak,,Entrance,1,General,30,
+Panagsama Beach,,Entrance,1,General,0,
+Panagsama Beach,,Snorkeling Gear Rental,0,General,100,
+White Beach Moalboal,,Entrance,1,General,20,
+White Beach Moalboal,,Tent Fee,0,General,100,Bring your own Tent
+White Beach Moalboal,,Tent Rental Small,0,General,500,
+White Beach Moalboal,,Tent Rental Medium,0,General,1000,
+White Beach Moalboal,,Tent Rental Large,0,General,1000,
+Pescador Island,,Entrance,1,General,100,
+Tingko Beach,,Entrance,1,General,50,
+Tingko Beach,,Tent Space,0,General,100,Bring your own tent
+Tingko Beach,,Cottage Rental Small,0,General,200,
+Tingko Beach,,Cottage Rental Medium,0,General,500,
+Tingko Beach,,Cottage Rental Large,0,General,1000,
+10000 Roses Cafe,,Entrance,1,General,20,
+Teofilo Camomot Shrine,,Entrance,1,General,0,
+Theotokos Shrine,,Entrance,1,General,0,
+Sky Experience Adventure,,Entrance,1,General,250,
+Nalusuan Island,,Entrance,1,General,400,
+Nalusuan Island,,Scuba Diving,0,General,2000,
+Nalusuan Island,,Snorkeling Gear Rental,0,General,300,
+Nalusuan Island,,Boat Transportation,1,General,2500,"Round Trip, 2 - 10 pax, covers 3 islands"
+Hilutongan Island (Gilutongan Island),,Boat Transportation,1,General,2500,"Round Trip, 2 - 10 pax, covers 3 islands"
+Hilutongan Island (Gilutongan Island),,Snorkeling,0,General,100,
+Hilutongan Island (Gilutongan Island),,Scuba Diving,0,General,300,
+Caohagan Island,,Boat Transportation,1,General,2500,"Round Trip, 2 - 10 pax, covers 3 islands"
+Caohagan Island,,Entrance,1,General,200,Inclusive of environmental Fee
+Caohagan Island,,Cottage Rental,0,General,100,
+Taboan Public Market,,Entrance,1,General,0,
+Colon Street,,Entrance,1,General,0,
+Plaza Independencia,,Entrance,1,General,30,
+Olango Islands,,Entrance,1,General,20,
+San Vicente Marine Sanctuary,,Entrance,1,General,30,
+Orchids Gallery,,Entrance,1,General,20,
+Orchids Gallery,,Swimming,0,General,50,
+SeaQuest Dive Center,,Single Boat Dive,0,General,1750,
+SeaQuest Dive Center,,Snorkeling Gear,0,General,100,
+SeaQuest Dive Center,,Entrance,1,General,0,
+Cambais Falls,,Entrance,1,General,50,
+Green Mosque,,Entrance,1,General,0,
+Inambakan Falls,,Entrance,1,General,50,
+Alegria Heritage Park,,Entrance,1,General,0,
+Malapascua Light House,,Entrance,1,General,0,
+Cuartel Ruins,,Entrance,1,General,0,
+Capila de Sta. Ana,,Entrance,1,Local Guests,100,
+Capila de Sta. Ana,,Entrance,1,Students,50,
+Capila de Sta. Ana,,Entrance,1,Foreigners,200,
+Archdiocesan Museum of Cebu,,Entrance,1,General,50,
+OAD Tabor Hill,,Entrance,1,General,0,

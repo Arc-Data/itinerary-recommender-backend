@@ -330,3 +330,26 @@ class Activity(models.Model):
 
     def __str__(self):
         return self.name
+    
+class FeeType(models.Model):
+    spot = models.ForeignKey(Spot, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    is_required = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name} Fee - Spot: {self.spot}"
+
+class AudienceType(models.Model):
+    fee_type = models.ForeignKey(FeeType, on_delete=models.CASCADE, related_name='audience_types')
+    name = models.CharField(max_length=50)
+    price = models.FloatField()
+    description = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - Price: {self.price} - FeeType: {self.fee_type}"
+
+# @receiver(post_save, sender=FeeType)
+# def create_default_audience_type(sender, instance, created, **kwargs):
+#     if created:
+#         AudienceType.objects.create(fee_type=instance, name='general', price=0)
+#         print("Default AudienceType created.")
