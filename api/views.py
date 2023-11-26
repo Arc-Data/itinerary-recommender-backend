@@ -823,7 +823,6 @@ def get_active_trips(request):
 def get_user_business(request):
     user = request.user
     location = Location.objects.filter(owner=user)
-    print(location)
     serializer = LocationBusinessSerializer(location, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -837,6 +836,12 @@ def get_specific_business(request, location_id):
         location = Location.objects.get(owner=user, id=location_id)
     except (Location.DoesNotExist):
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if location.location_type == "1":
+        spot = Spot.objects.get(id=location_id)
+        serializer = SpotBusinessManageSerializer(spot)
+        return({'business': serializer.data}, status=status.HTTP_200_OK)
+    
     serializer = LocationBusinessManageSerializer(location)
     return Response({'business': serializer.data}, status=status.HTTP_200_OK)
 
@@ -855,6 +860,7 @@ def edit_business(request, location_id):
     
     if request.data.get('location_type') == "1":
         spot = Spot.objects.get(id=location_id)
+        print(request.data.get())
 
     location.name = request.data.get('name', location.name)
     location.address = request.data.get('address', location.address)

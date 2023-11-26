@@ -326,6 +326,7 @@ class LocationBusinessSerializer(serializers.ModelSerializer):
 
 class LocationBusinessManageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+
     class Meta:
         model = Location
         exclude = []
@@ -337,6 +338,22 @@ class LocationBusinessManageSerializer(serializers.ModelSerializer):
             return images[0].image.url
 
         return "/media/location_images/Placeholder.png"
+    
+class SpotBusinessManageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Spot
+        exclude = ['fees', 'expected_duration', 'tags']
+
+    def get_image(self, obj):
+        images = obj.images.filter(is_primary_image=True)
+
+        if images:
+            return images[0].image.url
+
+        return "/media/location_images/Placeholder.png"
+    
     
 #Spot-related Serializers
 class SpotDetailSerializers(serializers.ModelSerializer):
