@@ -512,7 +512,7 @@ def delete_review(request, location_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_location(request):
-    type = request.data.get("type")
+    location_type = request.data.get("type")
     name = request.data.get("name")
     address = request.data.get("address")
     latitude = request.data.get("latitude")
@@ -526,9 +526,17 @@ def create_location(request):
         latitude=latitude,
         longitude=longitude,
         description=description,
-        location_type=type,
+        location_type=location_type,
         is_closed=True
     )
+
+    if location_type == 1:
+        spot = Spot.objects.get(id=location.id)
+        spot.min_fee = request.data.get("min_fee", spot.min_fee)
+        spot.max_fee = request.data.get("max_fee", spot.max_fee)
+        spot.opening_time = request.data.get("opening_time", spot.opening_time)
+        spot.closing_time = request.data.get("min_fee", spot.closing_time)
+        spot.save()
 
     if image:
         LocationImage.objects.create(
@@ -544,6 +552,8 @@ def create_location(request):
         'id': data['id'],
         'message': "Created successfully",
     }
+
+    return Response(status=status.HTTP_200_OK)
 
     return Response(response_data, status=status.HTTP_200_OK)
 
@@ -833,7 +843,10 @@ def get_user_business(request):
 def get_specific_business(request, location_id):
     user = request.user
     try: 
-        location = Location.objects.get(owner=user, id=location_id)
+        if user.is_staff:
+            location = Location.objects.get(id=location_id)
+        else:
+            location = Location.objects.get(owner=user, id=location_id)
     except (Location.DoesNotExist):
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -865,12 +878,14 @@ def edit_business(request, location_id):
 
     if request.data.get('location_type') == "1":
         spot = Spot.objects.get(id=location_id)
+        
+        spot.opening_time = request.data.get('opening_time', spot.opening_time)
+        spot.closing_time = request.data.get('closing_time', spot.closing_time)
         spot.description = request.data.get('description', spot.description)
         spot.min_fee = request.data.get('min_fee', spot.min_fee)
         spot.max_fee = request.data.get('max_fee', spot.max_fee)
-        # spot.min_fee = request.data.get('min_fee', spot.min_fee)
-        # spot.min_fee = request.data.get('min_fee', spot.min_fee)
-
+        spot.min_fee = request.data.get('min_fee', spot.min_fee)
+        spot.min_fee = request.data.get('min_fee', spot.min_fee)
         spot.save()    
 
     return Response(status=status.HTTP_200_OK)
