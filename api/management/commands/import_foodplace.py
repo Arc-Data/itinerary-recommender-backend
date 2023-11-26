@@ -3,6 +3,7 @@ import csv
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from api.models import FoodPlace, LocationImage
+from urllib.parse import unquote
 
 class Command(BaseCommand):
     help = 'Import data from CSV to FoodPlace model'
@@ -27,7 +28,7 @@ class Command(BaseCommand):
                     location_type='2',
                 )
 
-                image_path = row['Image']
+                image_path = unquote(row['Image'])
                 LocationImage.objects.create(
                     location=foodplace,
                     image=image_path,

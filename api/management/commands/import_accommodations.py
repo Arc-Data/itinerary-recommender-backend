@@ -2,7 +2,8 @@ import os
 import csv
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from api.models import Accommodation, Location
+from api.models import Accommodation, Location, LocationImage
+from urllib.parse import unquote
 
 class Command(BaseCommand):
     help = 'Import data from CSV to Accommodation model'
@@ -25,6 +26,13 @@ class Command(BaseCommand):
                     longitude=float(row['Longitude']),
                     is_closed=is_closed,
                     location_type='3',
+                )
+                
+                image_path = unquote(row['Image'])
+                LocationImage.objects.create(
+                    location=accommodation,
+                    image=image_path,
+                    is_primary_image=True
                 )
 
                 print("Imported " + accommodation.name)

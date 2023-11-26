@@ -1,21 +1,21 @@
-Place,Address,IsClosed,Latitude,Longitude
-One Central Hotel,"Corner Leon Kilat, Sanciangko St, Streets, Cebu City, Cebu",0,10.29739315,123.8958344
-bai Hotel,"Ouano Ave, corner C.D.Seno, Mandaue City, 6014 Cebu",0,10.32483348,123.9367824
-Westpoint Hotel,"297 Don Gil Garcia St, Cebu City, 6000 Cebu",0,10.3120256,123.8917621
-Griffin Hotel and Suites,"22 Gov. M. Roa Street, Cebu City 6000 Philippines",0,10.31572035,123.8919605
-Mandarin Plaza Hotel,"Archbishop Reyes Avenue, corner N Escario St, Cebu City, 6000 Cebu",0,10.31984239,123.9032782
-Mad Monkey,"79 Echavez St, Cebu City, 6000 Cebu",0,10.3068359,123.9026741
-Hop Inn Hotel,"Lot 5 and 6 Block 20, Samar Loop, Cebu City, 6000 Cebu",0,10.3170166,123.9092367
-Shejoje Poshtel Hostel,"Dionisio Jakosalem St, Cebu City, 6000 Cebu",0,10.30584052,123.8997076
-Quest Hotel and Conference Center,"Archbishop Reyes Ave, Cebu City, 6000 Cebu",0,10.31937543,123.9030509
-ABC Hotel Cebu,"107 F. Ramos St, Cebu City, 6000 Cebu",0,10.30699714,123.8963982
-1075 Dormitel,"258-L Uytengsu Street, Cebu City 6000 Philippines",0,10.3038751,123.8940685
-Main Hotel & Suites,"J. Panis Street Old Banilad Road Kasambangan, Cebu City 6000 Philippines",0,10.33581543,123.9114033
-The Flying Fish Hostel,"8-10 Adelfa Street EL Dorado Subdivision,, Cebu City 6000 Philippines",0,10.34152577,123.913003
-Uncle Tom's Cabin Hotel,"M. P. Yap St, Cebu City, 6000 Cebu",0,10.31484249,123.8930381
-Cebu R Hotel - Capitol,"101 Don Mariano Cui St, Capitol Site, Cebu City 6000 Philippines",0,10.3153916,123.8900486
-Nacho Hostel,"Sandy Drive, Talisay, Cebu",0,10.26785028,123.8432187
-Tsai Hotel & Residences,"11 Wilson St, Apas, Cebu City, 6000 Cebu",0,10.33140515,123.8999285
-St. Mark Hotel,"Queens Road, Redemptorist Plaza, Cebu City, 6000 Cebu",0,10.31252653,123.8969872
-Kiwi Hotel,"1060 G. Tudtud Street Mabolo, Cebu City 6000 Philippines",0,10.31332166,123.9110034
-Cuarto Hotel,"15 Corner J.Llorente St., Gil Garcia St., Capitol Site, Cebu City 6000 Philippines",0,10.31129893,123.8920538
+Place,Address,IsClosed,Latitude,Longitude,Image
+One Central Hotel,"Corner Leon Kilat, Sanciangko St, Streets, Cebu City, Cebu",0,10.29739315,123.8958344,/location_images/One_Central_Hotel/One_Central_Hotel.jpg
+bai Hotel,"Ouano Ave, corner C.D.Seno, Mandaue City, 6014 Cebu",0,10.32483348,123.9367824,/location_images/bai_Hotel/bai_Hotel.jpg
+Westpoint Hotel,"297 Don Gil Garcia St, Cebu City, 6000 Cebu",0,10.3120256,123.8917621,/location_images/Westpoint_Hotel/Westpoint_Hotel.jpg
+Griffin Hotel and Suites,"22 Gov. M. Roa Street, Cebu City 6000 Philippines",0,10.31572035,123.8919605,/location_images/Griffin_Hotel_and_Suites/Griffin_Hotel_and_Suites.jpg
+Mandarin Plaza Hotel,"Archbishop Reyes Avenue, corner N Escario St, Cebu City, 6000 Cebu",0,10.31984239,123.9032782,/location_images/Mandarin_Plaza_Hotel/Mandarin_Plaza_Hotel.jpg
+Mad Monkey,"79 Echavez St, Cebu City, 6000 Cebu",0,10.3068359,123.9026741,/location_images/Mad_Monkey/Mad_Monkey.jpg
+Hop Inn Hotel,"Lot 5 and 6 Block 20, Samar Loop, Cebu City, 6000 Cebu",0,10.3170166,123.9092367,/location_images/Hop_Inn_Hotel/Hop_Inn_Hotel.jpg
+Shejoje Poshtel Hostel,"Dionisio Jakosalem St, Cebu City, 6000 Cebu",0,10.30584052,123.8997076,/location_images/Shejoje_Poshtel_Hostel/Shejoje_Poshtel_Hostel.jpg
+Quest Hotel and Conference Center,"Archbishop Reyes Ave, Cebu City, 6000 Cebu",0,10.31937543,123.9030509,/location_images/Quest_Hotel_and_Conference_Center/Quest_Hotel_and_Conference_Center.jpg
+ABC Hotel Cebu,"107 F. Ramos St, Cebu City, 6000 Cebu",0,10.30699714,123.8963982,/location_images/ABC_Hotel_Cebu/ABC_Hotel_Cebu.jpg
+1075 Dormitel,"258-L Uytengsu Street, Cebu City 6000 Philippines",0,10.3038751,123.8940685,/location_images/1075_Dormitel/1075_Dormitel.jpg
+Main Hotel & Suites,"J. Panis Street Old Banilad Road Kasambangan, Cebu City 6000 Philippines",0,10.33581543,123.9114033,/location_images/Main_Hotel_%26_Suites/Main_Hotel__Suites.jpg
+The Flying Fish Hostel,"8-10 Adelfa Street EL Dorado Subdivision,, Cebu City 6000 Philippines",0,10.34152577,123.913003,/location_images/The_Flying_Fish_Hostel/The_Flying_Fish_Hostel.jpg
+Uncle Tom's Cabin Hotel,"M. P. Yap St, Cebu City, 6000 Cebu",0,10.31484249,123.8930381,/location_images/Uncle_Tom's_Cabin_Hotel/Uncle_Toms_Cabin_Hotel.jpg
+Cebu R Hotel - Capitol,"101 Don Mariano Cui St, Capitol Site, Cebu City 6000 Philippines",0,10.3153916,123.8900486,/location_images/Cebu_R_Hotel_-_Capitol/Cebu_R_Hotel_-_Capitol.jpg
+Nacho Hostel,"Sandy Drive, Talisay, Cebu",0,10.26785028,123.8432187,/location_images/Nacho_Hostel/Nacho_Hostel.jpg
+Tsai Hotel & Residences,"11 Wilson St, Apas, Cebu City, 6000 Cebu",0,10.33140515,123.8999285,/location_images/Tsai_Hotel_%26_Residences/Tsai_Hotel__Residences.jpg
+St. Mark Hotel,"Queens Road, Redemptorist Plaza, Cebu City, 6000 Cebu",0,10.31252653,123.8969872,/location_images/St._Mark_Hotel/St._Mark_Hotel.jpg
+Kiwi Hotel,"1060 G. Tudtud Street Mabolo, Cebu City 6000 Philippines",0,10.31332166,123.9110034,/location_images/Kiwi_Hotel/Kiwi_Hotel.jpg
+Cuarto Hotel,"15 Corner J.Llorente St., Gil Garcia St., Capitol Site, Cebu City 6000 Philippines",0,10.31129893,123.8920538,/location_images/Cuarto_Hotel/Cuarto_Hotel.jpg
