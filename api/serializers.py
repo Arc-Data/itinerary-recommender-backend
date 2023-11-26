@@ -656,6 +656,11 @@ class EventSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'longitude', 'latitude']
 
 
+class EventSerializerAdmin(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
+
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()

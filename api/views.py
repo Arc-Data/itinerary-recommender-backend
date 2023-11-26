@@ -1130,6 +1130,82 @@ def get_all_completed_days(request):
 
     return Response(serializer.data)
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_all_events(request):
+    events = Event.objects.all()
+    serializer = EventSerializerAdmin(events, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_event(request):
+
+    name = request.data.get('name')
+    start_date = request.data.get('start_date')
+    end_date = request.data.get('end_date')
+    description = request.data.get('description')
+    latitude = request.data.get('latitude')
+    longitude = request.data.get('longitude')
+
+    start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
+    end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+
+    Event.objects.create (
+        name=name,
+        start_date=start_date,
+        end_date=end_date,
+        latitude=latitude,
+        longitude=longitude,
+        description=description
+    )
+
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_event(request, event_id):
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    name = request.data.get('name')
+    start_date = request.data.get('start_date')
+    end_date = request.data.get('end_date')
+    description = request.data.get('description')
+    latitude = request.data.get('latitude')
+    longitude = request.data.get('longitude')
+
+    start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
+    end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+
+    event.name = name
+    event.start_date = start_date
+    event.end_date = end_date
+    event.description = description
+    event.latitude = latitude
+    event.longitude = longitude
+
+    event.save()
+
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_event(request, event_id):
+    try:
+        event = Event.objects.get(id=event_id)
+    except Event.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    event.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
 #Test Views
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
