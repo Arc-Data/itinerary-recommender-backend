@@ -856,24 +856,31 @@ def edit_business(request, location_id):
     except Location.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
-    location.location_type = request.data.get('type', location.location_type)
-    
-    if request.data.get('location_type') == "1":
-        spot = Spot.objects.get(id=location_id)
-        print(request.data.get())
-
     location.name = request.data.get('name', location.name)
     location.address = request.data.get('address', location.address)
     location.longitude = request.data.get('longitude', location.longitude)
     location.latitude = request.data.get('latitude', location.latitude)
     location.description = request.data.get('description', location.description)
+    location.save()
+
+    if request.data.get('location_type') == "1":
+        spot = Spot.objects.get(id=location_id)
+        spot.description = request.data.get('description', spot.description)
+        spot.min_fee = request.data.get('min_fee', spot.min_fee)
+        spot.max_fee = request.data.get('max_fee', spot.max_fee)
+        # spot.min_fee = request.data.get('min_fee', spot.min_fee)
+        # spot.min_fee = request.data.get('min_fee', spot.min_fee)
+
+        spot.save()    
+
+    return Response(status=status.HTTP_200_OK)
+
+
     # location.website = request.data.get('website', location.website)
     # location.contact = request.data.get('contact', location.contact)
     # location.email = request.data.get('email', location.email)
     
-    location.save()
 
-    return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["DELETE"])
