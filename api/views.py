@@ -1206,6 +1206,30 @@ def delete_event(request, event_id):
     event.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_business_stats(request, location_id):
+    user = request.user
+
+    try:
+        location = Location.objects.get(id=location_id, owner=user)
+    except Location.DoesNotExist:
+        return Response({'error': 'Location not found or you do not have access'}, status=status.HTTP_404_NOT_FOUND)
+
+    total_bookmarks = Bookmark.objects.filter(location=location).count()
+    average_rating = Review.objects.filter(location=location).aggregate(Avg('rating'))['rating__avg']
+    total_reviews = Review.objects.filter(location=location).count()
+
+    stats = {
+        'total_bookmarks': total_bookmarks,
+        'average_rating': average_rating,
+        'total_reviews': total_reviews,
+    }
+
+    return Response(stats, status=status.HTTP_200_OK)
+
+
 #Test Views
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
