@@ -571,7 +571,7 @@ class BookmarkLocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bookmark
-        fields = ['id', 'details']
+        fields = ['id', 'details', 'location']
 
 class BookmarkCountSerializer(serializers.Serializer):
     location_id = serializers.IntegerField(source='id')

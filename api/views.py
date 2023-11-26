@@ -851,14 +851,19 @@ def edit_business(request, location_id):
     except Location.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
+    location.location_type = request.data.get('type', location.location_type)
+    
+    if request.data.get('location_type') == "1":
+        spot = Spot.objects.get(id=location_id)
+
     location.name = request.data.get('name', location.name)
     location.address = request.data.get('address', location.address)
     location.longitude = request.data.get('longitude', location.longitude)
     location.latitude = request.data.get('latitude', location.latitude)
-    location.location_type = request.data.get('type', location.location_type)
-    location.website = request.data.get('website', location.website)
-    location.contact = request.data.get('contact', location.contact)
-    location.email = request.data.get('email', location.email)
+    location.description = request.data.get('description', location.description)
+    # location.website = request.data.get('website', location.website)
+    # location.contact = request.data.get('contact', location.contact)
+    # location.email = request.data.get('email', location.email)
     
     location.save()
 
@@ -1017,6 +1022,7 @@ def get_top_foodplaces(request):
 def get_top_bookmarks(request):
     top_bookmarked_locations = (
         Location.objects.annotate(bookmark_count=Count('bookmark'))
+            .filter(bookmark_count__gt=0)
             .order_by('-bookmark_count')[:10]
     )
     serializer = BookmarkCountSerializer(top_bookmarked_locations, many=True)

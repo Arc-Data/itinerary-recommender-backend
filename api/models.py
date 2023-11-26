@@ -190,6 +190,8 @@ class LocationImage(models.Model):
 
 class Spot(Location):
     fees = models.PositiveIntegerField(blank=True, null=True)
+    min_fee = models.FloatField(default=0)
+    max_fee = models.FloatField(default=0)
     expected_duration = models.DurationField(default=timedelta(hours=1))
     tags = models.ManyToManyField("Tag", related_name="spots")
     opening_time = models.TimeField(blank=True, null=True)
