@@ -924,19 +924,20 @@ def create_food(request, location_id):
     except FoodPlace.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
-    item_name = request.data.get('item')
+    item = request.data.get('item')
     price = request.data.get('price')
-    image_file = request.FILES.get('image')
+    image = request.FILES.get('image')
 
-    if not item_name or not price or not image_file:
-        return Response({"error": "item, price, and image are required fields"}, status=status.HTTP_400_BAD_REQUEST)
+    food = Food.objects.create(
+        location=location,
+        item=item,
+        price=price,
+        image=image,
+    )
 
-    serializer = FoodSerializer(data={'item': item_name, 'price': price, 'image': image_file})
-    if serializer.is_valid():
-        serializer.save(location=location)
-        return Response(status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    serializer = FoodSerializer(food)
+    print(serializer.data)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -1075,24 +1076,28 @@ def edit_itinerary(request, itinerary_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_service(request, location_id):
+    print(request.data)
     try:
         location = Accommodation.objects.get(id=location_id, owner=request.user)
     except Accommodation.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
-    item_name = request.data.get('item')
+    item = request.data.get('item')
     description = request.data.get('description')
     price = request.data.get('price')
-    image_file = request.FILES.get('image')
+    image = request.FILES.get('image')
 
-    if not item_name or not description or not price or not image_file:
-        return Response({"error": "item, price, description and image are required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer = ServiceSerializer(data={'item': item_name, 'price': price, 'description': description, 'image': image_file})
-    if serializer.is_valid():
-        serializer.save(location=location)
-        return Response(status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    service = Service.objects.create(
+        location=location,
+        item=item,
+        description=description,
+        price=price,
+        image=image,
+    )
+
+    serializer = ServiceSerializer(service)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['DELETE'])
@@ -1229,12 +1234,10 @@ def get_business_stats(request, location_id):
 
     return Response(stats, status=status.HTTP_200_OK)
 
-
-#Test Views
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_event(request):
-    location = get_object_or_404(Location, id=98)
-    serializer = SampleLocationSerializer(location)
+def get_event(request, event_id):
+    event = Event.objects.get(id=event_id)
+    serializer = EventSerializerAdmin(event)
 
     return Response(serializer.data, status=status.HTTP_200_OK)

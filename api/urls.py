@@ -92,10 +92,9 @@ urlpatterns = [
     path('dashboard/top-bookmarks/', get_top_bookmarks, name='get_top_bookmarks'),
 
     path('event/', get_all_events, name='get_all_events'),
+    path('event/<int:event_id>/', get_event, name='get_event'),
     path('event/create/', create_event, name='create_event'),
     path('event/<int:event_id>/update/', update_event, name='update_event'),
     path('event/<int:event_id>/delete/', delete_event, name='delete_event'),
 
-    #Test URL
-    path('sample/', get_event, name='get_event'),
 ]
