@@ -52,8 +52,7 @@ class SpotSerializers(serializers.ModelSerializer):
         return [activity.name for activity in obj.activity.all()]
 
     def get_min_fee(self, obj):
-        min_fee_data = []
-
+        min_fee = 0
         all_fee_types = obj.feetype_set.filter(is_required=True)
         all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
 
@@ -61,13 +60,9 @@ class SpotSerializers(serializers.ModelSerializer):
         min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
 
         if min_audience_type:
-            min_fee_data.append({
-                # 'fee_type': min_audience_type.fee_type.name,
-                # 'audience_type': min_audience_type.name,
-                'price': min_audience_type.price
-            })
+            min_fee = min_audience_type.price
 
-        return min_fee_data
+        return min_fee
     
     def get_optional_fee(self, obj):
         optional_fee_data = []
@@ -87,8 +82,7 @@ class SpotSerializers(serializers.ModelSerializer):
         return optional_fee_data
 
     def get_max_fee(self, obj):
-        max_fee_data = []
-        
+        max_fee = 0
         required_fee_types = obj.feetype_set.filter(is_required=True)
         optional_fee_types = obj.feetype_set.filter(is_required=False)
 
@@ -103,10 +97,8 @@ class SpotSerializers(serializers.ModelSerializer):
             for audience_type in fee_type.audience_types.all()
         )
 
-        max_fee_data.append({
-            'price': max_required_fee + total_optional_fee_price
-        })
-        return max_fee_data
+        max_fee = max_required_fee + total_optional_fee_price
+        return max_fee
     
     def get_required_fee(self, obj):
         required_fee_data = []
@@ -199,9 +191,36 @@ class LocationQuerySerializers(serializers.ModelSerializer):
     def get_fee(self, obj):
         if obj.location_type == "1":
             spot = Spot.objects.get(id=obj.id)
+            min_fee = 0
+            max_fee = 0
+
+            required_fee_types = spot.feetype_set.filter(is_required=True)
+            optional_fee_types = spot.feetype_set.filter(is_required=False)
+
+            all_fee_types = obj.feetype_set.filter(is_required=True)
+            all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
+
+            # Find the minimum price using the min function
+            min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
+
+            if min_audience_type:
+                min_fee = min_audience_type.price
+        
+            total_optional_fee_price = sum(
+                audience_type.price
+                for fee_type in optional_fee_types
+                for audience_type in fee_type.audience_types.all()
+            )
+            max_required_fee = max(
+                audience_type.price
+                for fee_type in required_fee_types
+                for audience_type in fee_type.audience_types.all()
+            )
+
+            max_fee = max_required_fee + total_optional_fee_price
             return {
-                "min": spot.get_min_cost,
-                "max": spot.get_max_cost
+                "min": min_fee,
+                "max": max_fee
             }
 
         elif obj.location_type =="2" :
