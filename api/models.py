@@ -255,11 +255,20 @@ class FoodPlace(Location):
     
     @property
     def get_min_cost(self):
-        return Food.objects.filter(location=self).order_by('price').first().price
+        min_food = Food.objects.filter(location=self).order_by('price').first()
+        if min_food is not None and hasattr(min_food, 'price'):
+            return min_food.price
+        else:
+            return 300.0
 
     @property
     def get_max_cost(self):
-        return Food.objects.filter(location=self).order_by('-price').first().price
+        max_food = Food.objects.filter(location=self).order_by('-price').first()
+
+        if max_food is not None and hasattr(max_food, 'price'):
+            return max_food.price
+        else:
+            return 300.0
 
 class Accommodation(Location):
 

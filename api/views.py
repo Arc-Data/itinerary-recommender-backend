@@ -418,7 +418,7 @@ def get_location_reviews(request, location_id):
         paginator = PageNumberPagination()
         paginator.page_size = 5
 
-        reviews = Review.objects.filter(location_id=location_id).exclude(user=user)
+        reviews = Review.objects.filter(location_id=location_id).exclude(user=user).order_by('-datetime_created')
         result_page = paginator.paginate_queryset(reviews, request)
         review_serializer = ReviewSerializers(result_page, many=True)
         
@@ -649,7 +649,7 @@ def get_homepage_recommendations(request):
 @permission_classes([IsAuthenticated])
 def get_all_users(request):
     if request.method == 'GET':
-        users = User.objects.all()
+        users = User.objects.filter(is_superuser=False)
         serializer = UserSerializers(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -863,9 +863,11 @@ def get_specific_business(request, location_id):
 @permission_classes([IsAuthenticated])
 def edit_business(request, location_id):
     user = request.user
-
     try:
-        location = Location.objects.get(owner=user, id=location_id)
+        if user.is_staff:
+            location = Location.objects.get(id=location_id)
+        else:
+            location = Location.objects.get(owner=user, id=location_id)
     except Location.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
