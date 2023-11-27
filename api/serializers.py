@@ -40,27 +40,27 @@ class SpotSerializers(serializers.ModelSerializer):
     optional_fee = serializers.SerializerMethodField()
     max_fee = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
+    required_fee = serializers.SerializerMethodField()
 
     class Meta:
         model = Spot
-        fields = ('min_fee', 'max_fee', 'optional_fee', 'opening_time', 'closing_time', 'tags')
+        fields = ('min_fee', 'max_fee', 'optional_fee', 'required_fee', 'opening_time', 'closing_time', 'tags')
 
 
     def get_min_fee(self, obj):
         min_fee_data = []
-        fee_types = obj.feetype_set.filter(is_required=True)
-        audience_types = AudienceType.objects.filter(fee_type__in=fee_types, name__in=['Adult', 'Children'])
 
-        for audience_type in audience_types:
-            min_fee_type = min(
-                obj.feetype_set.filter(is_required=True, audience_types=audience_type),
-                key=lambda fee_type: fee_type.audience_types.get(name=audience_type.name).price
-            )
+        all_fee_types = obj.feetype_set.filter(is_required=True)
+        all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
 
+        # Find the minimum price using the min function
+        min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
+
+        if min_audience_type:
             min_fee_data.append({
-                'fee_type': min_fee_type.name,
-                'audience_type': audience_type.name,
-                'min_price': min_fee_type.audience_types.get(name=audience_type.name).price
+                'fee_type': min_audience_type.fee_type.name,
+                'audience_type': min_audience_type.name,
+                'min_price': min_audience_type.price
             })
 
         return min_fee_data
@@ -85,35 +85,45 @@ class SpotSerializers(serializers.ModelSerializer):
 
     def get_max_fee(self, obj):
         max_fee_data = []
-        audience_type_totals = {}
-        fee_types = obj.feetype_set.filter(is_required=True)
+        
+        required_fee_types = obj.feetype_set.filter(is_required=True)
+        optional_fee_types = obj.feetype_set.filter(is_required=False)
 
-        general_audience_prices = {}
+        total_optional_fee_price = sum(
+            audience_type.price
+            for fee_type in optional_fee_types
+            for audience_type in fee_type.audience_types.all()
+        )
 
-        for fee_type in fee_types:
-            general_audience = fee_type.audience_types.filter(name='General').first()
-            if general_audience:
-                general_audience_prices[fee_type.name] = general_audience.price
-
-        for fee_type in fee_types:
+        for fee_type in required_fee_types:
             audience_types = fee_type.audience_types.all()
 
             for audience_type in audience_types:
-                if audience_type.name:
-                    total_price = audience_type_totals.get((fee_type.name, audience_type.name), 0)
-                    total_price += audience_type.price
-                    if audience_type.name != 'General':
-                        total_price += general_audience_prices.get(fee_type.name, 0)
-
-                        audience_type_totals[(fee_type.name, audience_type.name)] = total_price
-
-                        max_fee_data.append({
-                            'fee_type': fee_type.name,
-                            'audience_type': audience_type.name,
-                            'total_price': round(total_price, 2)
-                        })
+                max_fee_data.append({
+                    'fee_type': fee_type.name,
+                    'audience_type': audience_type.name,
+                    'max_price': audience_type.price + total_optional_fee_price
+                })
 
         return max_fee_data
+    
+    def get_required_fee(self, obj):
+        required_fee_data = []
+        required_fee_types = obj.feetype_set.filter(is_required=True)
+
+        for fee_type in required_fee_types:
+            audience_types = fee_type.audience_types.all()
+
+            for audience_type in audience_types:
+                audience_type_name = audience_type.name
+
+                required_fee_data.append({
+                    'fee_type': fee_type.name,
+                    'audience_type': audience_type_name,
+                    'price': audience_type.price
+                })
+
+        return required_fee_data
 
     def get_tags(self, obj):
         return [tag.name for tag in obj.tags.all()]
