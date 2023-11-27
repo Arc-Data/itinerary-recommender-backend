@@ -197,10 +197,9 @@ class LocationQuerySerializers(serializers.ModelSerializer):
             required_fee_types = spot.feetype_set.filter(is_required=True)
             optional_fee_types = spot.feetype_set.filter(is_required=False)
 
-            all_fee_types = obj.feetype_set.filter(is_required=True)
+            all_fee_types = spot.feetype_set.filter(is_required=True)
             all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
 
-            # Find the minimum price using the min function
             min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
 
             if min_audience_type:
