@@ -1213,10 +1213,8 @@ def delete_event(request, event_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_business_stats(request, location_id):
-    user = request.user
-
     try:
-        location = Location.objects.get(id=location_id, owner=user)
+        location = Location.objects.get(id=location_id)
     except Location.DoesNotExist:
         return Response({'error': 'Location not found or you do not have access'}, status=status.HTTP_404_NOT_FOUND)
 
