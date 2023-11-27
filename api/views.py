@@ -862,10 +862,8 @@ def get_specific_business(request, location_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def edit_business(request, location_id):
-    user = request.user
-
     try:
-        location = Location.objects.get(owner=user, id=location_id)
+        location = Location.objects.get(id=location_id)
     except Location.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
