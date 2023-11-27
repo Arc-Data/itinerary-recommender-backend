@@ -41,18 +41,12 @@ class SpotSerializers(serializers.ModelSerializer):
     max_fee = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     activities = serializers.SerializerMethodField()
-    required_fees = serializers.SerializerMethodField()
-    optional_fees = serializers.SerializerMethodField()
+    required_fee = serializers.SerializerMethodField()
 
     class Meta:
         model = Spot
-        fields = ('min_fee', 'max_fee', 'opening_time', 'closing_time', 'tags', 'activities', 'required_fees', 'optional_fees')
+        fields = ('min_fee', 'max_fee', 'opening_time', 'closing_time', 'tags', 'activities', 'required_fee', 'optional_fee')
 
-    def get_optional_fees(self, obj):
-        return None
-
-    def get_required_fees(self, obj):
-        return None
 
     def get_activities(self, obj):
         return [activity.name for activity in obj.activity.all()]
