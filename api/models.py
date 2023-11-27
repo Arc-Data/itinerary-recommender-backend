@@ -352,8 +352,8 @@ class AudienceType(models.Model):
     def __str__(self):
         return f"{self.name} - Price: {self.price} - FeeType: {self.fee_type}"
 
-# @receiver(post_save, sender=FeeType)
-# def create_default_audience_type(sender, instance, created, **kwargs):
-#     if created:
-#         AudienceType.objects.create(fee_type=instance, name='general', price=0)
-#         print("Default AudienceType created.")
+@receiver(post_save, sender=FeeType)
+def create_default_audience_type(sender, instance, created, **kwargs):
+    if created:
+        AudienceType.objects.create(fee_type=instance, name='general', price=0)
+        print("Default AudienceType created.")

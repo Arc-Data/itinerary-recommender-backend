@@ -665,6 +665,20 @@ class EventSerializerAdmin(serializers.ModelSerializer):
         model = Event
         fields = '__all__'
 
+
+class AudienceTypeSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = AudienceType
+        fields = '__all__'
+
+class FeeTypeSerializer(serializers.ModelSerializer):
+    audience_types = AudienceTypeSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = FeeType 
+        fields = '__all__'
+
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()

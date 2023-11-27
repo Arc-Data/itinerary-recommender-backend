@@ -97,4 +97,6 @@ urlpatterns = [
     path('event/<int:event_id>/update/', update_event, name='update_event'),
     path('event/<int:event_id>/delete/', delete_event, name='delete_event'),
 
+    path('location/<int:location_id>/fee/create/', create_fee, name="create_fee"),
+    path('location/<int:location_id>/fees/', get_fees, name="get_fees"),
 ]

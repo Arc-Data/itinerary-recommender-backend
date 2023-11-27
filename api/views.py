@@ -1241,3 +1241,29 @@ def get_event(request, event_id):
     serializer = EventSerializerAdmin(event)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_fee(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    name = request.data.get('name')
+    is_required = request.data.get('is_required')
+
+    fee = FeeType.objects.create(
+        spot=spot,
+        name=name,
+        is_required=is_required
+    )
+
+    serializer = FeeTypeSerializer(fee)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+def get_fees(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    print(spot)
+    fees = FeeType.objects.filter(spot=spot)
+    print(fees)
+    serializer = FeeTypeSerializer(fees, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
