@@ -52,17 +52,7 @@ class SpotSerializers(serializers.ModelSerializer):
         return [activity.name for activity in obj.activity.all()]
 
     def get_min_fee(self, obj):
-        min_fee = 0
-        all_fee_types = obj.feetype_set.filter(is_required=True)
-        all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
-
-        if all_audience_types.exists():
-            min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
-
-            if min_audience_type:
-                min_fee = min_audience_type.price
-
-        return min_fee
+        return obj.get_min_cost
     
     def get_optional_fee(self, obj):
         optional_fee_data = []
@@ -82,25 +72,7 @@ class SpotSerializers(serializers.ModelSerializer):
         return optional_fee_data
 
     def get_max_fee(self, obj):
-        max_fee = 0
-        required_fee_types = obj.feetype_set.filter(is_required=True)
-        optional_fee_types = obj.feetype_set.filter(is_required=False)
-
-        total_optional_fee_price = sum(
-            audience_type.price
-            for fee_type in optional_fee_types
-            for audience_type in fee_type.audience_types.all()
-        )
-
-        if required_fee_types.exists():
-            max_required_fee = max(
-                audience_type.price
-                for fee_type in required_fee_types
-                for audience_type in fee_type.audience_types.all()
-            )
-
-            max_fee = max_required_fee + total_optional_fee_price
-        return max_fee
+        return obj.get_max_cost
     
     def get_required_fee(self, obj):
         required_fee_data = []
@@ -231,17 +203,20 @@ class LocationQuerySerializers(serializers.ModelSerializer):
         elif obj.location_type =="2" :
             query_set = Food.objects.filter(location=obj.id)
 
+            min_price = 0
+            max_price = 0
+
             if query_set.exists():
                 price_aggregation = query_set.aggregate(min_price=models.Min('price'), max_price=models.Max('price'))
                 min_price = price_aggregation.get('min_price')
-                max_price = price_aggregation.get('max_price') 
+                max_price = price_aggregation.get('max_price')
             else:
                 min_price = 300.0
-                max_price = 300.0
+                max_price = 300.0 
         
             return {
-                'min_price': min_price, 
-                'max_price': max_price
+                'min': min_price, 
+                'max': max_price
             }
         
         return None
