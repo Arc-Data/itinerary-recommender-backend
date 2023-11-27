@@ -207,17 +207,35 @@ class Spot(Location):
 
     @property
     def get_min_cost(self):
-        if hasattr(self, 'custom_fee') and self.custom_fee.min_cost is not None:
-            return self.custom_fee.min_cost
+        all_fee_types = self.feetype_set.filter(is_required=True)
+        all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
+
+        if all_audience_types.exists():
+            min_audience_type = min(all_audience_types, key=lambda at: at.price)
+            return min_audience_type.price
         else:
-            return self.fees if self.fees is not None else None
+            return 0
 
     @property
     def get_max_cost(self):
-        if hasattr(self, 'custom_fee') and self.custom_fee.max_cost is not None:
-            return self.custom_fee.max_cost
+        required_fee_types = self.feetype_set.filter(is_required=True)
+        optional_fee_types = self.feetype_set.filter(is_required=False)
+
+        total_optional_fee_price = sum(
+            audience_type.price
+            for fee_type in optional_fee_types
+            for audience_type in fee_type.audience_types.all()
+        )
+
+        if required_fee_types.exists():
+            max_required_fee = max(
+                audience_type.price
+                for fee_type in required_fee_types
+                for audience_type in fee_type.audience_types.all()
+            )
+            return max_required_fee + total_optional_fee_price
         else:
-            return self.fees if self.fees is not None else None
+            return 0
         
 
 class Tag(models.Model):
