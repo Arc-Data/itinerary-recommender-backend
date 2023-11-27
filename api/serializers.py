@@ -201,24 +201,28 @@ class LocationQuerySerializers(serializers.ModelSerializer):
 
             all_fee_types = spot.feetype_set.filter(is_required=True)
             all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
+            
+            if all_audience_types.exists():
+                min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
 
-            min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
-
-            if min_audience_type:
-                min_fee = min_audience_type.price
+                if min_audience_type:
+                    min_fee = min_audience_type.price
         
             total_optional_fee_price = sum(
                 audience_type.price
                 for fee_type in optional_fee_types
                 for audience_type in fee_type.audience_types.all()
             )
-            max_required_fee = max(
-                audience_type.price
-                for fee_type in required_fee_types
-                for audience_type in fee_type.audience_types.all()
-            )
 
-            max_fee = max_required_fee + total_optional_fee_price
+            if required_fee_types.exists():
+                max_required_fee = max(
+                    audience_type.price
+                    for fee_type in required_fee_types
+                    for audience_type in fee_type.audience_types.all()
+                )
+
+                max_fee = max_required_fee + total_optional_fee_price
+
             return {
                 "min": min_fee,
                 "max": max_fee
