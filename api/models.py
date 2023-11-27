@@ -205,6 +205,7 @@ class Spot(Location):
     def __str__(self):
         return self.name
 
+    @property
     def get_min_cost(self):
         all_fee_types = self.feetype_set.filter(is_required=True)
         all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
