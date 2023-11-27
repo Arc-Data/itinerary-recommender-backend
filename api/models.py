@@ -255,11 +255,19 @@ class FoodPlace(Location):
     
     @property
     def get_min_cost(self):
-        return Food.objects.filter(location=self).order_by('price').first().price
+        min_food = Food.objects.filter(location=self).order_by('price').first()
+        if min_food:
+            return min_food.price
+        else:
+            return 0
 
     @property
     def get_max_cost(self):
-        return Food.objects.filter(location=self).order_by('-price').first().price
+        max_food = Food.objects.filter(location=self).order_by('-price').first().price
+        if max_food:
+            return max_food.price
+        else:
+            return 0
 
 class Accommodation(Location):
 
