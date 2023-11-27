@@ -259,7 +259,7 @@ class FoodPlace(Location):
         if min_food is not None and hasattr(min_food, 'price'):
             return min_food.price
         else:
-            return 0
+            return 300.0
 
     @property
     def get_max_cost(self):
@@ -268,7 +268,7 @@ class FoodPlace(Location):
         if max_food is not None and hasattr(max_food, 'price'):
             return max_food.price
         else:
-            return 0
+            return 300.0
 
 class Accommodation(Location):
 
