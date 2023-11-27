@@ -78,6 +78,10 @@ class Location(models.Model):
     email = models.EmailField(blank=True, null=True)
     contact = models.CharField(max_length=15, blank=True, null=True, default="")
 
+    @property 
+    def get_activities(self):
+        return [activity.name for activity in Activity.objects.filter(location=self)]
+
     @property
     def get_min_cost(self):
         if self.location_type == "1":
