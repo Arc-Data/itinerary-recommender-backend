@@ -91,7 +91,8 @@ urlpatterns = [
     path('dashboard/top-accommodations/', get_top_accommodations, name='get_top_accommodations'),
     path('dashboard/top-foodplaces/', get_top_foodplaces, name='get_top_foodplaces'),
     path('dashboard/top-bookmarks/', get_top_bookmarks, name='get_top_bookmarks'),
-
+    path('dashboard/top-locations-itinerary/', get_top_locations_itinerary, name='get_top_locations_itinerary'),
+    
     path('event/', get_all_events, name='get_all_events'),
     path('event/<int:event_id>/', get_event, name='get_event'),
     path('event/create/', create_event, name='create_event'),

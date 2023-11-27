@@ -56,11 +56,11 @@ class SpotSerializers(serializers.ModelSerializer):
         all_fee_types = obj.feetype_set.filter(is_required=True)
         all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
 
-        # Find the minimum price using the min function
-        min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
+        if all_audience_types.exists():
+            min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
 
-        if min_audience_type:
-            min_fee = min_audience_type.price
+            if min_audience_type:
+                min_fee = min_audience_type.price
 
         return min_fee
     
@@ -91,13 +91,15 @@ class SpotSerializers(serializers.ModelSerializer):
             for fee_type in optional_fee_types
             for audience_type in fee_type.audience_types.all()
         )
-        max_required_fee = max(
-            audience_type.price
-            for fee_type in required_fee_types
-            for audience_type in fee_type.audience_types.all()
-        )
 
-        max_fee = max_required_fee + total_optional_fee_price
+        if required_fee_types.exists():
+            max_required_fee = max(
+                audience_type.price
+                for fee_type in required_fee_types
+                for audience_type in fee_type.audience_types.all()
+            )
+
+            max_fee = max_required_fee + total_optional_fee_price
         return max_fee
     
     def get_required_fee(self, obj):
@@ -399,11 +401,18 @@ class LocationTopSerializer(serializers.ModelSerializer):
     def get_average_rating(self, obj):
         reviews = Review.objects.filter(location=obj)
         average_rating = reviews.aggregate(Avg('rating'))['rating__avg'] if reviews.exists() else 0
+        average_rating = round(average_rating, 2) if average_rating is not None else 0
         return average_rating
 
     def get_total_reviews(self, obj):
         return Review.objects.filter(location=obj).count()
 
+
+class TopLocationItinerarySerializer(serializers.ModelSerializer):
+    total_occurrences = serializers.IntegerField()
+    class Meta:
+        model = Location
+        fields = ['id', 'name', 'total_occurrences']
 
 class LocationBusinessSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()

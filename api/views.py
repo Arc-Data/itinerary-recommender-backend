@@ -884,8 +884,6 @@ def edit_business(request, location_id):
         spot.description = request.data.get('description', spot.description)
         spot.min_fee = request.data.get('min_fee', spot.min_fee)
         spot.max_fee = request.data.get('max_fee', spot.max_fee)
-        spot.min_fee = request.data.get('min_fee', spot.min_fee)
-        spot.min_fee = request.data.get('min_fee', spot.min_fee)
         spot.save()    
 
     return Response(status=status.HTTP_200_OK)
@@ -1224,15 +1222,39 @@ def get_business_stats(request, location_id):
 
     total_bookmarks = Bookmark.objects.filter(location=location).count()
     average_rating = Review.objects.filter(location=location).aggregate(Avg('rating'))['rating__avg']
+    average_rating = round(average_rating, 2) if average_rating is not None else 0
     total_reviews = Review.objects.filter(location=location).count()
+    total_visits = ItineraryItem.objects.filter(
+        location=location,
+        day__completed=True
+    ).count()
+
+    total_planned = ItineraryItem.objects.filter(
+        location=location,
+    ).count()
 
     stats = {
         'total_bookmarks': total_bookmarks,
         'average_rating': average_rating,
         'total_reviews': total_reviews,
+        'total_visits': total_visits,
+        'total_planned': total_planned,
     }
 
     return Response(stats, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_top_locations_itinerary(request):
+    top_locations = Location.objects.filter(
+        itineraryitem__day__completed=True
+    ).annotate(
+        total_occurrences=Count('itineraryitem__day')
+    ).order_by('-total_occurrences')[:10]
+
+    serializer = TopLocationItinerarySerializer(top_locations, many=True)
+
+    return Response({'top_locations_itinerary': serializer.data}, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
