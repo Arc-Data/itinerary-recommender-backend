@@ -58,9 +58,9 @@ class SpotSerializers(serializers.ModelSerializer):
 
         if min_audience_type:
             min_fee_data.append({
-                'fee_type': min_audience_type.fee_type.name,
-                'audience_type': min_audience_type.name,
-                'min_price': min_audience_type.price
+                # 'fee_type': min_audience_type.fee_type.name,
+                # 'audience_type': min_audience_type.name,
+                'price': min_audience_type.price
             })
 
         return min_fee_data
@@ -80,7 +80,6 @@ class SpotSerializers(serializers.ModelSerializer):
                     'audience_type': audience_type_name,
                     'price': audience_type.price
                 })
-
         return optional_fee_data
 
     def get_max_fee(self, obj):
@@ -94,17 +93,15 @@ class SpotSerializers(serializers.ModelSerializer):
             for fee_type in optional_fee_types
             for audience_type in fee_type.audience_types.all()
         )
+        max_required_fee = max(
+            audience_type.price
+            for fee_type in required_fee_types
+            for audience_type in fee_type.audience_types.all()
+        )
 
-        for fee_type in required_fee_types:
-            audience_types = fee_type.audience_types.all()
-
-            for audience_type in audience_types:
-                max_fee_data.append({
-                    'fee_type': fee_type.name,
-                    'audience_type': audience_type.name,
-                    'max_price': audience_type.price + total_optional_fee_price
-                })
-
+        max_fee_data.append({
+            'price': max_required_fee + total_optional_fee_price
+        })
         return max_fee_data
     
     def get_required_fee(self, obj):
