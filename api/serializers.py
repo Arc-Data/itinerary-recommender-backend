@@ -37,6 +37,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class SpotSerializers(serializers.ModelSerializer):
     min_fee = serializers.SerializerMethodField()
+    optional_fee = serializers.SerializerMethodField()
     max_fee = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     activities = serializers.SerializerMethodField()
@@ -57,13 +58,84 @@ class SpotSerializers(serializers.ModelSerializer):
         return [activity.name for activity in obj.activity.all()]
 
     def get_min_fee(self, obj):
-        return obj.get_min_cost
+        min_fee_data = []
+
+        all_fee_types = obj.feetype_set.filter(is_required=True)
+        all_audience_types = AudienceType.objects.filter(fee_type__in=all_fee_types)
+
+        # Find the minimum price using the min function
+        min_audience_type = min(all_audience_types, key=lambda at: at.price, default=None)
+
+        if min_audience_type:
+            min_fee_data.append({
+                # 'fee_type': min_audience_type.fee_type.name,
+                # 'audience_type': min_audience_type.name,
+                'price': min_audience_type.price
+            })
+
+        return min_fee_data
     
+    def get_optional_fee(self, obj):
+        optional_fee_data = []
+        non_required_fee_types = obj.feetype_set.filter(is_required=False)
+
+        for fee_type in non_required_fee_types:
+            audience_types = fee_type.audience_types.all()
+
+            for audience_type in audience_types:
+                audience_type_name = audience_type.name
+
+                optional_fee_data.append({
+                    'fee_type': fee_type.name,
+                    'audience_type': audience_type_name,
+                    'price': audience_type.price
+                })
+        return optional_fee_data
+
     def get_max_fee(self, obj):
-        return obj.get_max_cost
+        max_fee_data = []
+        
+        required_fee_types = obj.feetype_set.filter(is_required=True)
+        optional_fee_types = obj.feetype_set.filter(is_required=False)
+
+        total_optional_fee_price = sum(
+            audience_type.price
+            for fee_type in optional_fee_types
+            for audience_type in fee_type.audience_types.all()
+        )
+        max_required_fee = max(
+            audience_type.price
+            for fee_type in required_fee_types
+            for audience_type in fee_type.audience_types.all()
+        )
+
+        max_fee_data.append({
+            'price': max_required_fee + total_optional_fee_price
+        })
+        return max_fee_data
+    
+    def get_required_fee(self, obj):
+        required_fee_data = []
+        required_fee_types = obj.feetype_set.filter(is_required=True)
+
+        for fee_type in required_fee_types:
+            audience_types = fee_type.audience_types.all()
+
+            for audience_type in audience_types:
+                audience_type_name = audience_type.name
+
+                required_fee_data.append({
+                    'fee_type': fee_type.name,
+                    'audience_type': audience_type_name,
+                    'price': audience_type.price
+                })
+
+        return required_fee_data
 
     def get_tags(self, obj):
-        return [tag.name for tag in obj.tags.all()] 
+        return [tag.name for tag in obj.tags.all()]
+
+
 
 class FoodPlaceSerializers(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
