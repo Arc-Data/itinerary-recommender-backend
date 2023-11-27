@@ -418,7 +418,7 @@ def get_location_reviews(request, location_id):
         paginator = PageNumberPagination()
         paginator.page_size = 5
 
-        reviews = Review.objects.filter(location_id=location_id).exclude(user=user)
+        reviews = Review.objects.filter(location_id=location_id).exclude(user=user).order_by('-datetime_created')
         result_page = paginator.paginate_queryset(reviews, request)
         review_serializer = ReviewSerializers(result_page, many=True)
         
