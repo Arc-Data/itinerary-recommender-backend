@@ -649,7 +649,7 @@ def get_homepage_recommendations(request):
 @permission_classes([IsAuthenticated])
 def get_all_users(request):
     if request.method == 'GET':
-        users = User.objects.all()
+        users = User.objects.all().exclude(request.user)
         serializer = UserSerializers(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
