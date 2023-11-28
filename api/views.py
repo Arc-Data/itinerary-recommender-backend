@@ -707,11 +707,12 @@ def create_ownership_request(request):
         location=location
     )
 
-    LocationImage.objects.create(
-        image=image,
-        location=location,
-        is_primary_image=True
-    )
+    if image:
+        LocationImage.objects.create(
+            image=image,
+            location=location,
+            is_primary_image=True
+        )
 
     return Response(status=status.HTTP_200_OK)
 
