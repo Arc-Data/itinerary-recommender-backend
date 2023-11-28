@@ -727,10 +727,11 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
         fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image')
 
     def get_image(self, obj):
-        primary_image = obj.location.images.filter(is_primary_image=True).first()
+        primary_image = obj.location.images.filter().first()
 
         if primary_image:
             return primary_image.image.url
+        
         return None
 
 

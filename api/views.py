@@ -691,6 +691,8 @@ def create_ownership_request(request):
     email = request.data.get('email')
     image = request.data.get('image')
 
+    print(image)
+
     location = Location.objects.create(
         name=name,
         address=address,
@@ -729,7 +731,9 @@ def get_ownership_requests(request):
 @permission_classes([IsAuthenticated])
 def get_all_ownership_requests(request):
     requests = OwnershipRequest.objects.filter(is_approved=False)
+    print(requests)
     serializer = OwnershipRequestSerializer(requests, many=True)
+    print(serializer.data)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH"])
