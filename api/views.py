@@ -1147,6 +1147,7 @@ def get_all_events(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_event(request):
+    print(request.data)
 
     name = request.data.get('name')
     start_date = request.data.get('start_date')
@@ -1155,8 +1156,12 @@ def create_event(request):
     latitude = request.data.get('latitude')
     longitude = request.data.get('longitude')
 
-    start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
-    end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+    if start_date and end_date:
+        start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
+        end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+    else:
+        return Response({'error': 'start_date and end_date are required'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     Event.objects.create (
         name=name,
