@@ -3,7 +3,7 @@ import csv
 from django.conf import settings
 from datetime import time, datetime
 from django.core.management.base import BaseCommand
-from api.models import Spot, Tag, CustomFee, LocationImage
+from api.models import Spot, Tag, LocationImage
 
 class Command(BaseCommand):
     help = 'Import data from CSV to Spot model'
@@ -25,7 +25,7 @@ class Command(BaseCommand):
             return None
 
     def handle(self, *args, **options):
-        csv_file = os.path.join(settings.BASE_DIR, 'TravelPackage - Spot.csv')
+        csv_file = os.path.join(settings.BASE_DIR, 'TravelPackage - Spot_NoFee.csv')
 
         with open(csv_file, 'r') as file:
             reader = csv.DictReader(file)
@@ -46,21 +46,11 @@ class Command(BaseCommand):
                     is_closed=is_closed,
                     latitude=float(row['Latitude']),
                     longitude=float(row['Longitude']),
-                    fees=row['Fee'] if row['Fee'] != '' else None,
                     opening_time=opening_time,
                     location_type='1',
                     closing_time=closing_time,
                     description=row['Description']
                 )
-
-                if spot.fees == None:
-                    min_cost = float(row.get('MinFee', 0.0)) 
-                    max_cost = float(row.get('MaxFee', 0.0))  
-                    CustomFee.objects.create(
-                        spot=spot,
-                        min_cost=min_cost,
-                        max_cost=max_cost
-                    )
 
                 image_links = row['Image'].split(',') 
 
