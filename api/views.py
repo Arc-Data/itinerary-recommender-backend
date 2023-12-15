@@ -519,6 +519,9 @@ def create_location(request):
     longitude = request.data.get("longitude")
     description = request.data.get("description")
     image = request.data.get("image")
+    website = request.data.get('website')
+    contact = request.data.get('contact')
+    email = request.data.get('email')
 
     location = Location.objects.create(
         name=name,
@@ -527,15 +530,16 @@ def create_location(request):
         longitude=longitude,
         description=description,
         location_type=location_type,
-        is_closed=True
+        is_closed=True,
+        website=website,
+        contact=contact,
+        email=email,
     )
 
     if location_type == 1:
         spot = Spot.objects.get(id=location.id)
-        spot.min_fee = request.data.get("min_fee", spot.min_fee)
-        spot.max_fee = request.data.get("max_fee", spot.max_fee)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
-        spot.closing_time = request.data.get("min_fee", spot.closing_time)
+        spot.closing_time = request.data.get("closing_time", spot.closing_time)
         spot.save()
 
     if image:
@@ -553,9 +557,9 @@ def create_location(request):
         'message': "Created successfully",
     }
 
-    return Response(status=status.HTTP_200_OK)
-
     return Response(response_data, status=status.HTTP_200_OK)
+
+
 
 @api_view(["PATCH"])
 def edit_location(request, id):
@@ -565,6 +569,9 @@ def edit_location(request, id):
     latitude = request.data.get("latitude")
     longitude = request.data.get("longitude")
     description = request.data.get("description")
+    website = request.data.get('website')
+    contact = request.data.get('contact')
+    email = request.data.get('email')
 
     location = Location.objects.get(id=id)
     
@@ -574,6 +581,9 @@ def edit_location(request, id):
     location.latitude = latitude
     location.longitude = longitude
     location.description = description
+    location.website = website
+    location.contact = contact
+    location.email = email
 
     location.save()
 
@@ -881,6 +891,7 @@ def edit_business(request, location_id):
     location.longitude = request.data.get('longitude', location.longitude)
     location.latitude = request.data.get('latitude', location.latitude)
     location.description = request.data.get('description', location.description)
+    
     location.save()
 
     if request.data.get('location_type') == "1":
@@ -889,18 +900,9 @@ def edit_business(request, location_id):
         spot.opening_time = request.data.get('opening_time', spot.opening_time)
         spot.closing_time = request.data.get('closing_time', spot.closing_time)
         spot.description = request.data.get('description', spot.description)
-        spot.min_fee = request.data.get('min_fee', spot.min_fee)
-        spot.max_fee = request.data.get('max_fee', spot.max_fee)
         spot.save()    
 
     return Response(status=status.HTTP_200_OK)
-
-
-    # location.website = request.data.get('website', location.website)
-    # location.contact = request.data.get('contact', location.contact)
-    # location.email = request.data.get('email', location.email)
-    
-
 
 
 @api_view(["DELETE"])

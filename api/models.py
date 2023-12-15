@@ -74,8 +74,8 @@ class Location(models.Model):
         default=1
     )
     is_closed = models.BooleanField(default=False)
-    website = models.CharField(blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+    website = models.CharField(blank=True, null=True, default="")
+    email = models.EmailField(blank=True, null=True, default="")
     contact = models.CharField(max_length=15, blank=True, null=True, default="")
 
     @property 
