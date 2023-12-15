@@ -105,4 +105,6 @@ urlpatterns = [
     path('fee/<int:fee_id>/', get_fee, name='edit_fee'),
     path('fee/<int:audience_id>/edit/', edit_fee, name='edit_fee'),
     path('fee/<int:fee_id>/edit/<int:audience_id>/delete', delete_fee, name='edit_fee'),
+
+    path('test/', test_function, name="test_function"),
 ]

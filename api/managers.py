@@ -1,9 +1,13 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import MinMaxScaler
 
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
+from collections import OrderedDict
+from .config import db
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -83,10 +87,90 @@ class RecommendationsManager():
     
     def get_hybrid_recommendations(self):
         return None
+    
+    def calculate_jaccard_similarity(self, user_preferences, spot_tags):
+        # Convert user preferences and spot tags to sets
+        user_array = np.array(user_preferences)
+        spot_array = np.array(spot_tags)
 
-    def get_location_recommendation(self, location_id):
+        # Calculate Jaccard similarity
+        intersection = np.sum(np.logical_and(user_array, spot_array))
+        union = np.sum(np.logical_or(user_array, spot_array))
+        similarity = intersection / union if union != 0 else 0.0
+
+        return similarity
+
+
+    def custom_recommendation(self, user, preferences, visited_list):
+        from .models import Spot
+
+        # set weights 
+        click_weight = 0.4
+        jaccard_weight = 0.6
+
+        # connecting to firebase for clicks data
+        try:
+            user_clicks = db.child("users").child(user.id).child("clicks").get()
+            clicks_data = user_clicks.val() or {}
+        except Exception as e:
+            print(f"An exception has occured while querying firebase data: {e}")
+            return 
+
+        # collect all spots with tags, and exclude those already visited
+        locations_data = []
+        spots = Spot.objects.exclude(tags=None).exclude(id__in=visited_list)
+
+        for spot in spots:
+            spot_data = {
+                'id': spot.id,
+                'name': spot.name,
+                'tags': [tag.name for tag in spot.tags.all()]
+            }
+            locations_data.append(spot_data)
+        
+        locations_data = pd.DataFrame.from_records(locations_data)
+        locations_data.to_clipboard()
+
+        tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
+        # tags_binary.to_clipboard()
+        binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
+
+        merged_data = pd.merge(locations_data, pd.DataFrame(clicks_data), left_on='id', right_on='location', how="left")
+        merged_data['amount'] = merged_data['amount'].fillna(0)
+        merged_data['binned_tags'] = binned_tags
+
+        merged_data['jaccard_similarity'] = merged_data.apply(
+            lambda row: self.calculate_jaccard_similarity(preferences, row['binned_tags']), 
+            axis=1
+        )
+
+        merged_data['weighted_score'] = (
+            click_weight * merged_data['amount'] + jaccard_weight * merged_data['jaccard_similarity']
+        )
+
+        weighted_score_array = merged_data['weighted_score'].values.reshape(-1, 1)
+
+        scaler = MinMaxScaler()
+        merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
+        merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
+        
+        keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
+        merged_data_sorted = merged_data_sorted[keep_columns]
+        merged_data_sorted.to_clipboard()
+
+
+    def get_location_recommendation(self, user, location_id):
+        
+        
+        try:
+            user_clicks = db.child("users").child(user.id).child("clicks").get()
+            clicks_data = user_clicks.val() or {}
+            # print(f"User {user.id} clicks data: {clicks_data}")
+
+        except Exception as e:
+            print(f"An unexpected error has occurred: {e}")
+
         data = pd.read_csv('TravelPackage - Spot.csv')
-
         # prepare labels of necessary values
         tags_columns = ['Historical', 'Nature', 'Religious', 'Art', 'Activities', 'Entertainment', 'Culture']
         selected_columns = ['Place'] + tags_columns
@@ -97,7 +181,15 @@ class RecommendationsManager():
 
         # drop unnecessary columns
         locations_data.drop(columns=set(locations_data.columns) - set(['Place'] + tags_columns + ['ID']), inplace=True)
+        
+        for click in clicks_data:
+            click_location_id = click['location']
+            click_count = click['amount']
 
+            if click_location_id in locations_data['ID'].values:
+                print(locations_data)
+                locations_data.loc[locations_data['ID'] == click_location_id, tags_columns] *= click_count
+        
         # select location id 
         selected_location_id = location_id
         selected_location = locations_data[locations_data['ID'] == selected_location_id]

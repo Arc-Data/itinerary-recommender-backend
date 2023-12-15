@@ -593,9 +593,9 @@ def delete_location(request, id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_location_recommendations(request, location_id):
-
+    user = request.user 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_location_recommendation(location_id)
+    recommendation_ids = manager.get_location_recommendation(user, location_id)
 
     recommendations = []
     for id in recommendation_ids:
@@ -1326,3 +1326,35 @@ def edit_fee(request, audience_id):
 @permission_classes([IsAuthenticated])
 def delete_fee(request, fee_id, audience_id):
     pass
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def test_function(request):
+    user = request.user 
+    visited_list = set()
+
+    itineraries = Itinerary.objects.filter(user=user)
+    
+    for itinerary in itineraries:
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
+    visited_list = set(visited_list)
+
+    print(visited_list)
+
+    preferences = [
+        int(user.preferences.history),
+        int(user.preferences.nature),
+        int(user.preferences.religion),
+        int(user.preferences.art), 
+        int(user.preferences.activity),
+        int(user.preferences.entertainment),
+        int(user.preferences.culture)
+    ]
+
+    manager = RecommendationsManager()
+    manager.custom_recommendation(user, preferences, visited_list)
+
+    return Response(status=status.HTTP_200_OK)
