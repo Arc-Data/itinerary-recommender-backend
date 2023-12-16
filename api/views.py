@@ -1328,3 +1328,42 @@ def edit_fee(request, audience_id):
 @permission_classes([IsAuthenticated])
 def delete_fee(request, fee_id, audience_id):
     pass
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_foodtags(request, location_id):
+    foodplace = FoodPlace.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = FoodTag.objects.get(name=tag_name)
+
+        if not foodplace.tags.filter(name=tag_name).exists():
+                foodplace.tags.add(tag)
+
+    return Response({"message": "Food tags added successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def search_foodtag(request):
+    query = request.query_params.get('query', '')
+    tags = FoodTag.objects.filter(name__icontains=query)
+    serializer = FoodTagSerializer(tags, many=True)
+
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+def get_create_foodtag(request):
+    tag_name = request.query_params.get('query', '')
+
+    if not tag_name:
+        return Response({"error": "Name parameter is required for retrieving or creating a FoodTag"}, status=400)
+
+    food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
+
+    if created:
+        return Response({"message": f"FoodTag '{tag_name}' created successfully", "id": food_tag.id}, status=201)
+    else:
+        return Response({"message": f"FoodTag '{tag_name}' already exists", "id": food_tag.id}, status=200)

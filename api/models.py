@@ -224,8 +224,15 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+    
+class FoodTag(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 
 class FoodPlace(Location):
+    tags = models.ManyToManyField("FoodTag", related_name="foodplaces")
  
     def save(self, *args, **kwargs):
         self.location_type = '2'

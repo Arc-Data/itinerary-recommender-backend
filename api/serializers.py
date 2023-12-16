@@ -760,6 +760,11 @@ class FeeTypeSerializer(serializers.ModelSerializer):
         model = FeeType 
         fields = '__all__'
 
+class FoodTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodTag
+        fields = ('id', 'name')
+
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()
