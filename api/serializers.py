@@ -763,7 +763,7 @@ class FeeTypeSerializer(serializers.ModelSerializer):
 class FoodTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodTag
-        fields = ('id', 'name')
+        fields = ['name']
 
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):

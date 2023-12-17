@@ -1331,7 +1331,7 @@ def delete_fee(request, fee_id, audience_id):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def add_foodtags(request, location_id):
     foodplace = FoodPlace.objects.get(id=location_id)
     tag_names = request.data.get("tags", [])
@@ -1342,28 +1342,30 @@ def add_foodtags(request, location_id):
         if not foodplace.tags.filter(name=tag_name).exists():
                 foodplace.tags.add(tag)
 
-    return Response({"message": "Food tags added successfully"}, status=status.HTTP_200_OK)
+    return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
-def search_foodtag(request):
+@permission_classes([IsAuthenticated])
+def search_foodtag(request, location_id):
     query = request.query_params.get('query', '')
-    tags = FoodTag.objects.filter(name__icontains=query)
+    if not query:
+        tags = FoodTag.objects.all()
+    else:
+        tags = FoodTag.objects.filter(name__icontains=query)
     serializer = FoodTagSerializer(tags, many=True)
-
     return Response(serializer.data)
 
 
 @api_view(["GET"])
-def get_create_foodtag(request):
-    tag_name = request.query_params.get('query', '')
-
-    if not tag_name:
-        return Response({"error": "Name parameter is required for retrieving or creating a FoodTag"}, status=400)
-
+@permission_classes([IsAuthenticated])
+def get_create_foodtag(request, location_id):
+    tag_name = request.data.get('foodtag')
     food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
 
+    serializer = FoodTagSerializer(food_tag)
+
     if created:
-        return Response({"message": f"FoodTag '{tag_name}' created successfully", "id": food_tag.id}, status=201)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
-        return Response({"message": f"FoodTag '{tag_name}' already exists", "id": food_tag.id}, status=200)
+        return Response(serializer.data, status=status.HTTP_200_OK)
