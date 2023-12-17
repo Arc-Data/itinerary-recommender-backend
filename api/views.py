@@ -1331,7 +1331,7 @@ def delete_fee(request, fee_id, audience_id):
 
 
 @api_view(["POST"])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def add_foodtags(request, location_id):
     foodplace = FoodPlace.objects.get(id=location_id)
     tag_names = request.data.get("tags", [])
@@ -1360,7 +1360,7 @@ def search_foodtag(request, location_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_create_foodtag(request, location_id):
-    tag_name = request.data.get('foodtag')
+    tag_name = request.data.get('query')
     food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
 
     serializer = FoodTagSerializer(food_tag)
