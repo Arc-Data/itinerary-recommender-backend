@@ -542,6 +542,14 @@ def create_location(request):
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
         spot.save()
 
+    if location_type == 2:
+        foodplace = FoodPlace.objects.get(id=location.id)
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = FoodTag.objects.get(name=tag_name)
+            foodplace.tags.add(tag)
+        
     if image:
         LocationImage.objects.create(
             image=image,
@@ -713,6 +721,14 @@ def create_ownership_request(request):
         contact=contact,
         email=email
     )
+
+    if location_type == 2:
+        foodplace = FoodPlace.objects.get(id=location.id)
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = FoodTag.objects.get(name=tag_name)
+            foodplace.tags.add(tag)
 
     OwnershipRequest.objects.create(
         user=user,
@@ -1345,9 +1361,24 @@ def add_foodtags(request, location_id):
     return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
 
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_foodtags(request, location_id):
+    foodplace = FoodPlace.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = FoodTag.objects.get(name=tag_name)
+
+        if foodplace.tags.filter(name=tag_name).exists():
+                foodplace.tags.remove(tag)
+
+    return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def search_foodtag(request, location_id):
+def search_foodtag(request):
     query = request.query_params.get('query', '')
     if not query:
         tags = FoodTag.objects.all()
@@ -1359,7 +1390,7 @@ def search_foodtag(request, location_id):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_create_foodtag(request, location_id):
+def get_create_foodtag(request):
     tag_name = request.data.get('query')
     food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
 
