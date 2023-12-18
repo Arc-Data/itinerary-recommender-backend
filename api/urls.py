@@ -72,7 +72,7 @@ urlpatterns = [
     path('user/business/<int:location_id>/stats/', get_business_stats, name='get_business_stats'),
 
     path('user/business/<int:location_id>/edit/add_foodtags/', add_foodtags, name='add_foodtags'),
-    path('user/business/<int:location_id>/edit/remove_foodtags/', add_foodtags, name='add_foodtags'),
+    path('user/business/<int:location_id>/edit/remove_foodtags/', remove_foodtags, name='remove_foodtags'),
     
     path('foodtag/get/', get_create_foodtag, name='get_create_foodtag'),
     path('foodtag/search/', search_foodtag, name='search_foodtag'),
