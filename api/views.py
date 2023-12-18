@@ -722,6 +722,9 @@ def create_ownership_request(request):
         email=email
     )
 
+    if location_type == 1:
+        spot = Spot.objects.get(id=location.id)
+
     if location_type == 2:
         foodplace = FoodPlace.objects.get(id=location.id)
         tag_names = request.data.get("tags", [])
