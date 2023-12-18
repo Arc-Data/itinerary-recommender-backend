@@ -107,6 +107,7 @@ class RecommendationsManager():
         # set weights 
         click_weight = 0.4
         jaccard_weight = 0.6
+        jaccard_weight_visited = 0.8 
 
         # connecting to firebase for clicks data
         try:
@@ -140,7 +141,11 @@ class RecommendationsManager():
         merged_data['binned_tags'] = binned_tags
 
         merged_data['jaccard_similarity'] = merged_data.apply(
-            lambda row: self.calculate_jaccard_similarity(preferences, row['binned_tags']), 
+            lambda row: (
+                jaccard_weight_visited * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
+                if row['id'] in visited_list
+                else jaccard_weight * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
+            ),
             axis=1
         )
 
@@ -157,7 +162,6 @@ class RecommendationsManager():
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
         merged_data_sorted = merged_data_sorted[keep_columns]
         merged_data_sorted.to_clipboard()
-
 
     def get_location_recommendation(self, user, location_id):
         
