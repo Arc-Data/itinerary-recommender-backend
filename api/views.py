@@ -613,31 +613,35 @@ def get_location_recommendations(request, location_id):
 @permission_classes([IsAuthenticated])
 def get_homepage_recommendations(request):
     user = request.user
+    visited_list = set()
+
+    itineraries = Itinerary.objects.filter(user=user)
 
     preferences = [
-        user.preferences.history,
-        user.preferences.nature,
-        user.preferences.religion,
-        user.preferences.art, 
-        user.preferences.activity,
-        user.preferences.entertainment,
-        user.preferences.culture
+        int(user.preferences.history),
+        int(user.preferences.nature),
+        int(user.preferences.religion),
+        int(user.preferences.art), 
+        int(user.preferences.activity),
+        int(user.preferences.entertainment),
+        int(user.preferences.culture)
     ]
 
-    print(preferences)
-    
-    preferences = np.array(preferences, dtype=int)
+    for itinerary in itineraries:
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
+    visited_list = set(visited_list)
+
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_homepage_recommendation(preferences)
-    print(recommendation_ids)
+    recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
 
     recommendations = []
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
-        print(recommendation)
         recommendations.append(recommendation)
 
-    print(recommendations)
     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
 
     return Response({
