@@ -708,6 +708,7 @@ def create_ownership_request(request):
     contact = request.data.get('contact')
     email = request.data.get('email')
     image = request.data.get('image')
+    description = request.data.get('description')
 
     print(image)
 
@@ -719,7 +720,8 @@ def create_ownership_request(request):
         location_type=location_type,
         website=website,
         contact=contact,
-        email=email
+        email=email,
+        description=description
     )
 
     if location_type == 1:
