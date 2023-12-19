@@ -628,13 +628,13 @@ def get_homepage_recommendations(request):
     itineraries = Itinerary.objects.filter(user=user)
 
     preferences = [
+        int(user.preferences.activity),
+        int(user.preferences.art), 
+        int(user.preferences.culture),
+        int(user.preferences.entertainment),
         int(user.preferences.history),
         int(user.preferences.nature),
         int(user.preferences.religion),
-        int(user.preferences.art), 
-        int(user.preferences.activity),
-        int(user.preferences.entertainment),
-        int(user.preferences.culture)
     ]
 
     for itinerary in itineraries:
