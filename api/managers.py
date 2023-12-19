@@ -125,7 +125,8 @@ class RecommendationsManager():
             spot_data = {
                 'id': spot.id,
                 'name': spot.name,
-                'tags': [tag.name for tag in spot.tags.all()]
+                'tags': [tag.name for tag in spot.tags.all()],
+                'rating': spot.get_avg_rating
             }
             locations_data.append(spot_data)
         
@@ -136,8 +137,17 @@ class RecommendationsManager():
         # tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
-        merged_data = pd.merge(locations_data, pd.DataFrame(clicks_data), left_on='id', right_on='location', how="left")
-        merged_data['amount'] = merged_data['amount'].fillna(0)
+        
+        if clicks_data:
+            # Create a DataFrame from clicks_data
+            clicks_df = pd.DataFrame(clicks_data)
+
+            merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
+            merged_data['amount'] = merged_data['amount'].fillna(0)
+        else:
+            merged_data = locations_data
+            merged_data['amount'] = 0
+
         merged_data['binned_tags'] = binned_tags
 
         merged_data['jaccard_similarity'] = merged_data.apply(
@@ -159,7 +169,7 @@ class RecommendationsManager():
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         
-        keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
+        keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
         merged_data_sorted = merged_data_sorted[keep_columns]
         merged_data_sorted.to_clipboard()
 
