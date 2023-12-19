@@ -85,6 +85,7 @@ class RecommendationsManager():
         return None
     
     def calculate_jaccard_similarity(self, user_preferences, spot_tags):
+        print(user_preferences)
         # Convert user preferences and spot tags to sets
         user_array = np.array(user_preferences)
         spot_array = np.array(spot_tags)
@@ -100,9 +101,9 @@ class RecommendationsManager():
     def get_homepage_recommendation(self, user, preferences, visited_list):
         from .models import Spot
 
-        click_weight = 0.3
-        jaccard_weight = 0.4
-        rating_weight = 0.3
+        click_weight = 0.25
+        jaccard_weight = 0.5
+        rating_weight = 0.25
         jaccard_weight_visited = 0.8 
 
         try:
@@ -125,9 +126,10 @@ class RecommendationsManager():
             locations_data.append(spot_data)
         
         locations_data = pd.DataFrame.from_records(locations_data)
-        locations_data.to_clipboard()
+        # locations_data.to_clipboard()
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
+        # tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
         
@@ -159,7 +161,8 @@ class RecommendationsManager():
 
         scaler = MinMaxScaler()
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
-        merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
+        # merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
+        merged_data_sorted = merged_data
         
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
         merged_data_sorted = merged_data_sorted[keep_columns]

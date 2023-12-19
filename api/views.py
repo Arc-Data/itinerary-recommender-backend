@@ -1351,13 +1351,13 @@ def test_function(request):
     print(visited_list)
 
     preferences = [
+        int(user.preferences.activity),
+        int(user.preferences.art), 
+        int(user.preferences.culture),
+        int(user.preferences.entertainment),
         int(user.preferences.history),
         int(user.preferences.nature),
         int(user.preferences.religion),
-        int(user.preferences.art), 
-        int(user.preferences.activity),
-        int(user.preferences.entertainment),
-        int(user.preferences.culture)
     ]
 
     manager = RecommendationsManager()
