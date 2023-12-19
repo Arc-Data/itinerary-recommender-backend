@@ -8,7 +8,7 @@ from .managers import CustomUserManager
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils import timezone
-from django.db.models import Count
+from django.db.models import Count, Avg
 from haversine import haversine, Unit
 
 import os, math
@@ -77,6 +77,11 @@ class Location(models.Model):
     website = models.CharField(blank=True, null=True, default="")
     email = models.EmailField(blank=True, null=True, default="")
     contact = models.CharField(max_length=15, blank=True, null=True, default="")
+
+    @property
+    def get_avg_rating(self):
+        avg_rating = self.review_set.aggregate(Avg('rating'))['rating__avg']
+        return avg_rating if avg_rating is not None else 0.0
 
     @property 
     def get_activities(self):
