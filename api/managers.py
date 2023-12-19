@@ -76,10 +76,6 @@ class RecommendationsManager():
         recommended_itineraries = recommended_itineraries.head(limit)
         recommended_itineraries = recommended_itineraries.sample(frac=1).reset_index(drop=True)
 
-        # display recommendations
-        # print(f"Recommended Itineraries:")
-        # print(recommended_itineraries[['id', 'spots', 'similarity']])
-
         recommended_itineraries.head()
         top_3_ids = recommended_itineraries.head(3)['id'].tolist()
 
@@ -104,12 +100,11 @@ class RecommendationsManager():
     def get_homepage_recommendation(self, user, preferences, visited_list):
         from .models import Spot
 
-        # set weights 
-        click_weight = 0.4
-        jaccard_weight = 0.6
+        click_weight = 0.3
+        jaccard_weight = 0.4
+        rating_weight = 0.3
         jaccard_weight_visited = 0.8 
 
-        # connecting to firebase for clicks data
         try:
             user_clicks = db.child("users").child(user.id).child("clicks").get()
             clicks_data = user_clicks.val() or {}
@@ -117,7 +112,6 @@ class RecommendationsManager():
             print(f"An exception has occured while querying firebase data: {e}")
             return 
 
-        # collect all spots with tags, and exclude those already visited
         locations_data = []
         spots = Spot.objects.exclude(tags=None).exclude(id__in=visited_list)
 
@@ -134,12 +128,10 @@ class RecommendationsManager():
         locations_data.to_clipboard()
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
-        # tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
         
         if clicks_data:
-            # Create a DataFrame from clicks_data
             clicks_df = pd.DataFrame(clicks_data)
 
             merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
@@ -160,7 +152,7 @@ class RecommendationsManager():
         )
 
         merged_data['weighted_score'] = (
-            click_weight * merged_data['amount'] + jaccard_weight * merged_data['jaccard_similarity']
+            click_weight * merged_data['amount'] + jaccard_weight * merged_data['jaccard_similarity'] + rating_weight * merged_data['rating']
         )
 
         weighted_score_array = merged_data['weighted_score'].values.reshape(-1, 1)
@@ -174,7 +166,6 @@ class RecommendationsManager():
         merged_data_sorted.to_clipboard()
 
         return merged_data_sorted.head(4)['id'].tolist()
-
 
     def get_location_recommendation(self, user, location_id):
         
