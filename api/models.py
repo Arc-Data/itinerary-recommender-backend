@@ -8,7 +8,7 @@ from .managers import CustomUserManager
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils import timezone
-from django.db.models import Count
+from django.db.models import Count, Avg
 from haversine import haversine, Unit
 
 import os, math
@@ -74,9 +74,14 @@ class Location(models.Model):
         default=1
     )
     is_closed = models.BooleanField(default=False)
-    website = models.CharField(blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+    website = models.CharField(blank=True, null=True, default="")
+    email = models.EmailField(blank=True, null=True, default="")
     contact = models.CharField(max_length=15, blank=True, null=True, default="")
+
+    @property
+    def get_avg_rating(self):
+        avg_rating = self.review_set.aggregate(Avg('rating'))['rating__avg']
+        return avg_rating if avg_rating is not None else 0.0
 
     @property 
     def get_activities(self):
@@ -124,19 +129,14 @@ class Location(models.Model):
 
     @property
     def nearby_events(self, radius_meters=750):
-        # Get the current date
         current_date = timezone.now().date()
 
-        # Filter events where the current date is within the range of start_date and end_date
         nearby_events = Event.objects.filter(
             start_date__lte=current_date,
             end_date__gte=current_date
         )
 
-        # Get the coordinates of the spot
         spot_coordinates = (self.latitude, self.longitude)
-
-        # Filter events that are within the specified radius from the spot
         nearby_events = [
             event for event in nearby_events
             if haversine(spot_coordinates, (event.latitude, event.longitude), unit=Unit.METERS) <= radius_meters
@@ -153,17 +153,6 @@ class OwnershipRequest(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
-
-class CustomFee(models.Model):
-    spot = models.OneToOneField("Spot", on_delete=models.CASCADE, related_name='custom_fee')
-    min_cost = models.FloatField()
-    max_cost = models.FloatField()
-
-    def save(self, *args, **kwargs):
-        if self.min_cost >= self.max_cost:
-            raise ValueError("min_cost must be less than max_cost.")
-        
-        super().save(*args, **kwargs)
 
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -193,9 +182,6 @@ class LocationImage(models.Model):
         return f"Image for {self.location.name}"
 
 class Spot(Location):
-    fees = models.PositiveIntegerField(blank=True, null=True)
-    min_fee = models.FloatField(default=0)
-    max_fee = models.FloatField(default=0)
     expected_duration = models.DurationField(default=timedelta(hours=1))
     tags = models.ManyToManyField("Tag", related_name="spots")
     opening_time = models.TimeField(blank=True, null=True)

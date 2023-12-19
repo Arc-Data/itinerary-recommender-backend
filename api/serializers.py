@@ -428,7 +428,7 @@ class SpotBusinessManageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Spot
-        exclude = ['fees', 'expected_duration', 'tags']
+        exclude = ['expected_duration', 'tags', 'activity']
 
     def get_image(self, obj):
         images = obj.images.filter(is_primary_image=True)
@@ -731,6 +731,7 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
 
         if primary_image:
             return primary_image.image.url
+        
         return None
 
 

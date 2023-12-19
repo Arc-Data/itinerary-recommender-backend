@@ -519,6 +519,9 @@ def create_location(request):
     longitude = request.data.get("longitude")
     description = request.data.get("description")
     image = request.data.get("image")
+    website = request.data.get('website')
+    contact = request.data.get('contact')
+    email = request.data.get('email')
 
     location = Location.objects.create(
         name=name,
@@ -527,15 +530,16 @@ def create_location(request):
         longitude=longitude,
         description=description,
         location_type=location_type,
-        is_closed=True
+        is_closed=True,
+        website=website,
+        contact=contact,
+        email=email,
     )
 
     if location_type == 1:
         spot = Spot.objects.get(id=location.id)
-        spot.min_fee = request.data.get("min_fee", spot.min_fee)
-        spot.max_fee = request.data.get("max_fee", spot.max_fee)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
-        spot.closing_time = request.data.get("min_fee", spot.closing_time)
+        spot.closing_time = request.data.get("closing_time", spot.closing_time)
         spot.save()
 
     if image:
@@ -553,9 +557,9 @@ def create_location(request):
         'message': "Created successfully",
     }
 
-    return Response(status=status.HTTP_200_OK)
-
     return Response(response_data, status=status.HTTP_200_OK)
+
+
 
 @api_view(["PATCH"])
 def edit_location(request, id):
@@ -565,6 +569,9 @@ def edit_location(request, id):
     latitude = request.data.get("latitude")
     longitude = request.data.get("longitude")
     description = request.data.get("description")
+    website = request.data.get('website')
+    contact = request.data.get('contact')
+    email = request.data.get('email')
 
     location = Location.objects.get(id=id)
     
@@ -574,6 +581,9 @@ def edit_location(request, id):
     location.latitude = latitude
     location.longitude = longitude
     location.description = description
+    location.website = website
+    location.contact = contact
+    location.email = email
 
     location.save()
 
@@ -593,9 +603,9 @@ def delete_location(request, id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_location_recommendations(request, location_id):
-
+    user = request.user 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_location_recommendation(location_id)
+    recommendation_ids = manager.get_location_recommendation(user, location_id)
 
     recommendations = []
     for id in recommendation_ids:
@@ -613,31 +623,35 @@ def get_location_recommendations(request, location_id):
 @permission_classes([IsAuthenticated])
 def get_homepage_recommendations(request):
     user = request.user
+    visited_list = set()
+
+    itineraries = Itinerary.objects.filter(user=user)
 
     preferences = [
-        user.preferences.history,
-        user.preferences.nature,
-        user.preferences.religion,
-        user.preferences.art, 
-        user.preferences.activity,
-        user.preferences.entertainment,
-        user.preferences.culture
+        int(user.preferences.activity),
+        int(user.preferences.art), 
+        int(user.preferences.culture),
+        int(user.preferences.entertainment),
+        int(user.preferences.history),
+        int(user.preferences.nature),
+        int(user.preferences.religion),
     ]
 
-    print(preferences)
-    
-    preferences = np.array(preferences, dtype=int)
+    for itinerary in itineraries:
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
+    visited_list = set(visited_list)
+
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_homepage_recommendation(preferences)
-    print(recommendation_ids)
+    recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
 
     recommendations = []
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
-        print(recommendation)
         recommendations.append(recommendation)
 
-    print(recommendations)
     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
 
     return Response({
@@ -691,6 +705,8 @@ def create_ownership_request(request):
     email = request.data.get('email')
     image = request.data.get('image')
 
+    print(image)
+
     location = Location.objects.create(
         name=name,
         address=address,
@@ -707,11 +723,12 @@ def create_ownership_request(request):
         location=location
     )
 
-    LocationImage.objects.create(
-        image=image,
-        location=location,
-        is_primary_image=True
-    )
+    if image:
+        LocationImage.objects.create(
+            image=image,
+            location=location,
+            is_primary_image=True
+        )
 
     return Response(status=status.HTTP_200_OK)
 
@@ -728,7 +745,9 @@ def get_ownership_requests(request):
 @permission_classes([IsAuthenticated])
 def get_all_ownership_requests(request):
     requests = OwnershipRequest.objects.filter(is_approved=False)
+    print(requests)
     serializer = OwnershipRequestSerializer(requests, many=True)
+    print(serializer.data)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH"])
@@ -876,6 +895,7 @@ def edit_business(request, location_id):
     location.longitude = request.data.get('longitude', location.longitude)
     location.latitude = request.data.get('latitude', location.latitude)
     location.description = request.data.get('description', location.description)
+    
     location.save()
 
     if request.data.get('location_type') == "1":
@@ -884,18 +904,9 @@ def edit_business(request, location_id):
         spot.opening_time = request.data.get('opening_time', spot.opening_time)
         spot.closing_time = request.data.get('closing_time', spot.closing_time)
         spot.description = request.data.get('description', spot.description)
-        spot.min_fee = request.data.get('min_fee', spot.min_fee)
-        spot.max_fee = request.data.get('max_fee', spot.max_fee)
         spot.save()    
 
     return Response(status=status.HTTP_200_OK)
-
-
-    # location.website = request.data.get('website', location.website)
-    # location.contact = request.data.get('contact', location.contact)
-    # location.email = request.data.get('email', location.email)
-    
-
 
 
 @api_view(["DELETE"])
@@ -1147,6 +1158,7 @@ def get_all_events(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_event(request):
+    print(request.data)
 
     name = request.data.get('name')
     start_date = request.data.get('start_date')
@@ -1155,8 +1167,12 @@ def create_event(request):
     latitude = request.data.get('latitude')
     longitude = request.data.get('longitude')
 
-    start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
-    end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+    if start_date and end_date:
+        start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
+        end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+    else:
+        return Response({'error': 'start_date and end_date are required'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     Event.objects.create (
         name=name,
@@ -1316,3 +1332,35 @@ def edit_fee(request, audience_id):
 @permission_classes([IsAuthenticated])
 def delete_fee(request, fee_id, audience_id):
     pass
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def test_function(request):
+    user = request.user 
+    visited_list = set()
+
+    itineraries = Itinerary.objects.filter(user=user)
+    
+    for itinerary in itineraries:
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
+    visited_list = set(visited_list)
+
+    print(visited_list)
+
+    preferences = [
+        int(user.preferences.activity),
+        int(user.preferences.art), 
+        int(user.preferences.culture),
+        int(user.preferences.entertainment),
+        int(user.preferences.history),
+        int(user.preferences.nature),
+        int(user.preferences.religion),
+    ]
+
+    manager = RecommendationsManager()
+    manager.custom_recommendation(user, preferences, visited_list)
+
+    return Response(status=status.HTTP_200_OK)
