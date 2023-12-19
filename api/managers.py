@@ -85,7 +85,6 @@ class RecommendationsManager():
         return None
     
     def calculate_jaccard_similarity(self, user_preferences, spot_tags):
-        print(user_preferences)
         # Convert user preferences and spot tags to sets
         user_array = np.array(user_preferences)
         spot_array = np.array(spot_tags)
@@ -129,7 +128,7 @@ class RecommendationsManager():
         # locations_data.to_clipboard()
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
-        # tags_binary.to_clipboard()
+        tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
         
@@ -161,9 +160,7 @@ class RecommendationsManager():
 
         scaler = MinMaxScaler()
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
-        # merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
-        merged_data_sorted = merged_data
-        
+        merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
         merged_data_sorted = merged_data_sorted[keep_columns]
         merged_data_sorted.to_clipboard()
