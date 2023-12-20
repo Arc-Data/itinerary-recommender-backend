@@ -97,13 +97,20 @@ class RecommendationsManager():
         return similarity
 
 
+    def get_chain_recommendation(self, location_id, visited_list):
+        # get all other locations excluding current location id and id in visited list
+        # calculate all distances between currentt location and compared location
+        # cut off by 10 and then apply weights and sort once again for top 4
+        pass
+
     def get_homepage_recommendation(self, user, preferences, visited_list):
         from .models import Spot
 
-        click_weight = 0.25
-        jaccard_weight = 0.5
+        click_weight = 0.15
+        jaccard_weight = 0.6
         rating_weight = 0.25
-        jaccard_weight_visited = 0.8 
+
+        jaccard_weight_visited = 0.3 
 
         try:
             user_clicks = db.child("users").child(user.id).child("clicks").get()
@@ -231,40 +238,3 @@ class RecommendationsManager():
             top_4_ids = result_with_scores.head(4)['ID'].tolist()
 
             return top_4_ids
-    
-    # def get_homepage_recommendation(self, user_preference):
-        
-    #     data = pd.read_csv('TravelPackage - Spot.csv')
-
-    #     # prepare labels of necessary values
-    #     tags_columns = ['Historical', 'Nature', 'Religious', 'Art', 'Activities', 'Entertainment', 'Culture']
-    #     selected_columns = ['Place'] + tags_columns
-    #     locations_data = data[selected_columns]
-
-    #     locations_data.index = range(1, len(locations_data) + 1)
-    #     locations_data = locations_data.assign(ID=locations_data.index)
-
-    #     # drop unnecessary columns
-    #     locations_data.drop(columns=set(locations_data.columns) - set(['Place'] + tags_columns + ['ID']), inplace=True)
-
-    #     #recommendation portion
-    #     user_vector = user_preference.reshape(1, -1)
-    #     all_vectors = locations_data[tags_columns].values
-
-    #     cosine_similarity_scores = cosine_similarity(user_vector, all_vectors)
-    #     sorted_indices = cosine_similarity_scores[0].argsort()[::-1]
-
-    #     top_n = 5
-    #     top_recommendations = locations_data.iloc[sorted_indices[:top_n]]
-
-    #     # Print the result including similarity scores
-    #     # print("Top Recommendations:")
-    #     result_with_scores = top_recommendations[['ID', 'Place'] + tags_columns].copy()
-    #     result_with_scores['Similarity'] = cosine_similarity_scores[0, sorted_indices[:top_n]]
-    #     # print(result_with_scores)
-
-    #     # result_with_scores.head()
-    #     top_4_ids = result_with_scores.head(4)['ID'].tolist()
-
-    #     print(top_4_ids)
-    #     return top_4_ids
