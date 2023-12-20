@@ -1336,6 +1336,45 @@ def delete_fee(request, fee_id, audience_id):
     pass
 
 @api_view(['GET'])
+def get_spot_chain_recommendations(request, location_id):
+    # user = request.user 
+    user = User.objects.get(id=1)
+    visited_list = set()
+
+    itineraries = Itinerary.objects.filter(user=user)
+    
+    for itinerary in itineraries:
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
+    visited_list = set(visited_list)
+
+    print(visited_list)
+
+    preferences = [
+        int(user.preferences.activity),
+        int(user.preferences.art), 
+        int(user.preferences.culture),
+        int(user.preferences.entertainment),
+        int(user.preferences.history),
+        int(user.preferences.nature),
+        int(user.preferences.religion),
+    ]
+
+    manager = RecommendationsManager()
+    recommendation_ids = manager.get_spot_chain_recommendation(user, location_id, preferences, visited_list)
+
+    recommendations = []
+    for id in recommendation_ids:
+        recommendation = Location.objects.get(pk=id)
+        recommendations.append(recommendation)
+
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+
+    return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def test_function(request):
     user = request.user 
