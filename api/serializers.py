@@ -721,16 +721,30 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
     details = LocationBasicSerializer(source='location', read_only=True)
     requester = UserSerializers(source='user')
     image = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = OwnershipRequest
-        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image')
+        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags')
 
     def get_image(self, obj):
         primary_image = obj.location.images.filter(is_primary_image=True).first()
 
         if primary_image:
             return primary_image.image.url
+        
+        return None
+    
+    def get_tags(self, obj):
+        if obj.location.location_type == "1":
+            spot = Spot.objects.get(id=obj.location.id)
+
+            return [tag.name for tag in spot.tags.all()]
+        
+        if obj.location.location_type == "2":
+            foodplace = FoodPlace.objects.get(id=obj.location.id)
+            
+            return [tag.name for tag in foodplace.tags.all()]
         
         return None
 
