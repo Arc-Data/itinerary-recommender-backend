@@ -8,6 +8,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
+import pandas as pd
+
 from .managers import *
 from .models import *
 from .serializers import *
@@ -1361,6 +1363,6 @@ def test_function(request):
     ]
 
     manager = RecommendationsManager()
-    manager.custom_recommendation(user, preferences, visited_list)
+    manager.get_spot_chain_recommendation(user, 1, preferences, visited_list)
 
     return Response(status=status.HTTP_200_OK)
