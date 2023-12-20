@@ -111,4 +111,8 @@ urlpatterns = [
     path('fee/<int:fee_id>/', get_fee, name='edit_fee'),
     path('fee/<int:audience_id>/edit/', edit_fee, name='edit_fee'),
     path('fee/<int:fee_id>/edit/<int:audience_id>/delete', delete_fee, name='edit_fee'),
+
+    path('spot/<int:location_id>/recommendations/', get_spot_chain_recommendations, name="spot_chain_recommendations"),
+
+    path('test/', test_function, name="test_function"),
 ]
