@@ -779,6 +779,11 @@ class FoodTagSerializer(serializers.ModelSerializer):
         model = FoodTag
         fields = ['name']
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name']
+
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()

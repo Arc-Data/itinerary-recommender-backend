@@ -542,6 +542,13 @@ def create_location(request):
         spot = Spot.objects.get(id=location.id)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
+
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
+        
         spot.save()
 
     if location_type == 2:
@@ -732,6 +739,16 @@ def create_ownership_request(request):
 
     if location_type == 1:
         spot = Spot.objects.get(id=location.id)
+        spot.opening_time = request.data.get("opening_time", spot.opening_time)
+        spot.closing_time = request.data.get("closing_time", spot.closing_time)
+
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
+        
+        spot.save()
 
     if location_type == 2:
         foodplace = FoodPlace.objects.get(id=location.id)
@@ -1467,7 +1484,7 @@ def search_foodtag(request):
     else:
         tags = FoodTag.objects.filter(name__icontains=query)
     serializer = FoodTagSerializer(tags, many=True)
-    return Response(serializer.data)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
@@ -1482,3 +1499,42 @@ def get_create_foodtag(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_spot_tags(request):
+    tags = Tag.objects.all()
+    serializer = TagSerializer(tags, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_foodtags(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = Tag.objects.get(name=tag_name)
+
+        if not spot.tags.filter(name=tag_name).exists():
+                spot.tags.add(tag)
+
+    return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_tags(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = Tag.objects.get(name=tag_name)
+
+        if spot.tags.filter(name=tag_name).exists():
+                spot.tags.remove(tag)
+
+    return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
