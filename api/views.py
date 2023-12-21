@@ -1512,7 +1512,7 @@ def get_spot_tags(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def add_foodtags(request, location_id):
+def add_tags(request, location_id):
     spot = Spot.objects.get(id=location_id)
     tag_names = request.data.get("tags", [])
         
