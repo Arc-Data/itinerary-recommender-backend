@@ -704,6 +704,12 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
             if spot:
                 return [tag.name for tag in spot.tags.all()]
         
+        if obj.location_type == "2":
+            foodplace = FoodPlace.objects.get(pk=obj.id)
+        
+            if foodplace:
+                return [tag.name for tag in foodplace.tags.all()]
+        
         return None
     
     def get_ratings(self, obj):

@@ -1538,3 +1538,31 @@ def remove_tags(request, location_id):
                 spot.tags.remove(tag)
 
     return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_foodplace_recommendations(request, location_id):
+    # user = request.user 
+    user = User.objects.get(id=2)
+    visited_list = set()
+
+    itineraries = Itinerary.objects.filter(user=user)
+    
+    for itinerary in itineraries:
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
+    visited_list = set(visited_list)
+
+    manager = RecommendationsManager()
+    recommendation_ids = manager.get_foodplace_recommendation(user, location_id, visited_list)
+
+    recommendations = []
+    for id in recommendation_ids:
+        recommendation = Location.objects.get(pk=id)
+        recommendations.append(recommendation)
+
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+
+    return Response(recommendation_serializers.data, status=status.HTTP_200_OK)

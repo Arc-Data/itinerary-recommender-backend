@@ -114,5 +114,7 @@ urlpatterns = [
 
     path('spot/<int:location_id>/recommendations/', get_spot_chain_recommendations, name="spot_chain_recommendations"),
 
+    path('foodplace/<int:location_id>/recommendations/', get_foodplace_recommendations, name="foodplace_recommendations"),
+
     path('test/', test_function, name="test_function"),
 ]
