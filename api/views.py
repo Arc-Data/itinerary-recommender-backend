@@ -1522,7 +1522,7 @@ def add_tags(request, location_id):
         if not spot.tags.filter(name=tag_name).exists():
                 spot.tags.add(tag)
 
-    return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
+    return Response({"message": "Tags added to spot"}, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
@@ -1537,7 +1537,7 @@ def remove_tags(request, location_id):
         if spot.tags.filter(name=tag_name).exists():
                 spot.tags.remove(tag)
 
-    return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
+    return Response({"message": "Tags removed from spot"}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
