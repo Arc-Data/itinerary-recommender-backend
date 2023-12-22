@@ -73,15 +73,18 @@ urlpatterns = [
 
     path('user/business/<int:location_id>/edit/add_foodtags/', add_foodtags, name='add_foodtags'),
     path('user/business/<int:location_id>/edit/remove_foodtags/', remove_foodtags, name='remove_foodtags'),
+    path('user/business/<int:location_id>/edit/add_tags/', add_tags, name='add_tags'),
+    path('user/business/<int:location_id>/edit/remove_tags/', remove_tags, name='remove_tags'),
     
     path('foodtag/get/', get_create_foodtag, name='get_create_foodtag'),
     path('foodtag/search/', search_foodtag, name='search_foodtag'),
+
+    path('tags/get/', get_spot_tags, name="get_spot_tags"),
     
     path('requests/', get_all_ownership_requests, name="get_all_ownership_requests"),
     path('request/<int:request_id>/approve/', approve_request, name="approve-request"),
 
     path('confirm/set/preferences/', get_set_preferences, name="get_set_preferences"),
-
 
     path('food/<int:location_id>/create/', create_food, name='create_food'),
     path('food/<int:location_id>/', get_food_details, name='get_food_details'),
