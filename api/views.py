@@ -1335,10 +1335,11 @@ def edit_fee(request, audience_id):
 def delete_fee(request, fee_id, audience_id):
     pass
 
-@api_view(['GET'])
+@api_view(['POST'])
 def get_spot_chain_recommendations(request, location_id):
-    # user = request.user 
-    user = User.objects.get(id=1)
+    print("I am supposedly here", location_id)
+    user = request.user 
+    to_visit_list = request.data
     visited_list = set()
 
     itineraries = Itinerary.objects.filter(user=user)
@@ -1349,8 +1350,7 @@ def get_spot_chain_recommendations(request, location_id):
             visited_list.update(item.location.id for item in items)
 
     visited_list = set(visited_list)
-
-    print(visited_list)
+    visited_list = visited_list.union(set(to_visit_list))
 
     preferences = [
         int(user.preferences.activity),
@@ -1370,7 +1370,7 @@ def get_spot_chain_recommendations(request, location_id):
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
 
     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
 
