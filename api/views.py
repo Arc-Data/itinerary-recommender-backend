@@ -9,6 +9,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 import pandas as pd
+import json
 
 from .managers import *
 from .models import *
@@ -710,7 +711,6 @@ def get_user(request, user_id):
 @permission_classes([IsAuthenticated])
 def create_ownership_request(request):
     user = request.user
-    print(user)
 
     name = request.data.get('name')
     address = request.data.get('address')
@@ -722,8 +722,7 @@ def create_ownership_request(request):
     email = request.data.get('email')
     image = request.data.get('image')
     description = request.data.get('description')
-
-    print(image)
+    tag_names = json.loads(request.data.get("tags", []))
 
     location = Location.objects.create(
         name=name,
@@ -750,12 +749,11 @@ def create_ownership_request(request):
         
         spot.save()
 
-    if location_type == 2:
+    if location_type == '2':
         foodplace = FoodPlace.objects.get(id=location.id)
-        tag_names = request.data.get("tags", [])
-        
+
         for tag_name in tag_names:
-            tag = FoodTag.objects.get(name=tag_name)
+            tag, created = FoodTag.objects.get_or_create(name=tag_name)
             foodplace.tags.add(tag)
 
     OwnershipRequest.objects.create(
