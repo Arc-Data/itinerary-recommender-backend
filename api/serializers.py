@@ -684,10 +684,11 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     ratings = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
     
     class Meta:
         model = Location
-        fields = ('id', 'name', 'primary_image', 'tags', 'ratings')
+        fields = ('id', 'name', 'primary_image', 'tags', 'ratings', 'distance')
 
     def get_primary_image(self, obj):
         primary_image = obj.images.filter(is_primary_image=True).first()
@@ -697,6 +698,16 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
 
         return None
     
+    def get_distance(self, obj):
+        location_id = self.context.get('location_id')
+        print(type(location_id))
+
+        if location_id is not None:
+            origin = Location.objects.get(id=location_id)
+            return obj.get_distance_from_origin(origin)
+
+        return None
+
     def get_tags(self, obj):
         if obj.location_type == "1":
             spot = Spot.objects.get(pk=obj.id)
