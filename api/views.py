@@ -1541,8 +1541,7 @@ def remove_tags(request, location_id):
 
 @api_view(['GET'])
 def get_foodplace_recommendations(request, location_id):
-    # user = request.user 
-    user = User.objects.get(id=2)
+    user = request.user
     visited_list = set()
 
     itineraries = Itinerary.objects.filter(user=user)

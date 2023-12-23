@@ -243,6 +243,8 @@ class FoodTag(models.Model):
 
 class FoodPlace(Location):
     tags = models.ManyToManyField("FoodTag", related_name="foodplaces")
+    opening_time = models.TimeField(blank=True, null=True)
+    closing_time = models.TimeField(blank=True, null=True)
  
     def save(self, *args, **kwargs):
         self.location_type = '2'
