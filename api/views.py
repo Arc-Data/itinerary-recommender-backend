@@ -1337,7 +1337,6 @@ def delete_fee(request, fee_id, audience_id):
 
 @api_view(['POST'])
 def get_spot_chain_recommendations(request, location_id):
-    print("I am supposedly here", location_id)
     user = request.user 
     to_visit_list = request.data
     visited_list = set()
