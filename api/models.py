@@ -78,6 +78,11 @@ class Location(models.Model):
     email = models.EmailField(blank=True, null=True, default="")
     contact = models.CharField(max_length=15, blank=True, null=True, default="")
 
+    def get_distance_from_origin(self, origin_spot):
+        spot_coordinates = (self.latitude, self.longitude)
+        origin_coordinates = (origin_spot.latitude, origin_spot.longitude)
+        return haversine(spot_coordinates, origin_coordinates, unit=Unit.METERS)
+
     @property
     def get_avg_rating(self):
         avg_rating = self.review_set.aggregate(Avg('rating'))['rating__avg']
