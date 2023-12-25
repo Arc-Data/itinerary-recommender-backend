@@ -299,10 +299,11 @@ def update_preferences(request):
 
     return Response({'message': "Preferences Updated Successfully"}, status=status.HTTP_200_OK)
 
-@api_view(["GET"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
     user = request.user
+    budget = request.data
 
     preferences = [
         user.preferences.history,
@@ -648,6 +649,7 @@ def get_homepage_recommendations(request):
 
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
+    print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids:
