@@ -14,6 +14,7 @@ from .managers import *
 from .models import *
 from .serializers import *
 
+import random
 import datetime
 import numpy as np
 
@@ -303,6 +304,7 @@ def update_preferences(request):
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
     user = request.user
+    # user = User.objects.get(id=1)
     budget = request.data
 
     preferences = [
@@ -318,12 +320,15 @@ def get_content_recommendations(request):
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_content_recommendations(preferences)
+    recommendation_ids = manager.test_function(preferences, budget)
+    random.shuffle(recommendation_ids)
+    # print(recommendation_ids)
 
     recommendations = []
-    for id in recommendation_ids:
+    for id in recommendation_ids[:3]:
         recommendation = ModelItinerary.objects.get(pk=id)
         recommendations.append(recommendation)
+
 
     recommendation_serializers = ModelItinerarySerializers(recommendations, many=True)
 

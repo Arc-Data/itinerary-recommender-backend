@@ -638,13 +638,21 @@ class LocationRecommenderSerializers(serializers.ModelSerializer):
                 }
 
         return None    
+    
+class ModelItineraryLocationOrderSerializer(serializers.ModelSerializer):
+    spot = LocationRecommenderSerializers()
+
+    class Meta:
+        model = ModelItineraryLocationOrder
+        fields = ['spot', 'order']
+
 
 class ModelItinerarySerializers(serializers.ModelSerializer):
-    locations = LocationRecommenderSerializers(many=True)
+    locations = ModelItineraryLocationOrderSerializer(many=True, source="modelitinerarylocationorder_set")
 
     class Meta:
         model = ModelItinerary
-        fields = '__all__'
+        fields = ['id', 'locations']
 
 #Bookmark Serializers
 class BookmarkSerializer(serializers.ModelSerializer):

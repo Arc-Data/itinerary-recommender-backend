@@ -32,6 +32,41 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
     
 class RecommendationsManager():
+    def test_function(self, preferences, budget):
+        from api.models import ModelItinerary
+        models_data = []
+
+        for model in ModelItinerary.objects.all():
+            if model.total_min_cost <= budget:
+                model_data = {
+                    'id': model.id,
+                    'min_cost': model.total_min_cost,
+                    'max_cost': model.total_max_cost,
+                    'tags': model.get_tags,
+                    'names': model.get_location_names
+                }
+                models_data.append(model_data)
+
+
+        recommended_itineraries_data = pd.DataFrame.from_records(models_data)
+        tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
+        binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
+
+        recommended_itineraries_data['binned_tags'] = binned_tags 
+
+        recommended_itineraries_data['jaccard_similarity'] = recommended_itineraries_data.apply(
+            lambda row: (
+                self.calculate_jaccard_similarity(preferences, row['binned_tags'])
+            ),
+            axis=1
+        )
+
+        recommended_itineraries_data = recommended_itineraries_data[recommended_itineraries_data['jaccard_similarity'] > 0]
+        recommended_itineraries_data = recommended_itineraries_data.sort_values(by='jaccard_similarity', ascending=False)
+        recommended_itineraries_data.head(12).to_clipboard()
+
+        return recommended_itineraries_data.head(12)['id'].tolist()
+
     def get_content_recommendations(self, user_preferences):
 
         itinerary = pd.read_csv('TravelPackage - ItineraryList.csv')
@@ -209,7 +244,6 @@ class RecommendationsManager():
         locations_data = pd.DataFrame.from_records(locations_data)
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
-        tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
         
@@ -244,6 +278,7 @@ class RecommendationsManager():
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
         merged_data_sorted = merged_data_sorted[keep_columns]
+        merged_data_sorted.to_clipboard()
 
         return merged_data_sorted.head(4)['id'].tolist()
 
