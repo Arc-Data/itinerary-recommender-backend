@@ -194,9 +194,9 @@ def edit_itinerary_name(request, itinerary_id):
     return Response(status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def get_location(request, id):
-    user = get_object_or_404(User,id=2)
+    user = request.user
     try:
         location = Location.objects.get(pk=id)
     except Location.DoesNotExist:
@@ -1557,6 +1557,7 @@ def remove_tags(request, location_id):
 @permission_classes([IsAuthenticated])
 def get_foodplace_recommendations(request, location_id):
     user = request.user
+    to_visit_list = request.data
     visited_list = set()
 
     itineraries = Itinerary.objects.filter(user=user)
@@ -1567,6 +1568,7 @@ def get_foodplace_recommendations(request, location_id):
             visited_list.update(item.location.id for item in items)
 
     visited_list = set(visited_list)
+    visited_list = visited_list.union(set(to_visit_list))
 
     manager = RecommendationsManager()
     recommendation_ids = manager.get_foodplace_recommendation(user, location_id, visited_list)
@@ -1576,6 +1578,6 @@ def get_foodplace_recommendations(request, location_id):
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
 
     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
