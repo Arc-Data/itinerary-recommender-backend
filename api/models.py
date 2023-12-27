@@ -409,6 +409,31 @@ class AudienceType(models.Model):
 
     def __str__(self):
         return f"{self.name} - Price: {self.price} - FeeType: {self.fee_type}"
+    
+class Driver(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    email = models.EmailField(blank=True, null=True, default="")
+    contact = models.CharField(max_length=15, blank=True, null=True, default="")
+    facebook = models.CharField(max_length=60, blank=True, null=True, default="")
+    additional_information = models.CharField(default="No Description Provided.", max_length=500)
+
+    car = models.CharField(max_length=30)
+    car_type = models.CharField(
+        max_length=1,
+        choices=[
+            ('1', 'Sedan'),
+            ('2', ''),
+            ('3', 'Accommodation'),
+        ],
+        default=1
+    )
+    max_capacity = models.PositiveIntegerField()
+    plate_number = models.CharField(max_length=7)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
 
 # @receiver(post_save, sender=FeeType)
 # def create_default_audience_type(sender, instance, created, **kwargs):
