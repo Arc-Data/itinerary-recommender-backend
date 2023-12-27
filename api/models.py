@@ -301,18 +301,42 @@ class ItineraryItem(models.Model):
     def __str__(self):
         return f"{self.day.date} - {self.location.name} - {self.order}"
 
+class ModelItineraryLocationOrder(models.Model):
+    itinerary = models.ForeignKey("ModelItinerary", on_delete=models.CASCADE)
+    spot = models.ForeignKey(Spot, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['order']
+
 class ModelItinerary(models.Model):
     locations = models.ManyToManyField("Spot")
 
     @property
     def total_min_cost(self):
-        min_costs = [spot.get_min_cost for spot in self.locations.all()]
-        return sum(min_costs)
+        location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
+        return sum(location_order.spot.get_min_cost for location_order in location_orders)
 
     @property
     def total_max_cost(self):
-        max_costs = [spot.get_max_cost for spot in self.locations.all()]
-        return sum(max_costs)
+        location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
+        return sum(location_order.spot.get_max_cost for location_order in location_orders)
+
+    @property
+    def get_tags(self):
+        tags_list = []
+
+        for location_order in self.modelitinerarylocationorder_set.all().order_by('order'):
+            location = location_order.spot
+            if location.location_type == '1':
+                tags_list.extend(tag.name for tag in location.tags.all())
+
+        return set(tags_list)
+    
+    @property
+    def get_location_names(self):
+        location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
+        return [location_order.spot.name for location_order in location_orders]
 
 class Review(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True)

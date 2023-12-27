@@ -14,6 +14,7 @@ from .managers import *
 from .models import *
 from .serializers import *
 
+import random
 import datetime
 import numpy as np
 
@@ -299,10 +300,13 @@ def update_preferences(request):
 
     return Response({'message': "Preferences Updated Successfully"}, status=status.HTTP_200_OK)
 
-@api_view(["GET"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
     user = request.user
+    # user = User.objects.get(id=1)
+    budget = request.data
+    visited_list = set()
 
     preferences = [
         user.preferences.history,
@@ -314,17 +318,27 @@ def get_content_recommendations(request):
         user.preferences.culture
     ]
 
+    for itinerary in Itinerary.objects.filter(user=user):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_content_recommendations(preferences)
+    recommendation_ids = manager.get_content_recommendations(preferences, budget)
+    random.shuffle(recommendation_ids)
 
     recommendations = []
-    for id in recommendation_ids:
+    for id in recommendation_ids[:3]:
         recommendation = ModelItinerary.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = ModelItinerarySerializers(recommendations, many=True)
+    recommendation_serializers = ModelItinerarySerializers(
+        recommendations, 
+        many=True,
+        context={'visited_list': visited_list}
+    )
 
     return Response({
         'recommendations': recommendation_serializers.data
@@ -336,7 +350,7 @@ def update_itinerary_calendar(request, itinerary_id):
     end_date = request.data.get("endDate")
 
     itinerary = Itinerary.objects.get(pk=itinerary_id)
-    Day.objects.filter(itinerary=itinerary).delete()
+    Day.objects.filter(itinerary=itinerary, completed=False).delete()
 
     start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
     end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
@@ -344,7 +358,7 @@ def update_itinerary_calendar(request, itinerary_id):
     days = []
 
     while start_date <= end_date:
-        day = Day.objects.create(
+        day, created = Day.objects.get_or_create(
             date=start_date,
             itinerary=itinerary
         )
@@ -368,13 +382,14 @@ def apply_recommendation(request, model_id):
     ItineraryItem.objects.filter(day=day).delete()
 
     model = ModelItinerary.objects.get(id=model_id)
+    location_orders = model.modelitinerarylocationorder_set.all()
 
     items = []
-    for idx, location in enumerate(model.locations.all()):
+    for location_order in location_orders:
         item = ItineraryItem.objects.create(
             day=day,
-            location=location,
-            order=idx
+            location=location_order.spot,
+            order=location_order.order
         )
         items.append(item)
 
@@ -648,13 +663,14 @@ def get_homepage_recommendations(request):
 
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
+    print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'visited_list': visited_list})
 
     return Response({
         'recommendations': recommendation_serializers.data

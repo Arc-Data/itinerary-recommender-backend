@@ -1,7 +1,7 @@
 import os, csv
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from api.models import Spot, ModelItinerary
+from api.models import Spot, ModelItinerary, ModelItineraryLocationOrder
 
 class Command(BaseCommand):
     help = "Import data from CSV to ModelItinerary Model"
@@ -22,7 +22,16 @@ class Command(BaseCommand):
                         spots.append(spot)
                     except Spot.DoesNotExist:
                         print("Location not detected: ", location)
-           
-                print(idx, spots)
+
+                # print(spots[4], spots[9])
                 model_itinerary = ModelItinerary.objects.create()
-                model_itinerary.locations.set(spots)
+                print(idx, [spot.id for spot in spots])
+                
+                for order, spot in enumerate(spots):
+                    print(spot)
+                    ModelItineraryLocationOrder.objects.create(
+                        itinerary=model_itinerary,
+                        spot=spot,
+                        order=order
+                    )
+                
