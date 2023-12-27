@@ -382,13 +382,14 @@ def apply_recommendation(request, model_id):
     ItineraryItem.objects.filter(day=day).delete()
 
     model = ModelItinerary.objects.get(id=model_id)
+    location_orders = model.modelitinerarylocationorder_set.all()
 
     items = []
-    for idx, location in enumerate(model.locations.all()):
+    for idx, location_order in enumerate(location_orders):
         item = ItineraryItem.objects.create(
             day=day,
-            location=location,
-            order=idx
+            location=location_order.spot,
+            order=location_order.order
         )
         items.append(item)
 
