@@ -10,6 +10,7 @@ from django.db.models.signals import post_save
 from django.utils import timezone
 from django.db.models import Count, Avg
 from haversine import haversine, Unit
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 import os, math
 
@@ -428,7 +429,13 @@ class Driver(models.Model):
         ],
         default=1
     )
-    max_capacity = models.PositiveIntegerField()
+    max_capacity = models.PositiveIntegerField(
+        default=1,
+        validators=[
+            MaxValueValidator(12),
+            MinValueValidator(1)
+        ]
+    )
     plate_number = models.CharField(max_length=7)
 
     def __str__(self):
