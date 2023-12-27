@@ -99,25 +99,22 @@ class SpotSerializers(serializers.ModelSerializer):
 
 class FoodPlaceSerializers(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
     class Meta:
         model = FoodPlace
-        fields = ['fee']
+        fields = ['fee', 'tags']
 
     def get_fee(self, obj):
-        query_set = Food.objects.filter(location=obj.id)
+        min_price = obj.get_min_cost
+        max_price = obj.get_max_cost
 
-        if query_set.exists():
-            price_aggregation = query_set.aggregate(min_price=models.Min('price'), max_price=models.Max('price'))
-            min_price = price_aggregation.get('min_price')
-            max_price = price_aggregation.get('max_price') 
-        else:
-            min_price = 300.0
-            max_price = 300.0
-        
         return {
             'min': min_price, 
             'max': max_price
         }
+    
+    def get_tags(self, obj):
+        return [tag.name for tag in obj.tags.all()]
 
 class FoodSerializer(serializers.ModelSerializer):
     class Meta:
