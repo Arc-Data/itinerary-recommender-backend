@@ -423,8 +423,8 @@ class Driver(models.Model):
         max_length=1,
         choices=[
             ('1', 'Sedan'),
-            ('2', ''),
-            ('3', 'Accommodation'),
+            ('2', 'Van'),
+            ('3', 'SUV'),
         ],
         default=1
     )
