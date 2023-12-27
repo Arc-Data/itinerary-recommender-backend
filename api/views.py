@@ -350,7 +350,7 @@ def update_itinerary_calendar(request, itinerary_id):
     end_date = request.data.get("endDate")
 
     itinerary = Itinerary.objects.get(pk=itinerary_id)
-    Day.objects.filter(itinerary=itinerary).delete()
+    Day.objects.filter(itinerary=itinerary, completed=False).delete()
 
     start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
     end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
@@ -358,7 +358,7 @@ def update_itinerary_calendar(request, itinerary_id):
     days = []
 
     while start_date <= end_date:
-        day = Day.objects.create(
+        day, created = Day.objects.get_or_create(
             date=start_date,
             itinerary=itinerary
         )
@@ -385,7 +385,7 @@ def apply_recommendation(request, model_id):
     location_orders = model.modelitinerarylocationorder_set.all()
 
     items = []
-    for idx, location_order in enumerate(location_orders):
+    for location_order in location_orders:
         item = ItineraryItem.objects.create(
             day=day,
             location=location_order.spot,
