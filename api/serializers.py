@@ -610,10 +610,11 @@ class CompletedDaySerializer(serializers.ModelSerializer):
 class LocationRecommenderSerializers(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
     schedule = serializers.SerializerMethodField()
+    is_visited = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'fee', 'schedule']
+        fields = ['id', 'name', 'fee', 'schedule', 'is_visited']
     
     def get_fee(self, obj):
         if obj.location_type == "1":
@@ -639,6 +640,10 @@ class LocationRecommenderSerializers(serializers.ModelSerializer):
 
         return None    
     
+    def get_is_visited(self, obj):
+        visited_list = self.context.get('visited_list')
+        return obj.id in visited_list
+
 class ModelItineraryLocationOrderSerializer(serializers.ModelSerializer):
     spot = LocationRecommenderSerializers()
 
@@ -733,7 +738,14 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
             'total_reviews': reviews.count(),
             'average_rating': average_rating
         }
+    
+    def get_visited_status(self, obj):
+        visited_list = self.context.get('visited_list')
 
+        if obj.id in visited_list:
+            return True
+        
+        return False
 
 #Ownership Request
 class OwnershipRequestSerializer(serializers.ModelSerializer):

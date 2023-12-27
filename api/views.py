@@ -306,6 +306,7 @@ def get_content_recommendations(request):
     user = request.user
     # user = User.objects.get(id=1)
     budget = request.data
+    visited_list = set()
 
     preferences = [
         user.preferences.history,
@@ -317,20 +318,27 @@ def get_content_recommendations(request):
         user.preferences.culture
     ]
 
+    for itinerary in Itinerary.objects.filter(user=user):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.test_function(preferences, budget)
+    recommendation_ids = manager.get_content_recommendations(preferences, budget)
     random.shuffle(recommendation_ids)
-    # print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids[:3]:
         recommendation = ModelItinerary.objects.get(pk=id)
         recommendations.append(recommendation)
 
-
-    recommendation_serializers = ModelItinerarySerializers(recommendations, many=True)
+    recommendation_serializers = ModelItinerarySerializers(
+        recommendations, 
+        many=True,
+        context={'visited_list': visited_list}
+    )
 
     return Response({
         'recommendations': recommendation_serializers.data
@@ -661,7 +669,7 @@ def get_homepage_recommendations(request):
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'visited_list': visited_list})
 
     return Response({
         'recommendations': recommendation_serializers.data
