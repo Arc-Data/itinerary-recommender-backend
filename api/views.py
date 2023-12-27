@@ -9,6 +9,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 import pandas as pd
+import json
 
 from .managers import *
 from .models import *
@@ -557,7 +558,22 @@ def create_location(request):
         spot = Spot.objects.get(id=location.id)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
+
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
+        
         spot.save()
+
+    if location_type == 2:
+        foodplace = FoodPlace.objects.get(id=location.id)
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = FoodTag.objects.get(name=tag_name)
+            foodplace.tags.add(tag)
 
     if image:
         LocationImage.objects.create(
@@ -711,7 +727,6 @@ def get_user(request, user_id):
 @permission_classes([IsAuthenticated])
 def create_ownership_request(request):
     user = request.user
-    print(user)
 
     name = request.data.get('name')
     address = request.data.get('address')
@@ -722,8 +737,8 @@ def create_ownership_request(request):
     contact = request.data.get('contact')
     email = request.data.get('email')
     image = request.data.get('image')
-
-    print(image)
+    description = request.data.get('description')
+    tag_names = json.loads(request.data.get("tags", []))
 
     location = Location.objects.create(
         name=name,
@@ -733,8 +748,29 @@ def create_ownership_request(request):
         location_type=location_type,
         website=website,
         contact=contact,
-        email=email
+        email=email,
+        description=description
     )
+
+    if location_type == 1:
+        spot = Spot.objects.get(id=location.id)
+        spot.opening_time = request.data.get("opening_time", spot.opening_time)
+        spot.closing_time = request.data.get("closing_time", spot.closing_time)
+
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
+        
+        spot.save()
+
+    if location_type == '2':
+        foodplace = FoodPlace.objects.get(id=location.id)
+
+        for tag_name in tag_names:
+            tag, created = FoodTag.objects.get_or_create(name=tag_name)
+            foodplace.tags.add(tag)
 
     OwnershipRequest.objects.create(
         user=user,
@@ -1420,3 +1456,125 @@ def test_function(request):
     manager.get_spot_chain_recommendation(user, 1, preferences, visited_list)
 
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_foodtags(request, location_id):
+    foodplace = FoodPlace.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = FoodTag.objects.get(name=tag_name)
+
+        if not foodplace.tags.filter(name=tag_name).exists():
+                foodplace.tags.add(tag)
+
+    return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_foodtags(request, location_id):
+    foodplace = FoodPlace.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = FoodTag.objects.get(name=tag_name)
+
+        if foodplace.tags.filter(name=tag_name).exists():
+                foodplace.tags.remove(tag)
+
+    return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def search_foodtag(request):
+    query = request.query_params.get('query', '')
+    if not query:
+        tags = FoodTag.objects.all()
+    else:
+        tags = FoodTag.objects.filter(name__icontains=query)
+    serializer = FoodTagSerializer(tags, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_create_foodtag(request):
+    tag_name = request.data.get('query')
+    food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
+
+    serializer = FoodTagSerializer(food_tag)
+
+    if created:
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_spot_tags(request):
+    tags = Tag.objects.all()
+    serializer = TagSerializer(tags, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_tags(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = Tag.objects.get(name=tag_name)
+
+        if not spot.tags.filter(name=tag_name).exists():
+                spot.tags.add(tag)
+
+    return Response({"message": "Tags added to spot"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_tags(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = Tag.objects.get(name=tag_name)
+
+        if spot.tags.filter(name=tag_name).exists():
+                spot.tags.remove(tag)
+
+    return Response({"message": "Tags removed from spot"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_foodplace_recommendations(request, location_id):
+    user = request.user
+    visited_list = set()
+
+    itineraries = Itinerary.objects.filter(user=user)
+    
+    for itinerary in itineraries:
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
+    visited_list = set(visited_list)
+
+    manager = RecommendationsManager()
+    recommendation_ids = manager.get_foodplace_recommendation(user, location_id, visited_list)
+
+    recommendations = []
+    for id in recommendation_ids:
+        recommendation = Location.objects.get(pk=id)
+        recommendations.append(recommendation)
+
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+
+    return Response(recommendation_serializers.data, status=status.HTTP_200_OK)

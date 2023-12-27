@@ -71,12 +71,21 @@ urlpatterns = [
     path('user/business/<int:location_id>/edit/', edit_business, name='edit_business'),
     path('user/active/', get_active_trips, name="get-active-trips"),
     path('user/business/<int:location_id>/stats/', get_business_stats, name='get_business_stats'),
+
+    path('user/business/<int:location_id>/edit/add_foodtags/', add_foodtags, name='add_foodtags'), #edit foodplace tags
+    path('user/business/<int:location_id>/edit/remove_foodtags/', remove_foodtags, name='remove_foodtags'), #edit foodplace tags
+    path('user/business/<int:location_id>/edit/add_tags/', add_tags, name='add_tags'), #edit spot tags
+    path('user/business/<int:location_id>/edit/remove_tags/', remove_tags, name='remove_tags'), #edit spot tags
+    
+    path('foodtag/get/', get_create_foodtag, name='get_create_foodtag'),
+    path('foodtag/search/', search_foodtag, name='search_foodtag'),
+
+    path('tags/get/', get_spot_tags, name="get_spot_tags"),
     
     path('requests/', get_all_ownership_requests, name="get_all_ownership_requests"),
     path('request/<int:request_id>/approve/', approve_request, name="approve-request"),
 
     path('confirm/set/preferences/', get_set_preferences, name="get_set_preferences"),
-
 
     path('food/<int:location_id>/create/', create_food, name='create_food'),
     path('food/<int:location_id>/', get_food_details, name='get_food_details'),
@@ -107,7 +116,7 @@ urlpatterns = [
     path('fee/<int:audience_id>/edit/', edit_fee, name='edit_fee'),
     path('fee/<int:fee_id>/edit/<int:audience_id>/delete', delete_fee, name='delete_fee'),
 
-    path('spot/<int:location_id>/recommendations/', get_spot_chain_recommendations, name="spot_chain_recommendations"),
+    path('foodplace/<int:location_id>/recommendations/', get_foodplace_recommendations, name="foodplace_recommendations"),
 
     path('test/', test_function, name="test_function"),
 ]

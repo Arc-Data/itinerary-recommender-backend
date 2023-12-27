@@ -728,6 +728,12 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
             if spot:
                 return [tag.name for tag in spot.tags.all()]
         
+        if obj.location_type == "2":
+            foodplace = FoodPlace.objects.get(pk=obj.id)
+        
+            if foodplace:
+                return [tag.name for tag in foodplace.tags.all()]
+        
         return None
     
     def get_ratings(self, obj):
@@ -752,16 +758,30 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
     details = LocationBasicSerializer(source='location', read_only=True)
     requester = UserSerializers(source='user')
     image = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = OwnershipRequest
-        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image')
+        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags')
 
     def get_image(self, obj):
         primary_image = obj.location.images.filter(is_primary_image=True).first()
 
         if primary_image:
             return primary_image.image.url
+        
+        return None
+    
+    def get_tags(self, obj):
+        if obj.location.location_type == "1":
+            spot = Spot.objects.get(id=obj.location.id)
+
+            return [tag.name for tag in spot.tags.all()]
+        
+        if obj.location.location_type == "2":
+            foodplace = FoodPlace.objects.get(id=obj.location.id)
+            
+            return [tag.name for tag in foodplace.tags.all()]
         
         return None
 
@@ -790,6 +810,16 @@ class FeeTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FeeType 
         fields = '__all__'
+
+class FoodTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodTag
+        fields = ['name']
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name']
 
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
