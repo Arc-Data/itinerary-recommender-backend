@@ -234,11 +234,10 @@ class RecommendationsManager():
     def get_homepage_recommendation(self, user, preferences, visited_list):
         from .models import Spot
 
-        click_weight = 0.15
-        jaccard_weight = 0.6
-        rating_weight = 0.25
-
-        jaccard_weight_visited = 0.3 
+        click_weight = 0.1
+        jaccard_weight = 0.5
+        rating_weight = 0.2
+        visited_weight = 0.2
 
         try:
             user_clicks = db.child("users").child(user.id).child("clicks").get()
@@ -248,17 +247,23 @@ class RecommendationsManager():
             return 
 
         locations_data = []
-        spots = Spot.objects.exclude(tags=None).exclude(id__in=visited_list)
+        tag_visit_counts = defaultdict(int)
+        spots = Spot.objects.exclude(tags=None)
 
         for spot in spots:
-            spot_data = {
-                'id': spot.id,
-                'name': spot.name,
-                'tags': [tag.name for tag in spot.tags.all()],
-                'rating': spot.get_avg_rating
-            }
-            locations_data.append(spot_data)
-        
+            if spot.id not in visited_list:
+                spot_data = {
+                    'id': spot.id,
+                    'name': spot.name,
+                    'tags': [tag.name for tag in spot.tags.all()],
+                    'rating': spot.get_avg_rating
+                }
+                locations_data.append(spot_data)
+            else:
+                for tag in spot.tags.all():
+                    tag_name = tag.name
+                    tag_visit_counts[tag_name] += 1
+
         locations_data = pd.DataFrame.from_records(locations_data)
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
@@ -276,17 +281,21 @@ class RecommendationsManager():
 
         merged_data['binned_tags'] = binned_tags
 
+        merged_data['visit_count'] = merged_data['tags'].apply(lambda tags: sum(tag_visit_counts[tag] for tag in tags))
+        merged_data['visit_count_score'] = visited_weight * merged_data['visit_count']
+
         merged_data['jaccard_similarity'] = merged_data.apply(
             lambda row: (
-                jaccard_weight_visited * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
-                if row['id'] in visited_list
-                else jaccard_weight * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
+                jaccard_weight * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
             ),
             axis=1
         )
 
         merged_data['weighted_score'] = (
-            click_weight * merged_data['amount'] + jaccard_weight * merged_data['jaccard_similarity'] + rating_weight * merged_data['rating']
+            click_weight * merged_data['amount'] + 
+            jaccard_weight * merged_data['jaccard_similarity'] + 
+            rating_weight * merged_data['rating'] + 
+            visited_weight * merged_data['visit_count_score']
         )
 
         weighted_score_array = merged_data['weighted_score'].values.reshape(-1, 1)
@@ -294,7 +303,7 @@ class RecommendationsManager():
         scaler = MinMaxScaler()
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
-        keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
+        keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
         merged_data_sorted.to_clipboard()
 
