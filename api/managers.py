@@ -163,17 +163,16 @@ class RecommendationsManager():
 
         keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'jaccard_similarity', 'visit_count_score', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted= merged_data_sorted[keep_columns]
-        merged_data_sorted.to_clipboard()
 
         return merged_data_sorted.head(4)['id'].tolist()
     
     
-    def get_foodplace_recommendation(self, user, location_id, visited_list):
-        from .models import FoodPlace
+    def get_foodplace_recommendation(self, user, location_id):
+        from .models import FoodPlace, Location
         max_distance = 5000
 
         clicks_weight = 0.05
-        rating_weight = 0.45
+        rating_weight = 0.35
         distance_weight = 0.6
 
         try:
@@ -182,13 +181,13 @@ class RecommendationsManager():
         except Exception as e:
             print(f"an unexpected error has occured: {e}")
 
-        origin_foodplace = FoodPlace.objects.get(id=location_id)
+        origin_location = Location.objects.get(id=location_id)
 
-        foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visited_list)
+        foodplaces = FoodPlace.objects.exclude(id=location_id)
 
         locations_data = []
         for foodplace in foodplaces:
-            distance_from_origin = foodplace.get_distance_from_origin(origin_foodplace)
+            distance_from_origin = foodplace.get_distance_from_origin(origin_location)
             foodplace_data = {
                 'id': foodplace.id,
                 'name': foodplace.name,
@@ -202,9 +201,11 @@ class RecommendationsManager():
         locations_data = locations_data.sort_values(by='distance_from_origin')
         locations_data = locations_data.head(15)
         locations_data = locations_data.reset_index()
+        # locations_data.to_clipboard()
 
-        tags_binary = pd.get_dummies(locations_data['foodtags'].explode()).groupby(level=0).max().astype(int)
-        binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
+        # commented out while script for applying food tags arent in play yet
+        # tags_binary = pd.get_dummies(locations_data['foodtags'].explode()).groupby(level=0).max().astype(int)
+        # binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
         
         if clicks_data:
             clicks_df = pd.DataFrame(clicks_data)
@@ -214,7 +215,7 @@ class RecommendationsManager():
             merged_data = locations_data
             merged_data['amount'] = 0
 
-        merged_data['binned_tags'] = binned_tags
+        merged_data['binned_tags'] = 0
 
         merged_data['weighted_score'] = (
             clicks_weight * merged_data['amount'] + 
@@ -230,6 +231,7 @@ class RecommendationsManager():
 
         keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted = merged_data_sorted[keep_columns]
+        merged_data.to_clipboard()
 
         return merged_data_sorted.head(4)['id'].tolist()
     

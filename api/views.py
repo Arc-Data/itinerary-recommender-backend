@@ -1566,21 +1566,8 @@ def remove_tags(request, location_id):
 @permission_classes([IsAuthenticated])
 def get_foodplace_recommendations(request, location_id):
     user = request.user
-    to_visit_list = request.data
-    visited_list = set()
-
-    itineraries = Itinerary.objects.filter(user=user)
-    
-    for itinerary in itineraries:
-        for day in Day.objects.filter(itinerary=itinerary, completed=True):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
-
-    visited_list = set(visited_list)
-    visited_list = visited_list.union(set(to_visit_list))
-
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_foodplace_recommendation(user, location_id, visited_list)
+    recommendation_ids = manager.get_foodplace_recommendation(user, location_id)
 
     recommendations = []
     for id in recommendation_ids:
