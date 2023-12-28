@@ -305,7 +305,6 @@ def update_preferences(request):
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
     user = request.user
-    # user = User.objects.get(id=1)
     budget = request.data
     visited_list = set()
 
@@ -637,8 +636,19 @@ def delete_location(request, id):
 @permission_classes([IsAuthenticated])
 def get_location_recommendations(request, location_id):
     user = request.user 
+    location_tags = Spot.objects.get(id=location_id).tags.all()
+    all_tags = Tag.objects.all().order_by('name')
+
+    origin_binned_tags = [1 if tag in location_tags else 0 for tag in all_tags]
+    
+    visited_list = set()
+    for itinerary in Itinerary.objects.filter(user=user):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_location_recommendation(user, location_id)
+    recommendation_ids = manager.get_location_recommendation(user, origin_binned_tags, location_id, visited_list)
 
     recommendations = []
     for id in recommendation_ids:
@@ -679,7 +689,6 @@ def get_homepage_recommendations(request):
 
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
-    print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids:
