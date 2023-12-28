@@ -170,7 +170,7 @@ class RecommendationsManager():
     
     def get_foodplace_recommendation(self, user, location_id, visited_list):
         from .models import FoodPlace
-        max_distance = 10000
+        max_distance = 5000
 
         clicks_weight = 0.05
         rating_weight = 0.45
@@ -206,7 +206,6 @@ class RecommendationsManager():
         tags_binary = pd.get_dummies(locations_data['foodtags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
         
-
         if clicks_data:
             clicks_df = pd.DataFrame(clicks_data)
             merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")

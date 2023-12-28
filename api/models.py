@@ -256,6 +256,11 @@ class FoodPlace(Location):
     def __str__(self):
         return self.name
     
+    def get_distance_from_origin(self, origin_foodplace):
+        foodplace_coordinates = (self.latitude, self.longitude)
+        origin_coordinates = (origin_foodplace.latitude, origin_foodplace.longitude)
+        return haversine(foodplace_coordinates, origin_coordinates, unit=Unit.METERS)
+    
     @property
     def get_min_cost(self):
         min_food = Food.objects.filter(location=self).order_by('price').first()
@@ -272,6 +277,8 @@ class FoodPlace(Location):
             return max_food.price
         else:
             return 300.0
+
+    
 
 class Accommodation(Location):
 
