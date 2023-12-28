@@ -84,7 +84,7 @@ class RecommendationsManager():
 
 
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list):
-        from .models import Spot
+        from .models import Spot, Location
         max_distance = 10000
 
         clicks_weight = 0.05
@@ -99,7 +99,7 @@ class RecommendationsManager():
         except Exception as e:
             print(f"an unexpected error has occured: {e}")
         
-        origin_spot = Spot.objects.get(id=location_id)
+        origin_spot = Location.objects.get(id=location_id)
         tag_visit_counts = defaultdict(int)
         spots = Spot.objects.exclude(id=location_id).exclude(tags=None)
         
@@ -167,7 +167,7 @@ class RecommendationsManager():
         return merged_data_sorted.head(4)['id'].tolist()
     
     
-    def get_foodplace_recommendation(self, user, location_id):
+    def get_foodplace_recommendation(self, user, location_id, visit_list):
         from .models import FoodPlace, Location
         max_distance = 5000
 
@@ -183,7 +183,7 @@ class RecommendationsManager():
 
         origin_location = Location.objects.get(id=location_id)
 
-        foodplaces = FoodPlace.objects.exclude(id=location_id)
+        foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list)
 
         locations_data = []
         for foodplace in foodplaces:

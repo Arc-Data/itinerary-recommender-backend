@@ -1562,12 +1562,13 @@ def remove_tags(request, location_id):
     return Response({"message": "Tags removed from spot"}, status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def get_foodplace_recommendations(request, location_id):
     user = request.user
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_foodplace_recommendation(user, location_id)
+    visit_list = request.data
+    recommendation_ids = manager.get_foodplace_recommendation(user, location_id, visit_list)
 
     recommendations = []
     for id in recommendation_ids:

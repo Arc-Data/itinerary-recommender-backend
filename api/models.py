@@ -209,11 +209,8 @@ class Spot(Location):
 
     @property
     def get_max_cost(self):
-        print(self.feetype_set)
         required_fee_types = self.feetype_set.filter(is_required=True)
         optional_fee_types = self.feetype_set.filter(is_required=False)
-
-        print(required_fee_types)
 
         total_optional_fee_price = sum(
             audience_type.price
