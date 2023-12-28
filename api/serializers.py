@@ -818,6 +818,11 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ['name']
 
+class DriverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Driver
+        fields = '__all__'
+
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()

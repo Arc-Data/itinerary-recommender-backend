@@ -415,7 +415,7 @@ class Driver(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     email = models.EmailField(blank=True, null=True, default="")
-    contact = models.CharField(max_length=15, blank=True, null=True, default="")
+    contact = models.CharField(max_length=15, default="")
     facebook = models.CharField(max_length=60, blank=True, null=True, default="")
     additional_information = models.CharField(default="No Description Provided.", max_length=500)
 
