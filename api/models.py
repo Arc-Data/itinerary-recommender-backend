@@ -437,7 +437,7 @@ class Driver(models.Model):
         ]
     )
     plate_number = models.CharField(max_length=7)
-    image = models.ImageField(blank=True, null=True, upload_to='drivers/')
+    image = models.ImageField(blank=True, null=True, upload_to='drivers/', default='drivers/DefaultDriverImage.png')
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
