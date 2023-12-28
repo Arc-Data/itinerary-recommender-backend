@@ -117,7 +117,7 @@ urlpatterns = [
     path('fee/<int:fee_id>/edit/<int:audience_id>/delete', delete_fee, name='delete_fee'),
 
     path('driver/', get_drivers, name='get_drivers'),
-    path('driver/add-driver/', add_driver, name='add_driver'),
+    path('driver/add/', add_driver, name='add_driver'),
     path('driver/<int:driver_id>/edit/', edit_driver, name='edit_driver'),
 
     path('foodplace/<int:location_id>/recommendations/', get_foodplace_recommendations, name="foodplace_recommendations"),
