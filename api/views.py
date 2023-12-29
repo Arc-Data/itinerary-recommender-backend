@@ -9,11 +9,13 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 
 import pandas as pd
+import json
 
 from .managers import *
 from .models import *
 from .serializers import *
 
+import random
 import datetime
 import numpy as np
 
@@ -299,10 +301,12 @@ def update_preferences(request):
 
     return Response({'message': "Preferences Updated Successfully"}, status=status.HTTP_200_OK)
 
-@api_view(["GET"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
     user = request.user
+    budget = request.data
+    visited_list = set()
 
     preferences = [
         user.preferences.history,
@@ -314,17 +318,27 @@ def get_content_recommendations(request):
         user.preferences.culture
     ]
 
+    for itinerary in Itinerary.objects.filter(user=user):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_content_recommendations(preferences)
+    recommendation_ids = manager.get_content_recommendations(preferences, budget)
+    random.shuffle(recommendation_ids)
 
     recommendations = []
-    for id in recommendation_ids:
+    for id in recommendation_ids[:3]:
         recommendation = ModelItinerary.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = ModelItinerarySerializers(recommendations, many=True)
+    recommendation_serializers = ModelItinerarySerializers(
+        recommendations, 
+        many=True,
+        context={'visited_list': visited_list}
+    )
 
     return Response({
         'recommendations': recommendation_serializers.data
@@ -336,7 +350,7 @@ def update_itinerary_calendar(request, itinerary_id):
     end_date = request.data.get("endDate")
 
     itinerary = Itinerary.objects.get(pk=itinerary_id)
-    Day.objects.filter(itinerary=itinerary).delete()
+    Day.objects.filter(itinerary=itinerary, completed=False).delete()
 
     start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
     end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
@@ -344,7 +358,7 @@ def update_itinerary_calendar(request, itinerary_id):
     days = []
 
     while start_date <= end_date:
-        day = Day.objects.create(
+        day, created = Day.objects.get_or_create(
             date=start_date,
             itinerary=itinerary
         )
@@ -368,13 +382,14 @@ def apply_recommendation(request, model_id):
     ItineraryItem.objects.filter(day=day).delete()
 
     model = ModelItinerary.objects.get(id=model_id)
+    location_orders = model.modelitinerarylocationorder_set.all()
 
     items = []
-    for idx, location in enumerate(model.locations.all()):
+    for location_order in location_orders:
         item = ItineraryItem.objects.create(
             day=day,
-            location=location,
-            order=idx
+            location=location_order.spot,
+            order=location_order.order
         )
         items.append(item)
 
@@ -542,7 +557,22 @@ def create_location(request):
         spot = Spot.objects.get(id=location.id)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
+
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
+        
         spot.save()
+
+    if location_type == 2:
+        foodplace = FoodPlace.objects.get(id=location.id)
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = FoodTag.objects.get(name=tag_name)
+            foodplace.tags.add(tag)
 
     if image:
         LocationImage.objects.create(
@@ -606,8 +636,19 @@ def delete_location(request, id):
 @permission_classes([IsAuthenticated])
 def get_location_recommendations(request, location_id):
     user = request.user 
+    location_tags = Spot.objects.get(id=location_id).tags.all()
+    all_tags = Tag.objects.all().order_by('name')
+
+    origin_binned_tags = [1 if tag in location_tags else 0 for tag in all_tags]
+    
+    visited_list = set()
+    for itinerary in Itinerary.objects.filter(user=user):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_location_recommendation(user, location_id)
+    recommendation_ids = manager.get_location_recommendation(user, origin_binned_tags, location_id, visited_list)
 
     recommendations = []
     for id in recommendation_ids:
@@ -654,7 +695,7 @@ def get_homepage_recommendations(request):
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True)
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'visited_list': visited_list})
 
     return Response({
         'recommendations': recommendation_serializers.data
@@ -695,7 +736,6 @@ def get_user(request, user_id):
 @permission_classes([IsAuthenticated])
 def create_ownership_request(request):
     user = request.user
-    print(user)
 
     name = request.data.get('name')
     address = request.data.get('address')
@@ -706,8 +746,8 @@ def create_ownership_request(request):
     contact = request.data.get('contact')
     email = request.data.get('email')
     image = request.data.get('image')
-
-    print(image)
+    description = request.data.get('description')
+    tag_names = json.loads(request.data.get("tags", []))
 
     location = Location.objects.create(
         name=name,
@@ -717,8 +757,29 @@ def create_ownership_request(request):
         location_type=location_type,
         website=website,
         contact=contact,
-        email=email
+        email=email,
+        description=description
     )
+
+    if location_type == 1:
+        spot = Spot.objects.get(id=location.id)
+        spot.opening_time = request.data.get("opening_time", spot.opening_time)
+        spot.closing_time = request.data.get("closing_time", spot.closing_time)
+
+        tag_names = request.data.get("tags", [])
+        
+        for tag_name in tag_names:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
+        
+        spot.save()
+
+    if location_type == '2':
+        foodplace = FoodPlace.objects.get(id=location.id)
+
+        for tag_name in tag_names:
+            tag, created = FoodTag.objects.get_or_create(name=tag_name)
+            foodplace.tags.add(tag)
 
     OwnershipRequest.objects.create(
         user=user,
@@ -1335,21 +1396,155 @@ def edit_fee(request, audience_id):
 def delete_fee(request, fee_id, audience_id):
     pass
 
-@api_view(['POST'])
-def get_spot_chain_recommendations(request, location_id):
+# @api_view(['POST'])
+# def get_spot_chain_recommendations(request, location_id):
+#     user = request.user 
+#     to_visit_list = request.data
+#     visited_list = set()
+
+#     itineraries = Itinerary.objects.filter(user=user)
+    
+#     for itinerary in itineraries:
+#         for day in Day.objects.filter(itinerary=itinerary, completed=True):
+#             items = ItineraryItem.objects.filter(day=day)
+#             visited_list.update(item.location.id for item in items)
+
+#     visited_list = set(visited_list)
+#     visited_list = visited_list.union(set(to_visit_list))
+
+#     preferences = [
+#         int(user.preferences.activity),
+#         int(user.preferences.art), 
+#         int(user.preferences.culture),
+#         int(user.preferences.entertainment),
+#         int(user.preferences.history),
+#         int(user.preferences.nature),
+#         int(user.preferences.religion),
+#     ]
+
+#     manager = RecommendationsManager()
+#     recommendation_ids = manager.get_spot_chain_recommendation(user, location_id, preferences, visited_list)
+
+#     recommendations = []
+#     for id in recommendation_ids:
+#         recommendation = Location.objects.get(pk=id)
+#         recommendations.append(recommendation)
+
+#     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
+
+#     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_foodtags(request, location_id):
+    foodplace = FoodPlace.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = FoodTag.objects.get(name=tag_name)
+
+        if not foodplace.tags.filter(name=tag_name).exists():
+                foodplace.tags.add(tag)
+
+    return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_foodtags(request, location_id):
+    foodplace = FoodPlace.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = FoodTag.objects.get(name=tag_name)
+
+        if foodplace.tags.filter(name=tag_name).exists():
+                foodplace.tags.remove(tag)
+
+    return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def search_foodtag(request):
+    query = request.query_params.get('query', '')
+    if not query:
+        tags = FoodTag.objects.all()
+    else:
+        tags = FoodTag.objects.filter(name__icontains=query)
+    serializer = FoodTagSerializer(tags, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_create_foodtag(request):
+    tag_name = request.data.get('query')
+    food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
+
+    serializer = FoodTagSerializer(food_tag)
+
+    if created:
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_spot_tags(request):
+    tags = Tag.objects.all()
+    serializer = TagSerializer(tags, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_tags(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = Tag.objects.get(name=tag_name)
+
+        if not spot.tags.filter(name=tag_name).exists():
+                spot.tags.add(tag)
+
+    return Response({"message": "Tags added to spot"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_tags(request, location_id):
+    spot = Spot.objects.get(id=location_id)
+    tag_names = request.data.get("tags", [])
+        
+    for tag_name in tag_names:
+        tag = Tag.objects.get(name=tag_name)
+
+        if spot.tags.filter(name=tag_name).exists():
+                spot.tags.remove(tag)
+
+    return Response({"message": "Tags removed from spot"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_spot_chain_recommendations(request, day_id):
     user = request.user 
-    to_visit_list = request.data
+
+    day = Day.objects.get(id=day_id)
+    origin_location = ItineraryItem.objects.filter(day=day).last().location
     visited_list = set()
 
     itineraries = Itinerary.objects.filter(user=user)
     
     for itinerary in itineraries:
-        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+        for day in Day.objects.filter(itinerary=itinerary):
             items = ItineraryItem.objects.filter(day=day)
             visited_list.update(item.location.id for item in items)
 
     visited_list = set(visited_list)
-    visited_list = visited_list.union(set(to_visit_list))
 
     preferences = [
         int(user.preferences.activity),
@@ -1362,45 +1557,38 @@ def get_spot_chain_recommendations(request, location_id):
     ]
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_spot_chain_recommendation(user, location_id, preferences, visited_list)
+    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list)
 
     recommendations = []
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': origin_location.id})
 
     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def test_function(request):
-    user = request.user 
-    visited_list = set()
+def get_food_chain_recommendations(request, day_id):
+    user = request.user
+    day = Day.objects.get(id=day_id)
+    visit_list = []
 
-    itineraries = Itinerary.objects.filter(user=user)
-    
-    for itinerary in itineraries:
-        for day in Day.objects.filter(itinerary=itinerary, completed=True):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
-
-    visited_list = set(visited_list)
-
-    print(visited_list)
-
-    preferences = [
-        int(user.preferences.activity),
-        int(user.preferences.art), 
-        int(user.preferences.culture),
-        int(user.preferences.entertainment),
-        int(user.preferences.history),
-        int(user.preferences.nature),
-        int(user.preferences.religion),
-    ]
+    for item in ItineraryItem.objects.filter(day=day):
+        visit_list.append(item.location.id)
 
     manager = RecommendationsManager()
-    manager.get_spot_chain_recommendation(user, 1, preferences, visited_list)
+    recommendation_ids = manager.get_foodplace_recommendation(user, visit_list[-1], visit_list)
 
-    return Response(status=status.HTTP_200_OK)
+    recommendations = []
+    for id in recommendation_ids:
+        recommendation = Location.objects.get(pk=id)
+        recommendations.append(recommendation)
+
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': visit_list[-1]})
+
+    return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
+
+

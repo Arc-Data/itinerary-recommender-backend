@@ -5,7 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from .config import db
 
 
@@ -32,55 +32,41 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
     
 class RecommendationsManager():
-    def get_content_recommendations(self, user_preferences):
+    def get_content_recommendations(self, preferences, budget):
+        from api.models import ModelItinerary
+        models_data = []
 
-        itinerary = pd.read_csv('TravelPackage - ItineraryList.csv')
+        for model in ModelItinerary.objects.all():
+            if model.total_min_cost <= budget:
+                model_data = {
+                    'id': model.id,
+                    'min_cost': model.total_min_cost,
+                    'max_cost': model.total_max_cost,
+                    'tags': model.get_tags,
+                    'names': model.get_location_names
+                }
+                models_data.append(model_data)
 
-        # min-max values of tags
-        min_value = 0
-        max_value = 5
 
-        # data cleanup
-        itinerary.drop(itinerary.columns[itinerary.columns.str.contains('unnamed',case = False)],axis = 1, inplace = True)
-        itinerary = itinerary.drop(['Context', 'link to itinerary'], axis=1)
+        recommended_itineraries_data = pd.DataFrame.from_records(models_data)
+        tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
+        binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
-        # prepare labels for normalized data
-        spot_columns = ['Spot1', 'Spot2', 'Spot3', 'Spot4', 'Spot5']
-        tag_columns = ['Historical', 'Nature', 'Religious', 'Art', 'Activities','Entertainment','Culture']
+        recommended_itineraries_data['binned_tags'] = binned_tags 
 
-        # prepare normalized dataframe
-        normalized_data = [
-            {
-                'id': row['ItineraryID'],
-                'spots': [row[col] for col in spot_columns if not pd.isna(row[col])],
-                'tags': [(row[col] - min_value) / (max_value - min_value) for col in tag_columns if not pd.isna(row[col])]
-            }
-            for _, row in itinerary.iterrows()
-        ]
-        normalized_data = pd.DataFrame(normalized_data)
+        recommended_itineraries_data['jaccard_similarity'] = recommended_itineraries_data.apply(
+            lambda row: (
+                self.calculate_jaccard_similarity(preferences, row['binned_tags'])
+            ),
+            axis=1
+        )
 
-        # Recommendation portion
-        user_vector = np.array(user_preferences, dtype=int)
-        dimension = len(user_vector)
-        
-        def calculate_cosine_similarity(row):
-            itinerary_vector = row['tags'] + [0] * (dimension - len(row['tags']))
-            cosine_similarity_score = np.dot(user_vector, itinerary_vector) / (np.linalg.norm(user_vector) * np.linalg.norm(itinerary_vector))
-            return cosine_similarity_score
+        recommended_itineraries_data = recommended_itineraries_data[recommended_itineraries_data['jaccard_similarity'] > 0]
+        recommended_itineraries_data = recommended_itineraries_data.sort_values(by='jaccard_similarity', ascending=False)
+        recommended_itineraries_data.head(12).to_clipboard()
 
-        normalized_data['similarity'] = normalized_data.apply(calculate_cosine_similarity, axis=1)
+        return recommended_itineraries_data.head(12)['id'].tolist()
 
-        #sort recommendations by descending & limit 
-        limit = 8
-        recommended_itineraries = normalized_data.sort_values(by='similarity', ascending=False)
-        recommended_itineraries = recommended_itineraries.head(limit)
-        recommended_itineraries = recommended_itineraries.sample(frac=1).reset_index(drop=True)
-
-        recommended_itineraries.head()
-        top_3_ids = recommended_itineraries.head(3)['id'].tolist()
-
-        return top_3_ids
-    
     def get_hybrid_recommendations(self):
         return None
     
@@ -98,16 +84,14 @@ class RecommendationsManager():
 
 
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list):
-        from .models import Spot
+        from .models import Spot, Location
         max_distance = 10000
-
 
         clicks_weight = 0.05
         rating_weight = 0.15
-        distance_weight = 0.7
+        distance_weight = 0.6
         jaccard_weight = 0.1
-
-        jaccard_weight_visited = 0.3
+        visited_weight = 0.1
 
         try:
             user_clicks = db.child("users").child(user.id).child("clicks").get()
@@ -115,24 +99,27 @@ class RecommendationsManager():
         except Exception as e:
             print(f"an unexpected error has occured: {e}")
         
-        origin_spot = Spot.objects.get(id=location_id)
-
-        spots = Spot.objects.exclude(id=location_id).exclude(id__in=visited_list)
+        origin_spot = Location.objects.get(id=location_id)
+        tag_visit_counts = defaultdict(int)
+        spots = Spot.objects.exclude(id=location_id).exclude(tags=None)
         
         locations_data = []
         for spot in spots:
-            distance_from_origin = spot.get_distance_from_origin(origin_spot)
-            spot_data = {
-                'id': spot.id,
-                'name': spot.name,
-                'tags': [tag.name for tag in spot.tags.all()],
-                'rating': spot.get_avg_rating,
-                'distance_from_origin': distance_from_origin
-            }
-            locations_data.append(spot_data)
-
-        # binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
-
+            if spot.id not in visited_list:
+                distance_from_origin = spot.get_distance_from_origin(origin_spot)
+                spot_data = {
+                    'id': spot.id,
+                    'name': spot.name,
+                    'tags': [tag.name for tag in spot.tags.all()],
+                    'rating': spot.get_avg_rating,
+                    'distance_from_origin': distance_from_origin
+                }
+                locations_data.append(spot_data)
+            else:
+                for tag in spot.tags.all():
+                    tag_name = tag.name
+                    tag_visit_counts[tag_name] += 1
+        
         locations_data = pd.DataFrame.from_records(locations_data)
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
@@ -152,18 +139,20 @@ class RecommendationsManager():
 
         merged_data['jaccard_similarity'] = merged_data.apply(
             lambda row: (
-                jaccard_weight_visited * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
-                if row['id'] in visited_list
-                else jaccard_weight * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
+                jaccard_weight * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
             ),
             axis=1
         )
+
+        merged_data['visit_count'] = merged_data['tags'].apply(lambda tags: sum(tag_visit_counts[tag] for tag in tags))
+        merged_data['visit_count_score'] = visited_weight * merged_data['visit_count']
 
         merged_data['weighted_score'] = (
             clicks_weight * merged_data['amount'] + 
             jaccard_weight * merged_data['jaccard_similarity'] + 
             rating_weight * merged_data['rating'] + 
-            distance_weight * (max_distance - merged_data['distance_from_origin'])
+            distance_weight * (max_distance - merged_data['distance_from_origin']) + 
+            visited_weight * merged_data['visit_count_score']
         )
 
         weighted_score_array = merged_data['weighted_score'].values.reshape(-1, 1)
@@ -172,20 +161,89 @@ class RecommendationsManager():
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
         merged_data_sorted  = merged_data.sort_values(by='scaled_score', ascending=False)
 
-        keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'jaccard_similarity', 'distance_from_origin', 'weighted_score', 'scaled_score']
+        keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'jaccard_similarity', 'visit_count_score', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted= merged_data_sorted[keep_columns]
 
         return merged_data_sorted.head(4)['id'].tolist()
+    
+    
+    def get_foodplace_recommendation(self, user, location_id, visit_list):
+        from .models import FoodPlace, Location
+        max_distance = 5000
 
+        clicks_weight = 0.05
+        rating_weight = 0.35
+        distance_weight = 0.6
+
+        try:
+            user_clicks = db.child("users").child(user.id).child("clicks").get()
+            clicks_data = user_clicks.val() or {}
+        except Exception as e:
+            print(f"an unexpected error has occured: {e}")
+
+        origin_location = Location.objects.get(id=location_id)
+        print("Received visit list", visit_list)
+
+        foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list)
+
+        locations_data = []
+        for foodplace in foodplaces:
+            distance_from_origin = foodplace.get_distance_from_origin(origin_location)
+            foodplace_data = {
+                'id': foodplace.id,
+                'name': foodplace.name,
+                'foodtags': [tag.name for tag in foodplace.tags.all()],
+                'rating': foodplace.get_avg_rating,
+                'distance_from_origin': distance_from_origin
+            }
+            locations_data.append(foodplace_data)
+
+        locations_data = pd.DataFrame.from_records(locations_data)
+        locations_data = locations_data.sort_values(by='distance_from_origin')
+        locations_data = locations_data.head(15)
+        locations_data = locations_data.reset_index()
+        locations_data.to_clipboard()
+
+        # commented out while script for applying food tags arent in play yet
+        # tags_binary = pd.get_dummies(locations_data['foodtags'].explode()).groupby(level=0).max().astype(int)
+        # binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
+        
+        if clicks_data:
+            clicks_df = pd.DataFrame(clicks_data)
+            merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
+            merged_data['amount'] = merged_data['amount'].fillna(0)
+        else:
+            merged_data = locations_data
+            merged_data['amount'] = 0
+
+        merged_data['binned_tags'] = 0
+
+        merged_data['weighted_score'] = (
+            clicks_weight * merged_data['amount'] + 
+            rating_weight * merged_data['rating'] + 
+            distance_weight * (max_distance - merged_data['distance_from_origin'])
+        )
+
+        weighted_score_array = merged_data['weighted_score'].values.reshape(-1, 1)
+
+        scaler = MinMaxScaler()
+        merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
+        merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
+
+        keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'distance_from_origin', 'weighted_score', 'scaled_score']
+        merged_data_sorted = merged_data_sorted[keep_columns]
+        merged_data.to_clipboard()
+
+        return merged_data_sorted.head(4)['id'].tolist()
+    
 
     def get_homepage_recommendation(self, user, preferences, visited_list):
         from .models import Spot
 
-        click_weight = 0.15
-        jaccard_weight = 0.6
-        rating_weight = 0.25
-
-        jaccard_weight_visited = 0.3 
+        click_weight = 0.1
+        jaccard_weight = 0.5
+        rating_weight = 0.2
+        visited_weight = 0.2
 
         try:
             user_clicks = db.child("users").child(user.id).child("clicks").get()
@@ -195,24 +253,28 @@ class RecommendationsManager():
             return 
 
         locations_data = []
-        spots = Spot.objects.exclude(tags=None).exclude(id__in=visited_list)
+        tag_visit_counts = defaultdict(int)
+        spots = Spot.objects.exclude(tags=None)
 
         for spot in spots:
-            spot_data = {
-                'id': spot.id,
-                'name': spot.name,
-                'tags': [tag.name for tag in spot.tags.all()],
-                'rating': spot.get_avg_rating
-            }
-            locations_data.append(spot_data)
-        
+            if spot.id not in visited_list:
+                spot_data = {
+                    'id': spot.id,
+                    'name': spot.name,
+                    'tags': [tag.name for tag in spot.tags.all()],
+                    'rating': spot.get_avg_rating
+                }
+                locations_data.append(spot_data)
+            else:
+                for tag in spot.tags.all():
+                    tag_name = tag.name
+                    tag_visit_counts[tag_name] += 1
+
         locations_data = pd.DataFrame.from_records(locations_data)
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
-        tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
-        
         if clicks_data:
             clicks_df = pd.DataFrame(clicks_data)
 
@@ -224,17 +286,21 @@ class RecommendationsManager():
 
         merged_data['binned_tags'] = binned_tags
 
+        merged_data['visit_count'] = merged_data['tags'].apply(lambda tags: sum(tag_visit_counts[tag] for tag in tags))
+        merged_data['visit_count_score'] = visited_weight * merged_data['visit_count']
+
         merged_data['jaccard_similarity'] = merged_data.apply(
             lambda row: (
-                jaccard_weight_visited * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
-                if row['id'] in visited_list
-                else jaccard_weight * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
+                jaccard_weight * self.calculate_jaccard_similarity(preferences, row['binned_tags'])
             ),
             axis=1
         )
 
         merged_data['weighted_score'] = (
-            click_weight * merged_data['amount'] + jaccard_weight * merged_data['jaccard_similarity'] + rating_weight * merged_data['rating']
+            click_weight * merged_data['amount'] + 
+            jaccard_weight * merged_data['jaccard_similarity'] + 
+            rating_weight * merged_data['rating'] + 
+            visited_weight * merged_data['visit_count_score']
         )
 
         weighted_score_array = merged_data['weighted_score'].values.reshape(-1, 1)
@@ -242,72 +308,70 @@ class RecommendationsManager():
         scaler = MinMaxScaler()
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
-        keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'scaled_score'] 
+        keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
+        merged_data_sorted.to_clipboard()
 
         return merged_data_sorted.head(4)['id'].tolist()
 
-    def get_location_recommendation(self, user, location_id):
-        
-        
+    def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
+        from api.models import Spot
+        # this is from the details page, put higher prioritization on preference similarity
+        # but should I add a weight for the tags the user has already visited?
+
+        jaccard_weight = 0.7
+        rating_weight = 0.2
+        clicks_weight = 0.1
+
         try:
             user_clicks = db.child("users").child(user.id).child("clicks").get()
             clicks_data = user_clicks.val() or {}
-            # print(f"User {user.id} clicks data: {clicks_data}")
-
         except Exception as e:
             print(f"An unexpected error has occurred: {e}")
 
-        data = pd.read_csv('TravelPackage - Spot.csv')
-        # prepare labels of necessary values
-        tags_columns = ['Historical', 'Nature', 'Religious', 'Art', 'Activities', 'Entertainment', 'Culture']
-        selected_columns = ['Place'] + tags_columns
-        locations_data = data[selected_columns]
+        locations_data = []
+        tag_visit_counts = defaultdict(int)
+        spots = Spot.objects.exclude(tags=None, id=location_id)
 
-        locations_data.index = range(1, len(locations_data) + 1)
-        locations_data = locations_data.assign(ID=locations_data.index)
+        for spot in spots:
+            spot_data = {
+                'id': spot.id,
+                'name': spot.name,
+                'tags': [tag.name for tag in spot.tags.all()],
+                'rating': spot.get_avg_rating
+            }
+            locations_data.append(spot_data)
 
-        # drop unnecessary columns
-        locations_data.drop(columns=set(locations_data.columns) - set(['Place'] + tags_columns + ['ID']), inplace=True)
-        
-        for click in clicks_data:
-            click_location_id = click['location']
-            click_count = click['amount']
+        locations_data = pd.DataFrame.from_records(locations_data)
+        tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
+        binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
+        locations_data['binned_tags'] = binned_tags 
 
-            if click_location_id in locations_data['ID'].values:
-                print(locations_data)
-                locations_data.loc[locations_data['ID'] == click_location_id, tags_columns] *= click_count
-        
-        # select location id 
-        selected_location_id = location_id
-        selected_location = locations_data[locations_data['ID'] == selected_location_id]
+        if clicks_data:
+            clicks_df = pd.DataFrame(clicks_data)
 
-        # recommendation portion
-        if selected_location.empty:
-            print(f"Location not found.")
-            return None
+            merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
+            merged_data['amount'] = merged_data['amount'].fillna(0)
         else:
-            selected_vector = selected_location[tags_columns].values.reshape(1, -1)
-            all_vectors = locations_data[locations_data['ID'] != selected_location_id][tags_columns].values
+            merged_data = locations_data
+            merged_data['amount'] = 0
 
-            cosine_similarity_scores = cosine_similarity(selected_vector, all_vectors)
-            sorted_indices = cosine_similarity_scores[0].argsort()[::-1]
+        merged_data['jaccard_similarity'] = merged_data.apply(
+            lambda row: (
+                self.calculate_jaccard_similarity(origin_binned_tags, row['binned_tags'])
+            ),
+            axis=1
+        )
 
-            top_n = 5
+        merged_data['weighted_score'] = (
+            clicks_weight * merged_data['amount'] + jaccard_weight * merged_data['jaccard_similarity'] + rating_weight * merged_data['rating']
+        )
 
-            # Filter out the selected location
-            is_not_selected_location = locations_data['ID'] != selected_location_id
-            top_recommendations = locations_data[is_not_selected_location].iloc[sorted_indices[:top_n]]
+        weighted_score_array = merged_data['weighted_score'].values.reshape(-1, 1)
 
-            # Print the result including similarity scores
-            # print(f"Selected Location: {selected_location['Place'].values[0]} (ID: {selected_location_id}) with tags:")
-            # print(selected_location[tags_columns])
-            # print("\nTop Recommendations:")
-            result_with_scores = top_recommendations[['ID', 'Place'] + tags_columns].copy()
-            result_with_scores['Similarity'] = cosine_similarity_scores[0, sorted_indices[:top_n]]
-            # print(result_with_scores)
+        scaler = MinMaxScaler()
+        merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
+        merged_data = merged_data.sort_values(by='scaled_score', ascending=False)
 
-            # result_with_scores.head()
-            top_4_ids = result_with_scores.head(4)['ID'].tolist()
-
-            return top_4_ids
+        merged_data.to_clipboard()
+        return merged_data.head(4)['id'].to_list()

@@ -99,25 +99,22 @@ class SpotSerializers(serializers.ModelSerializer):
 
 class FoodPlaceSerializers(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
     class Meta:
         model = FoodPlace
-        fields = ['fee']
+        fields = ['fee', 'tags']
 
     def get_fee(self, obj):
-        query_set = Food.objects.filter(location=obj.id)
+        min_price = obj.get_min_cost
+        max_price = obj.get_max_cost
 
-        if query_set.exists():
-            price_aggregation = query_set.aggregate(min_price=models.Min('price'), max_price=models.Max('price'))
-            min_price = price_aggregation.get('min_price')
-            max_price = price_aggregation.get('max_price') 
-        else:
-            min_price = 300.0
-            max_price = 300.0
-        
         return {
             'min': min_price, 
             'max': max_price
         }
+    
+    def get_tags(self, obj):
+        return [tag.name for tag in obj.tags.all()]
 
 class FoodSerializer(serializers.ModelSerializer):
     class Meta:
@@ -610,10 +607,11 @@ class CompletedDaySerializer(serializers.ModelSerializer):
 class LocationRecommenderSerializers(serializers.ModelSerializer):
     fee = serializers.SerializerMethodField()
     schedule = serializers.SerializerMethodField()
+    is_visited = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'fee', 'schedule']
+        fields = ['id', 'name', 'fee', 'schedule', 'is_visited']
     
     def get_fee(self, obj):
         if obj.location_type == "1":
@@ -638,13 +636,25 @@ class LocationRecommenderSerializers(serializers.ModelSerializer):
                 }
 
         return None    
+    
+    def get_is_visited(self, obj):
+        visited_list = self.context.get('visited_list')
+        return obj.id in visited_list
+
+class ModelItineraryLocationOrderSerializer(serializers.ModelSerializer):
+    spot = LocationRecommenderSerializers()
+
+    class Meta:
+        model = ModelItineraryLocationOrder
+        fields = ['spot', 'order']
+
 
 class ModelItinerarySerializers(serializers.ModelSerializer):
-    locations = LocationRecommenderSerializers(many=True)
+    locations = ModelItineraryLocationOrderSerializer(many=True, source="modelitinerarylocationorder_set")
 
     class Meta:
         model = ModelItinerary
-        fields = '__all__'
+        fields = ['id', 'locations']
 
 #Bookmark Serializers
 class BookmarkSerializer(serializers.ModelSerializer):
@@ -700,7 +710,6 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
     
     def get_distance(self, obj):
         location_id = self.context.get('location_id')
-        print(type(location_id))
 
         if location_id is not None:
             origin = Location.objects.get(id=location_id)
@@ -715,6 +724,12 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
             if spot:
                 return [tag.name for tag in spot.tags.all()]
         
+        if obj.location_type == "2":
+            foodplace = FoodPlace.objects.get(pk=obj.id)
+        
+            if foodplace:
+                return [tag.name for tag in foodplace.tags.all()]
+        
         return None
     
     def get_ratings(self, obj):
@@ -725,23 +740,44 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
             'total_reviews': reviews.count(),
             'average_rating': average_rating
         }
+    
+    def get_visited_status(self, obj):
+        visited_list = self.context.get('visited_list')
 
+        if obj.id in visited_list:
+            return True
+        
+        return False
 
 #Ownership Request
 class OwnershipRequestSerializer(serializers.ModelSerializer):
     details = LocationBasicSerializer(source='location', read_only=True)
     requester = UserSerializers(source='user')
     image = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = OwnershipRequest
-        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image')
+        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags')
 
     def get_image(self, obj):
         primary_image = obj.location.images.filter(is_primary_image=True).first()
 
         if primary_image:
             return primary_image.image.url
+        
+        return None
+    
+    def get_tags(self, obj):
+        if obj.location.location_type == "1":
+            spot = Spot.objects.get(id=obj.location.id)
+
+            return [tag.name for tag in spot.tags.all()]
+        
+        if obj.location.location_type == "2":
+            foodplace = FoodPlace.objects.get(id=obj.location.id)
+            
+            return [tag.name for tag in foodplace.tags.all()]
         
         return None
 
@@ -770,6 +806,16 @@ class FeeTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FeeType 
         fields = '__all__'
+
+class FoodTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodTag
+        fields = ['name']
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name']
 
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):

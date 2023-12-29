@@ -234,8 +234,17 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+    
+class FoodTag(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 
 class FoodPlace(Location):
+    tags = models.ManyToManyField("FoodTag", related_name="foodplaces")
+    opening_time = models.TimeField(blank=True, null=True)
+    closing_time = models.TimeField(blank=True, null=True)
  
     def save(self, *args, **kwargs):
         self.location_type = '2'
@@ -243,6 +252,11 @@ class FoodPlace(Location):
 
     def __str__(self):
         return self.name
+    
+    def get_distance_from_origin(self, origin_foodplace):
+        foodplace_coordinates = (self.latitude, self.longitude)
+        origin_coordinates = (origin_foodplace.latitude, origin_foodplace.longitude)
+        return haversine(foodplace_coordinates, origin_coordinates, unit=Unit.METERS)
     
     @property
     def get_min_cost(self):
@@ -260,6 +274,8 @@ class FoodPlace(Location):
             return max_food.price
         else:
             return 300.0
+
+    
 
 class Accommodation(Location):
 
@@ -301,18 +317,42 @@ class ItineraryItem(models.Model):
     def __str__(self):
         return f"{self.day.date} - {self.location.name} - {self.order}"
 
+class ModelItineraryLocationOrder(models.Model):
+    itinerary = models.ForeignKey("ModelItinerary", on_delete=models.CASCADE)
+    spot = models.ForeignKey(Spot, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['order']
+
 class ModelItinerary(models.Model):
     locations = models.ManyToManyField("Spot")
 
     @property
     def total_min_cost(self):
-        min_costs = [spot.get_min_cost for spot in self.locations.all()]
-        return sum(min_costs)
+        location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
+        return sum(location_order.spot.get_min_cost for location_order in location_orders)
 
     @property
     def total_max_cost(self):
-        max_costs = [spot.get_max_cost for spot in self.locations.all()]
-        return sum(max_costs)
+        location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
+        return sum(location_order.spot.get_max_cost for location_order in location_orders)
+
+    @property
+    def get_tags(self):
+        tags_list = []
+
+        for location_order in self.modelitinerarylocationorder_set.all().order_by('order'):
+            location = location_order.spot
+            if location.location_type == '1':
+                tags_list.extend(tag.name for tag in location.tags.all())
+
+        return set(tags_list)
+    
+    @property
+    def get_location_names(self):
+        location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
+        return [location_order.spot.name for location_order in location_orders]
 
 class Review(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True)
