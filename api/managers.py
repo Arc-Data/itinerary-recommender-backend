@@ -182,6 +182,7 @@ class RecommendationsManager():
             print(f"an unexpected error has occured: {e}")
 
         origin_location = Location.objects.get(id=location_id)
+        print("Received visit list", visit_list)
 
         foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list)
 
@@ -201,7 +202,7 @@ class RecommendationsManager():
         locations_data = locations_data.sort_values(by='distance_from_origin')
         locations_data = locations_data.head(15)
         locations_data = locations_data.reset_index()
-        # locations_data.to_clipboard()
+        locations_data.to_clipboard()
 
         # commented out while script for applying food tags arent in play yet
         # tags_binary = pd.get_dummies(locations_data['foodtags'].explode()).groupby(level=0).max().astype(int)

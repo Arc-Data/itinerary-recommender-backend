@@ -53,6 +53,7 @@ urlpatterns = [
     path('recommendations/location/<int:location_id>/', get_location_recommendations, name='get_location_recommendation'),
     path('recommendations/homepage/', get_homepage_recommendations, name='get_homepage_recommendations'), 
     path('recommendations/<int:location_id>/nearby/', get_spot_chain_recommendations, name="get_spot_chain_recommendations"),
+    path('recommendations/<int:day_id>/nearby/foodplace/', get_food_chain_recommendations, name="get_food_chain_recommendations"),
 
     path('bookmarks/', get_bookmarks, name='get_bookmarks'),
 
@@ -115,8 +116,4 @@ urlpatterns = [
     path('fee/<int:fee_id>/', get_fee, name='get_fee'),
     path('fee/<int:audience_id>/edit/', edit_fee, name='edit_fee'),
     path('fee/<int:fee_id>/edit/<int:audience_id>/delete', delete_fee, name='delete_fee'),
-
-    path('foodplace/<int:location_id>/recommendations/', get_foodplace_recommendations, name="foodplace_recommendations"),
-
-    path('test/', test_function, name="test_function"),
 ]
