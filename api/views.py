@@ -1,4 +1,8 @@
 from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, viewsets
@@ -29,6 +33,17 @@ class UserRegistrationView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/"
+
+        subject = 'Cebu Route - Activate Your Account'
+        message = f'Thank you for creating an account on Cebu Route. Please click the following link to activate your account:\n\n{activation_link}'
+        from_email = settings.EMAIL_FROM
+        recipient_list =  [user.email]
+
+        send_mail(subject, message, from_email, recipient_list)
 
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 
@@ -127,6 +142,7 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
                 queryset = queryset.filter(location_type=3)
 
         return queryset
+    
 
 @api_view(['POST'])
 def change_password(request):
