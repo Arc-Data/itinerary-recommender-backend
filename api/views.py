@@ -11,6 +11,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 
 import pandas as pd
 import json
@@ -22,6 +23,14 @@ from .serializers import *
 import random
 import datetime
 import numpy as np
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token)
+    }
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -149,13 +158,21 @@ def activate_account(request, uidb64, token):
     try:
         user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
         user = get_object_or_404(User, pk=user_id)
+
     except:
         return Response({'message': 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
 
     if default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        return Response({'message': 'Account Activated Successfully'}, status=status.HTTP_200_OK)
+
+        tokens = get_tokens_for_user(user)
+        print(tokens)
+        
+        return Response({
+            'message': 'Account Activated Successfully',
+            'data': tokens,
+            }, status=status.HTTP_200_OK)
     else:
         return Response({"message" 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
 
