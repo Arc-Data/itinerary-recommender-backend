@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -143,12 +143,11 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
 
         return queryset
     
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def activate_account(request, uidb64, token):
     try:
-        user_id = force_text(urlsafe_base64_decode(uidb64))
+        user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
         user = get_object_or_404(User, pk=user_id)
     except:
         return Response({'message': 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
@@ -162,7 +161,6 @@ def activate_account(request, uidb64, token):
 
 @api_view(['POST'])
 def change_password(request):
-    print("I am here")
     serializer = ChangePasswordSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 

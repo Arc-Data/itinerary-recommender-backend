@@ -19,6 +19,8 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     set_preferences = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -50,7 +52,6 @@ def create_preferences(sender, instance, created, **kwargs):
        Preferences.objects.create(
            user=instance,
        ) 
-       print("Nice")
 
 @receiver(post_save, sender=User)
 def save_user_preferences(sender, instance, **kwargs):
