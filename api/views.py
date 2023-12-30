@@ -127,7 +127,26 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
                 queryset = queryset.filter(location_type=3)
 
         return queryset
+
+@api_view(['POST'])
+def change_password(request):
+    print("I am here")
+    serializer = ChangePasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    user = request.user 
+    print(user)
+    old_password = serializer.validated_data.get('old_password')
+    new_password = serializer.validated_data.get('new_password')
+
+    if not user.check_password(old_password):
+        return Response({'detail': 'Old Password is Incorrect'}, status=status.HTTP_400_BAD_REQUEST)
     
+    user.set_password(new_password)
+    user.save()
+
+    return Response({'detail': 'Password set successfully'}, status=status.HTTP_200_OK)
+
 @api_view(['GET'])
 def get_related_days(request, itinerary_id):
     itinerary = Itinerary.objects.get(id=itinerary_id)
