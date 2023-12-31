@@ -761,13 +761,11 @@ def create_ownership_request(request):
         description=description
     )
 
-    if location_type == 1:
+    if location_type == '1':
         spot = Spot.objects.get(id=location.id)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
 
-        tag_names = request.data.get("tags", [])
-        
         for tag_name in tag_names:
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
@@ -1568,7 +1566,6 @@ def get_spot_chain_recommendations(request, day_id):
 
     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_food_chain_recommendations(request, day_id):
@@ -1591,4 +1588,77 @@ def get_food_chain_recommendations(request, day_id):
 
     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_driver(request):
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    email = request.data.get('email')
+    contact = request.data.get('contact')
+    facebook = request.data.get('facebook')
+    additional_information = request.data.get('info')
 
+    car = request.data.get('car')
+    car_type = request.data.get('type')
+    max_capacity = request.data.get('capacity')
+    image = request.data.get('image')
+    plate_number = request.data.get('plate')
+
+    Driver.objects.create(
+        first_name = first_name,
+        last_name = last_name,
+        email = email,
+        contact = contact,
+        facebook = facebook,
+        additional_information = additional_information,
+        car = car,
+        car_type = car_type,
+        max_capacity = max_capacity,
+        image = image,
+        plate_number = plate_number
+    )
+
+    return Response({'message':'Driver created'}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def edit_driver(request, driver_id):
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    email = request.data.get('email')
+    contact = request.data.get('contact')
+    facebook = request.data.get('facebook')
+    additional_information = request.data.get('info')
+
+    car = request.data.get('car')
+    car_type = request.data.get('type')
+    max_capacity = request.data.get('capacity')
+    plate_number = request.data.get('plate')
+
+    driver = Driver.objects.get(id=driver_id)
+
+    driver.first_name = first_name
+    driver.last_name = last_name
+    driver.email = email
+    driver.contact = contact
+    driver.facebook = facebook
+    driver.additional_information = additional_information
+    
+    driver.car = car
+    driver.car_type = car_type
+    driver.max_capacity = max_capacity
+    driver.plate_number = plate_number
+
+    driver.save()
+
+    return Response({'message':'Driver edited'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_drivers(request):
+    drivers = Driver.objects.all()
+    serializer = DriverSerializer(drivers, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)

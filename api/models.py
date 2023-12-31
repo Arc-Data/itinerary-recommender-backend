@@ -10,6 +10,7 @@ from django.db.models.signals import post_save
 from django.utils import timezone
 from django.db.models import Count, Avg
 from haversine import haversine, Unit
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 import os, math
 
@@ -409,6 +410,38 @@ class AudienceType(models.Model):
 
     def __str__(self):
         return f"{self.name} - Price: {self.price} - FeeType: {self.fee_type}"
+    
+class Driver(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    email = models.EmailField(blank=True, null=True, default="")
+    contact = models.CharField(max_length=15, default="")
+    facebook = models.CharField(max_length=60, blank=True, null=True, default="")
+    additional_information = models.CharField(default="No Description Provided.", max_length=500)
+
+    car = models.CharField(max_length=30)
+    car_type = models.CharField(
+        max_length=1,
+        choices=[
+            ('1', 'Sedan'),
+            ('2', 'Van'),
+            ('3', 'SUV'),
+        ],
+        default=1
+    )
+    max_capacity = models.PositiveIntegerField(
+        default=1,
+        validators=[
+            MaxValueValidator(12),
+            MinValueValidator(1)
+        ]
+    )
+    plate_number = models.CharField(max_length=7)
+    image = models.ImageField(blank=True, null=True, upload_to='drivers/', default='drivers/DefaultDriverImage.png')
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
 
 # @receiver(post_save, sender=FeeType)
 # def create_default_audience_type(sender, instance, created, **kwargs):
