@@ -761,13 +761,11 @@ def create_ownership_request(request):
         description=description
     )
 
-    if location_type == 1:
+    if location_type == '1':
         spot = Spot.objects.get(id=location.id)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
 
-        tag_names = request.data.get("tags", [])
-        
         for tag_name in tag_names:
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
