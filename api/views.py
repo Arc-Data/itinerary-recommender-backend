@@ -194,10 +194,7 @@ def reset_password(request, uidb64, token):
         except:
             return Response({'message': 'Invalid Reset Link'}, status=status.HTTP_400_BAD_REQUEST)
     
-        if default_token_generator.check_token(user, token):
-            return Response({'message': 'Valid Reset Link'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': 'Invalid Reset Link'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Valid Reset Link'}, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
         try:
