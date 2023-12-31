@@ -161,7 +161,6 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
 @permission_classes([AllowAny])
 def forgot_password(request):
     email = request.data.get('email')
-    print(email)
 
     try:
         user = User.objects.get(email=email)
@@ -184,6 +183,28 @@ def forgot_password(request):
 
     return Response({'message': "Password reset email sent successfully"}, status=status.HTTP_200_OK)
 
+@api_view(['POST', 'GET'])
+@permission_classes([AllowAny])
+def reset_password(request, uidb64, token):
+    if request.method == 'GET':
+        try:
+            user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
+            user = get_object_or_404(User, pk=user_id)
+            reset_instance = get_object_or_404(PasswordReset, user=user, key=token, used=False)
+        except:
+            return Response({'message': 'Invalid Reset Link'}, status=status.HTTP_400_BAD_REQUEST)
+    
+        if default_token_generator.check_token(user, token):
+            return Response({'message': 'Valid Reset Link'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Invalid Reset Link'}, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'POST':
+        try:
+            pass
+        except:
+            pass
+    
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def activate_account(request, uidb64, token):
