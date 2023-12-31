@@ -85,7 +85,7 @@ class LocationPlanViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.exclude(location_type=3)
 
         return queryset
-
+    
 class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationQuerySerializers
@@ -158,6 +158,32 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
     
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def forgot_password(request):
+    email = request.data.get('email')
+
+    try:
+        user = User.objects.get(id=email)
+    except:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    reset_instance, created = PasswordReset.objects.get_or_create(user=user)
+    reset_instance.key = get_random_string()
+    reset_instance.save()
+
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_link = f"{settings.FRONTEND_URL}/reset/{uidb64}/{reset_instance.key}"
+
+    subject = 'Reset Your Password'
+    message = f'You have requested to reset your password. Use the link to proceed.\n\n{reset_link}'
+    from_email = settings.EMAIL_FROM
+    recipient_list = [email]
+
+    send_mail(subject, message, from_email, recipient_list)
+
+    return Response({'message': "Password reset email sent successfully"}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def activate_account(request, uidb64, token):
     try:
         user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
@@ -194,6 +220,27 @@ def change_password(request):
     user.save()
 
     return Response({'detail': 'Password set successfully'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def change_password_with_token(request, uidb64, token):
+    try:
+        user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
+        user = get_object_or_404(User, pk=user_id)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return Response({'message': 'Invalid user or token'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if default_token_generator.check_token(user, token):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_password = serializer.validated_data.get('new_password')
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'detail': 'Password changed successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'message': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def get_related_days(request, itinerary_id):
