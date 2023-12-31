@@ -121,15 +121,7 @@ urlpatterns = [
     path('driver/add/', add_driver, name='add_driver'),
     path('driver/<int:driver_id>/edit/', edit_driver, name='edit_driver'),
 
-<<<<<<< HEAD
     path('driver/', get_drivers, name='get_drivers'),
     path('driver/add/', add_driver, name='add_driver'),
     path('driver/<int:driver_id>/edit/', edit_driver, name='edit_driver'),
-
-    path('foodplace/<int:location_id>/recommendations/', get_foodplace_recommendations, name="foodplace_recommendations"),
-
-    path('test/', test_function, name="test_function"),
-=======
-    # path('test/<int:day_id>/', test_function, name="test_function"),
->>>>>>> test
 ]
