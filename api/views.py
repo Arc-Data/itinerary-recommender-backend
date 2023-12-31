@@ -162,6 +162,9 @@ def activate_account(request, uidb64, token):
     except:
         return Response({'message': 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
 
+    if user.is_active:
+        return Response({'message': 'Account already activated'}, status=status.HTTP_400_BAD_REQUEST)
+
     if default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
