@@ -12,6 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils.crypto import get_random_string
 
 import pandas as pd
 import json
@@ -160,14 +161,15 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
 @permission_classes([AllowAny])
 def forgot_password(request):
     email = request.data.get('email')
+    print(email)
 
     try:
-        user = User.objects.get(id=email)
+        user = User.objects.get(email=email)
     except:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
     reset_instance, created = PasswordReset.objects.get_or_create(user=user)
-    reset_instance.key = get_random_string()
+    reset_instance.key = get_random_string(length=20)
     reset_instance.save()
 
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))

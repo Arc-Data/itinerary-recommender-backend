@@ -61,7 +61,7 @@ def save_user_preferences(sender, instance, **kwargs):
 
 class PasswordReset(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    key = models.CharField(max_length=100, unique=True, default=get_random_string)
+    key = models.CharField(max_length=20, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     used = models.BooleanField(default=False)  
 
