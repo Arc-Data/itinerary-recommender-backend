@@ -305,7 +305,6 @@ def update_preferences(request):
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
     user = request.user
-    # user = User.objects.get(id=1)
     budget = request.data
     visited_list = set()
 
@@ -637,8 +636,19 @@ def delete_location(request, id):
 @permission_classes([IsAuthenticated])
 def get_location_recommendations(request, location_id):
     user = request.user 
+    location_tags = Spot.objects.get(id=location_id).tags.all()
+    all_tags = Tag.objects.all().order_by('name')
+
+    origin_binned_tags = [1 if tag in location_tags else 0 for tag in all_tags]
+    
+    visited_list = set()
+    for itinerary in Itinerary.objects.filter(user=user):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            items = ItineraryItem.objects.filter(day=day)
+            visited_list.update(item.location.id for item in items)
+
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_location_recommendation(user, location_id)
+    recommendation_ids = manager.get_location_recommendation(user, origin_binned_tags, location_id, visited_list)
 
     recommendations = []
     for id in recommendation_ids:
@@ -679,7 +689,6 @@ def get_homepage_recommendations(request):
 
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
-    print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids:
@@ -1387,76 +1396,43 @@ def edit_fee(request, audience_id):
 def delete_fee(request, fee_id, audience_id):
     pass
 
-@api_view(['POST'])
-def get_spot_chain_recommendations(request, location_id):
-    user = request.user 
-    to_visit_list = request.data
-    visited_list = set()
+# @api_view(['POST'])
+# def get_spot_chain_recommendations(request, location_id):
+#     user = request.user 
+#     to_visit_list = request.data
+#     visited_list = set()
 
-    itineraries = Itinerary.objects.filter(user=user)
+#     itineraries = Itinerary.objects.filter(user=user)
     
-    for itinerary in itineraries:
-        for day in Day.objects.filter(itinerary=itinerary, completed=True):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
+#     for itinerary in itineraries:
+#         for day in Day.objects.filter(itinerary=itinerary, completed=True):
+#             items = ItineraryItem.objects.filter(day=day)
+#             visited_list.update(item.location.id for item in items)
 
-    visited_list = set(visited_list)
-    visited_list = visited_list.union(set(to_visit_list))
+#     visited_list = set(visited_list)
+#     visited_list = visited_list.union(set(to_visit_list))
 
-    preferences = [
-        int(user.preferences.activity),
-        int(user.preferences.art), 
-        int(user.preferences.culture),
-        int(user.preferences.entertainment),
-        int(user.preferences.history),
-        int(user.preferences.nature),
-        int(user.preferences.religion),
-    ]
+#     preferences = [
+#         int(user.preferences.activity),
+#         int(user.preferences.art), 
+#         int(user.preferences.culture),
+#         int(user.preferences.entertainment),
+#         int(user.preferences.history),
+#         int(user.preferences.nature),
+#         int(user.preferences.religion),
+#     ]
 
-    manager = RecommendationsManager()
-    recommendation_ids = manager.get_spot_chain_recommendation(user, location_id, preferences, visited_list)
+#     manager = RecommendationsManager()
+#     recommendation_ids = manager.get_spot_chain_recommendation(user, location_id, preferences, visited_list)
 
-    recommendations = []
-    for id in recommendation_ids:
-        recommendation = Location.objects.get(pk=id)
-        recommendations.append(recommendation)
+#     recommendations = []
+#     for id in recommendation_ids:
+#         recommendation = Location.objects.get(pk=id)
+#         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
+#     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
 
-    return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def test_function(request):
-    user = request.user 
-    visited_list = set()
-
-    itineraries = Itinerary.objects.filter(user=user)
-    
-    for itinerary in itineraries:
-        for day in Day.objects.filter(itinerary=itinerary, completed=True):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
-
-    visited_list = set(visited_list)
-
-    print(visited_list)
-
-    preferences = [
-        int(user.preferences.activity),
-        int(user.preferences.art), 
-        int(user.preferences.culture),
-        int(user.preferences.entertainment),
-        int(user.preferences.history),
-        int(user.preferences.nature),
-        int(user.preferences.religion),
-    ]
-
-    manager = RecommendationsManager()
-    manager.get_spot_chain_recommendation(user, 1, preferences, visited_list)
-
-    return Response(status=status.HTTP_200_OK)
-
+#     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -1554,31 +1530,63 @@ def remove_tags(request, location_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_foodplace_recommendations(request, location_id):
-    user = request.user
-    to_visit_list = request.data
+def get_spot_chain_recommendations(request, day_id):
+    user = request.user 
+
+    day = Day.objects.get(id=day_id)
+    origin_location = ItineraryItem.objects.filter(day=day).last().location
     visited_list = set()
 
     itineraries = Itinerary.objects.filter(user=user)
     
     for itinerary in itineraries:
-        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+        for day in Day.objects.filter(itinerary=itinerary):
             items = ItineraryItem.objects.filter(day=day)
             visited_list.update(item.location.id for item in items)
 
     visited_list = set(visited_list)
-    visited_list = visited_list.union(set(to_visit_list))
+
+    preferences = [
+        int(user.preferences.activity),
+        int(user.preferences.art), 
+        int(user.preferences.culture),
+        int(user.preferences.entertainment),
+        int(user.preferences.history),
+        int(user.preferences.nature),
+        int(user.preferences.religion),
+    ]
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_foodplace_recommendation(user, location_id, visited_list)
+    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list)
 
     recommendations = []
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
 
-    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': origin_location.id})
+
+    return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_food_chain_recommendations(request, day_id):
+    user = request.user
+    day = Day.objects.get(id=day_id)
+    visit_list = []
+
+    for item in ItineraryItem.objects.filter(day=day):
+        visit_list.append(item.location.id)
+
+    manager = RecommendationsManager()
+    recommendation_ids = manager.get_foodplace_recommendation(user, visit_list[-1], visit_list)
+
+    recommendations = []
+    for id in recommendation_ids:
+        recommendation = Location.objects.get(pk=id)
+        recommendations.append(recommendation)
+
+    recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': visit_list[-1]})
 
     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
 

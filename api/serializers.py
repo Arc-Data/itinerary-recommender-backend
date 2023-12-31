@@ -710,7 +710,6 @@ class RecommendedLocationSerializer(serializers.ModelSerializer):
     
     def get_distance(self, obj):
         location_id = self.context.get('location_id')
-        print(type(location_id))
 
         if location_id is not None:
             origin = Location.objects.get(id=location_id)
