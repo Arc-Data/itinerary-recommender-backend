@@ -8,6 +8,7 @@ from .managers import CustomUserManager
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.db.models import Count, Avg
 from haversine import haversine, Unit
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -58,6 +59,15 @@ def create_preferences(sender, instance, created, **kwargs):
 def save_user_preferences(sender, instance, **kwargs):
     instance.preferences.save()
 
+class ForgotPassword(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    key = models.CharField(max_length=100, unique=True, default=get_random_string)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)  # Add a used field
+
+    def mark_as_used(self):
+        self.used = True
+        self.save()
 
 class Location(models.Model):
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
