@@ -39,10 +39,14 @@ class UserRegistrationView(CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/"
@@ -169,13 +173,7 @@ def activate_account(request, uidb64, token):
         user.is_active = True
         user.save()
 
-        tokens = get_tokens_for_user(user)
-        print(tokens)
-        
-        return Response({
-            'message': 'Account Activated Successfully',
-            'data': tokens,
-            }, status=status.HTTP_200_OK)
+        return Response({'message': 'Account Activated Successfully',}, status=status.HTTP_200_OK)
     else:
         return Response({"message" 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
 
