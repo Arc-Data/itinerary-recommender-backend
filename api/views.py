@@ -1359,6 +1359,8 @@ def create_fee(request, location_id):
     serializer = FeeTypeSerializer(fee)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
 @api_view(["GET"])
 def get_fees(request, location_id):
     spot = Spot.objects.get(id=location_id)
@@ -1388,25 +1390,17 @@ def edit_fee_type(request, fee_id):
 
     return Response(status=status.HTTP_200_OK)
 
-@api_view(['PATCH'])
-@permission_classes([IsAuthenticated])
-def edit_fee(request, audience_id):
-    audience_fee = AudienceType.objects.get(id=audience_id)
-    name = request.data.get('name') 
-    price = request.data.get('price')
-    description = request.data.get('description')
-
-    audience_fee.name = name
-    audience_fee.price = price
-    audience_fee.description = description
-    audience_fee.save()
-
-    return Response(status=status.HTTP_200_OK)
-
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def delete_fee(request, fee_id, audience_id):
-    pass
+def delete_fee_type(request, fee_id):
+    fee = FeeType.objects.get(id=fee_id)
+
+    if not fee:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    fee.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
