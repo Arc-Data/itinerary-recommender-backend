@@ -169,6 +169,7 @@ def forgot_password(request):
     
     reset_instance, created = PasswordReset.objects.get_or_create(user=user)
     reset_instance.key = get_random_string(length=20)
+    reset_instance.used = False
     reset_instance.save()
 
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
@@ -198,10 +199,27 @@ def reset_password(request, uidb64, token):
 
     elif request.method == 'POST':
         try:
-            pass
+            user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
+            print(user_id)
+            user  = User.objects.get(pk=user_id)
+            print(user)
+            reset_instance = get_object_or_404(PasswordReset, user=user, key=token, used=False)
+
+            new_password = request.data.get('password')
+            hashed_password = make_password(new_password)
+            user.password = hashed_password
+            user.save()
+
+            reset_instance.mark_as_used()
+
+            return Response({'message': 'Password reset successful', 'email': user.email}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'message': 'Invalid Reset Link'}, status=status.HTTP_400_BAD_REQUEST)
         except:
-            pass
-    
+            return Response({'message': 'An error occured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def activate_account(request, uidb64, token):
