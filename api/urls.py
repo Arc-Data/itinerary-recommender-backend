@@ -113,8 +113,8 @@ urlpatterns = [
     path('location/<int:location_id>/fee/create/', create_fee, name="create_fee"),
     path('location/<int:location_id>/fees/', get_fees, name="get_fees"),
     
-    path('fee/<int:fee_id>/', edit_fee_type, name='get_fee'),
-    path('fee/<int:fee_id>/delete', delete_fee_type, name='delete_fee'),
+    path('fee/<int:fee_id>/edit/', edit_fee_type, name='get_fee'),
+    path('fee/<int:fee_id>/delete/', delete_fee_type, name='delete_fee'),
 
     path('driver/', get_drivers, name='get_drivers'),
     path('driver/add/', add_driver, name='add_driver'),
