@@ -117,8 +117,9 @@ urlpatterns = [
     path('fee/<int:fee_id>/edit/', edit_fee_type, name='edit_fee_type'),
     path('fee/<int:fee_id>/delete/', delete_fee_type, name='delete_fee_type'),
     path('fee/<int:fee_id>/audience/create/', create_audience_type, name='create_audience_type'),
-    path('fee/<int:fee_id>/audience/<int:audience_id>/edit/', edit_audience_type, name='edit_audience_type'),
-    path('fee/<int:fee_id>/audience/<int:audience_id>/delete/', delete_audience_type, name='delete_audience_type'),
+    
+    path('audience/<int:audience_id>/edit/', edit_audience_type, name='edit_audience_type'),
+    path('audience/<int:audience_id>/delete/', delete_audience_type, name='delete_audience_type'),
     
     path('driver/', get_drivers, name='get_drivers'),
     path('driver/add/', add_driver, name='add_driver'),

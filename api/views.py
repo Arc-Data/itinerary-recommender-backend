@@ -417,7 +417,6 @@ def edit_day_color(request, day_id):
 @api_view(["DELETE"])
 def delete_day(request, day_id):
     try:
-        print("Im here")
         day = Day.objects.get(id=day_id)
         day.delete()
         return Response({
@@ -806,9 +805,7 @@ def get_ownership_requests(request):
 @permission_classes([IsAuthenticated])
 def get_all_ownership_requests(request):
     requests = OwnershipRequest.objects.filter(is_approved=False)
-    print(requests)
     serializer = OwnershipRequestSerializer(requests, many=True)
-    print(serializer.data)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH"])
@@ -1008,7 +1005,6 @@ def create_food(request, location_id):
     )
 
     serializer = FoodSerializer(food)
-    print(serializer.data)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['DELETE'])
@@ -1148,7 +1144,6 @@ def edit_itinerary(request, itinerary_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_service(request, location_id):
-    print(request.data)
     try:
         location = Accommodation.objects.get(id=location_id, owner=request.user)
     except Accommodation.DoesNotExist:
@@ -1219,8 +1214,6 @@ def get_all_events(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_event(request):
-    print(request.data)
-
     name = request.data.get('name')
     start_date = request.data.get('start_date')
     end_date = request.data.get('end_date')
@@ -1363,18 +1356,14 @@ def create_fee(request, location_id):
 @api_view(["GET"])
 def get_fees(request, location_id):
     spot = Spot.objects.get(id=location_id)
-    print(spot)
     fees = FeeType.objects.filter(spot=spot)
-    print(fees)
     serializer = FeeTypeSerializer(fees, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_fee_type(request, fee_id):
-    print("I should be here")
     fee = FeeType.objects.get(id=fee_id)
-    print(fee)
     serializer = FeeTypeSerializer(fee)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
