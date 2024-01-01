@@ -452,5 +452,5 @@ def create_default_fee(sender, instance, created, **kwargs):
 @receiver(post_save, sender=FeeType)
 def create_default_audience_type(sender, instance, created, **kwargs):
     if created:
-        AudienceType.objects.create(spot=instance, name="General", price=0)
+        AudienceType.objects.create(fee_type=instance, name="General", price=0)
         print("Created Default Audience Type")

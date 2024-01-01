@@ -1354,6 +1354,7 @@ def create_fee(request, location_id):
         name=name,
         is_required=is_required
     )
+    print(fee)
 
     serializer = FeeTypeSerializer(fee)
     return Response(serializer.data, status=status.HTTP_200_OK)
