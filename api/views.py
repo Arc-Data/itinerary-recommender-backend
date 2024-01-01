@@ -1406,7 +1406,18 @@ def delete_fee_type(request, fee_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_audience_type(request, fee_id):
-    return Response(status=status.HTTP_201_CREATED)
+    fee = FeeType.objects.get(id=fee_id)
+    name = request.data.get('name')
+    price = request.data.get('price')
+    
+    audience = AudienceType.objects.create(
+        fee_type=fee,
+        price=price,
+        name=name
+    )
+    serializer = AudienceTypeSerializer(audience)
+
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
