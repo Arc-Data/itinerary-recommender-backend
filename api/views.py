@@ -1416,6 +1416,12 @@ def edit_audience_type(request, fee_id):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_audience_type(request, fee_id):
+    fee = Fee.objects.get(id=fee_id)
+
+    if not fee:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    fee.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(["POST"])
