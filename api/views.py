@@ -1394,44 +1394,6 @@ def edit_fee(request, audience_id):
 def delete_fee(request, fee_id, audience_id):
     pass
 
-# @api_view(['POST'])
-# def get_spot_chain_recommendations(request, location_id):
-#     user = request.user 
-#     to_visit_list = request.data
-#     visited_list = set()
-
-#     itineraries = Itinerary.objects.filter(user=user)
-    
-#     for itinerary in itineraries:
-#         for day in Day.objects.filter(itinerary=itinerary, completed=True):
-#             items = ItineraryItem.objects.filter(day=day)
-#             visited_list.update(item.location.id for item in items)
-
-#     visited_list = set(visited_list)
-#     visited_list = visited_list.union(set(to_visit_list))
-
-#     preferences = [
-#         int(user.preferences.activity),
-#         int(user.preferences.art), 
-#         int(user.preferences.culture),
-#         int(user.preferences.entertainment),
-#         int(user.preferences.history),
-#         int(user.preferences.nature),
-#         int(user.preferences.religion),
-#     ]
-
-#     manager = RecommendationsManager()
-#     recommendation_ids = manager.get_spot_chain_recommendation(user, location_id, preferences, visited_list)
-
-#     recommendations = []
-#     for id in recommendation_ids:
-#         recommendation = Location.objects.get(pk=id)
-#         recommendations.append(recommendation)
-
-#     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
-
-#     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_foodtags(request, location_id):
