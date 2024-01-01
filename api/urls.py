@@ -113,7 +113,7 @@ urlpatterns = [
     path('location/<int:location_id>/fee/create/', create_fee, name="create_fee"),
     path('location/<int:location_id>/fees/', get_fees, name="get_fees"),
     
-    path('fee/<int:fee_id>/', get_fee, name='get_fee'),
+    path('fee/<int:fee_id>/', edit_fee_type, name='get_fee'),
     path('fee/<int:audience_id>/edit/', edit_fee, name='edit_fee'),
     path('fee/<int:fee_id>/edit/<int:audience_id>/delete', delete_fee, name='delete_fee'),
 

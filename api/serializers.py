@@ -798,14 +798,14 @@ class AudienceTypeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = AudienceType
-        fields = '__all__'
+        fields = ['id', 'name', 'price']
 
 class FeeTypeSerializer(serializers.ModelSerializer):
     audience_types = AudienceTypeSerializer(many=True, read_only=True)
     
     class Meta:
         model = FeeType 
-        fields = '__all__'
+        fields = ['id', 'name', 'is_required', 'audience_types']
 
 class FoodTagSerializer(serializers.ModelSerializer):
     class Meta:

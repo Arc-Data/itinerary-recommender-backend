@@ -1376,6 +1376,19 @@ def get_fee(request, fee_id):
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
+def edit_fee_type(request, fee_id):
+    name = request.data.get('name')
+    is_required = request.data.get('is_required')
+    
+    fee = FeeType.objects.get(id=fee_id)
+    fee.name = name 
+    fee.is_required = is_required
+    fee.save()
+
+    return Response(status=status.HTTP_200_OK)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
 def edit_fee(request, audience_id):
     audience_fee = AudienceType.objects.get(id=audience_id)
     name = request.data.get('name') 
