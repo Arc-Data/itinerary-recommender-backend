@@ -1421,26 +1421,26 @@ def create_audience_type(request, fee_id):
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def edit_audience_type(request, fee_id):
-    fee = FeeType.objects.get(id=fee_id)
+def edit_audience_type(request, audience_id):
+    audience = AudienceType.objects.get(id=audience_id)
     name = request.data.get('name')
     price = request.data.get('price')
 
-    fee.name = name
-    fee.price = price 
-    fee.save()
+    audience.name = name
+    audience.price = price 
+    audience.save()
 
     return Response(status=status.HTTP_200_OK)
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def delete_audience_type(request, fee_id):
-    fee = FeeType.objects.get(id=fee_id)
+def delete_audience_type(request, audience_id):
+    audience = AudienceType.objects.get(id=audience_id)
 
-    if not fee:
+    if not audience:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    fee.delete()
+    audience.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(["POST"])
