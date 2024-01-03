@@ -99,10 +99,12 @@ class RecommendationsManager():
         except Exception as e:
             print(f"an unexpected error has occured: {e}")
         
-        origin_spot = Location.objects.get(id=location_id)
         tag_visit_counts = defaultdict(int)
+        activity_count = defaultdict(int)
+
+        origin_spot = Location.objects.get(id=location_id)
         spots = Spot.objects.exclude(id=location_id).exclude(tags=None)
-        
+
         locations_data = []
         for spot in spots:
             if spot.id not in visited_list:
@@ -119,7 +121,12 @@ class RecommendationsManager():
                 for tag in spot.tags.all():
                     tag_name = tag.name
                     tag_visit_counts[tag_name] += 1
+
+                for activity in spot.activity.all():
+                    activity_count[activity.name] += 1
         
+        print(activity_count)
+
         locations_data = pd.DataFrame.from_records(locations_data)
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)

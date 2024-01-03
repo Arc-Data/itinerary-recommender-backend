@@ -1210,6 +1210,13 @@ def get_all_events(request):
     serializer = EventSerializerAdmin(events, many=True)
     return Response(serializer.data)
 
+@api_view(["GET"])
+def get_upcoming_events(request):
+    today = timezone.now().date()
+    upcoming_events = Event.objects.filter(start_date__gte=today)
+
+    serializer = EventSerializerAdmin(upcoming_events, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -1534,13 +1541,20 @@ def get_spot_chain_recommendations(request, day_id):
     day = Day.objects.get(id=day_id)
     origin_location = ItineraryItem.objects.filter(day=day).last().location
     visited_list = set()
+    activity_counts = defaultdict(int)
 
     itineraries = Itinerary.objects.filter(user=user)
     
     for itinerary in itineraries:
         for day in Day.objects.filter(itinerary=itinerary):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
+            for item in ItineraryItem.objects.filter(day=day):
+                visited_list.add(item.location.id)
+
+                if day.completed and item.location.location_type == '1':
+                    print("Done")
+                else:
+                    print("not visited")
+
 
     visited_list = set(visited_list)
 
