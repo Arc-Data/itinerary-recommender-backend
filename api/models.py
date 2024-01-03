@@ -227,7 +227,7 @@ class Spot(Location):
         
     @property 
     def get_activities(self):
-        return [activity.name for activity in Activity.objects.filter(location=self)]
+        return [activity.name for activity in self.activity.all()]
 
 
 class Tag(models.Model):

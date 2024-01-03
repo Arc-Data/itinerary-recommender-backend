@@ -250,10 +250,11 @@ class LocationPlanSerializers(serializers.ModelSerializer):
     opening = serializers.SerializerMethodField()
     closing = serializers.SerializerMethodField()
     event = serializers.SerializerMethodField()
+    activities = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        fields = ['id', 'name', 'primary_image', 'address', 'longitude', 'latitude', 'min_cost', 'max_cost', 'opening', 'closing', 'location_type', 'event']
+        fields = ['id', 'name', 'primary_image', 'address', 'longitude', 'latitude', 'min_cost', 'max_cost', 'opening', 'closing', 'location_type', 'event', 'activities']
 
     def get_primary_image(self, obj):
         primary_image = obj.images.filter(is_primary_image=True).first()
@@ -262,6 +263,13 @@ class LocationPlanSerializers(serializers.ModelSerializer):
             return primary_image.image.url
 
         return None
+    
+    def get_activities(self, obj):
+        if obj.location_type == '1':
+            spot = Spot.objects.get(id=obj.id)
+            return spot.get_activities
+
+        return []
     
     def get_max_cost(self, obj):
         return obj.get_max_cost
