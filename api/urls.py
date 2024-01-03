@@ -128,5 +128,6 @@ urlpatterns = [
 
     path('driver/', get_drivers, name='get_drivers'),
     path('driver/add/', add_driver, name='add_driver'),
+    path('driver/<int:driver_id>/', get_specific_driver, name='get_specific_driver'),
     path('driver/<int:driver_id>/edit/', edit_driver, name='edit_driver'),
 ]

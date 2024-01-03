@@ -155,7 +155,7 @@ class LocationQuerySerializers(serializers.ModelSerializer):
             return {
                 "opening": spot.opening_time,
                 "closing": spot.closing_time 
-            } 
+            }
 
         return None    
     
@@ -415,10 +415,14 @@ class LocationBusinessSerializer(serializers.ModelSerializer):
 
 class LocationBusinessManageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
+    activities = serializers.SerializerMethodField()
+    schedule = serializers.SerializerMethodField()
 
     class Meta:
         model = Location
-        exclude = []
+        fields = ('id','location_type','name','address','image','description','latitude','longitude','tags',
+                  'activities','website','email','contact','schedule')
     
     def get_image(self, obj):
         images = obj.images.filter(is_primary_image=True)
@@ -428,21 +432,48 @@ class LocationBusinessManageSerializer(serializers.ModelSerializer):
 
         return "/media/location_images/Placeholder.png"
     
-class SpotBusinessManageSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Spot
-        exclude = ['expected_duration', 'tags', 'activity']
-
-    def get_image(self, obj):
-        images = obj.images.filter(is_primary_image=True)
-
-        if images:
-            return images[0].image.url
-
-        return "/media/location_images/Placeholder.png"
+    def get_tags(self,obj):
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
+        
+            if spot:
+                return [tag.name for tag in spot.tags.all()]
+        
+        if obj.location_type == "2":
+            foodplace = FoodPlace.objects.get(pk=obj.id)
+        
+            if foodplace:
+                return [tag.name for tag in foodplace.tags.all()]
+        
+        return None
     
+    def get_activities(self, obj):
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
+            return [activity.name for activity in spot.activity.all()]
+        
+        return None
+
+    def get_schedule(self,obj):
+        if obj.location_type == "1":
+            spot = Spot.objects.get(pk=obj.id)
+
+            if spot:
+                return {
+                    "opening": spot.opening_time,
+                    "closing": spot.closing_time 
+                }
+
+        if obj.location_type == "2":
+            foodplace = FoodPlace.objects.get(pk=obj.id)
+
+            if foodplace:
+                return {
+                    "opening": foodplace.opening_time,
+                    "closing": foodplace.closing_time 
+                }
+
+        return None
     
 #Spot-related Serializers
 class SpotDetailSerializers(serializers.ModelSerializer):
