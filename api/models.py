@@ -89,10 +89,6 @@ class Location(models.Model):
         avg_rating = self.review_set.aggregate(Avg('rating'))['rating__avg']
         return avg_rating if avg_rating is not None else 0.0
 
-    @property 
-    def get_activities(self):
-        return [activity.name for activity in Activity.objects.filter(location=self)]
-
     @property
     def get_min_cost(self):
         if self.location_type == "1":
@@ -229,6 +225,10 @@ class Spot(Location):
         else:
             return 0
         
+    @property 
+    def get_activities(self):
+        return [activity.name for activity in self.activity.all()]
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=50)
@@ -386,6 +386,9 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+    
+    class Meta:
+        ordering = ['start_date']
     
 
 class Activity(models.Model):

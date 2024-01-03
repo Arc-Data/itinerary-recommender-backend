@@ -926,12 +926,7 @@ def get_specific_business(request, location_id):
             location = Location.objects.get(owner=user, id=location_id)
     except (Location.DoesNotExist):
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
-    
-    if location.location_type == "1":
-        spot = Spot.objects.get(id=location_id)
-        serializer = SpotBusinessManageSerializer(spot)
-        return Response({'business': serializer.data}, status=status.HTTP_200_OK)
-    
+
     serializer = LocationBusinessManageSerializer(location)
     return Response({'business': serializer.data}, status=status.HTTP_200_OK)
 
@@ -1210,6 +1205,13 @@ def get_all_events(request):
     serializer = EventSerializerAdmin(events, many=True)
     return Response(serializer.data)
 
+@api_view(["GET"])
+def get_upcoming_events(request):
+    today = timezone.now().date()
+    upcoming_events = Event.objects.filter(start_date__gte=today)
+
+    serializer = EventSerializerAdmin(upcoming_events, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -1534,13 +1536,18 @@ def get_spot_chain_recommendations(request, day_id):
     day = Day.objects.get(id=day_id)
     origin_location = ItineraryItem.objects.filter(day=day).last().location
     visited_list = set()
+    activity_counts = defaultdict(int)
 
     itineraries = Itinerary.objects.filter(user=user)
     
     for itinerary in itineraries:
         for day in Day.objects.filter(itinerary=itinerary):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
+            for item in ItineraryItem.objects.filter(day=day):
+                visited_list.add(item.location.id)
+
+                if day.completed and item.location.location_type == '1':
+                    for name in item.activity.all():
+                        activity_counts[name] += 1
 
     visited_list = set(visited_list)
 
@@ -1555,7 +1562,7 @@ def get_spot_chain_recommendations(request, day_id):
     ]
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list)
+    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list, activity_count)
 
     recommendations = []
     for id in recommendation_ids:
@@ -1660,5 +1667,14 @@ def edit_driver(request, driver_id):
 def get_drivers(request):
     drivers = Driver.objects.all()
     serializer = DriverSerializer(drivers, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_specific_driver(driver_id,request):
+    driver = Driver.objects.get(id=driver_id)
+    serializer = DriverSerializer(driver)
 
     return Response(serializer.data, status=status.HTTP_200_OK)

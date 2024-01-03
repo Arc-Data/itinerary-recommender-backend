@@ -109,6 +109,7 @@ urlpatterns = [
     path('event/create/', create_event, name='create_event'),
     path('event/<int:event_id>/update/', update_event, name='update_event'),
     path('event/<int:event_id>/delete/', delete_event, name='delete_event'),
+    path('event/upcoming/', get_upcoming_events, name="get_upcoming_events"),
 
     path('location/<int:location_id>/fee/create/', create_fee, name="create_fee"),
     path('location/<int:location_id>/fees/', get_fees, name="get_fees"),
@@ -127,5 +128,6 @@ urlpatterns = [
 
     path('driver/', get_drivers, name='get_drivers'),
     path('driver/add/', add_driver, name='add_driver'),
+    path('driver/<int:driver_id>/', get_specific_driver, name='get_specific_driver'),
     path('driver/<int:driver_id>/edit/', edit_driver, name='edit_driver'),
 ]
