@@ -387,6 +387,9 @@ class Event(models.Model):
     def __str__(self):
         return self.name
     
+    class Meta:
+        ordering = ['start_date']
+    
 
 class Activity(models.Model):
     name = models.CharField(max_length=50)
