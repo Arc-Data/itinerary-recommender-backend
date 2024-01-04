@@ -8,8 +8,8 @@ Fort San Pedro,Cebu City,Entrance,1,General,30,
 Upside Down World,Mandaue City,Entrance,1,General,250,
 Casa Gorordo Museum,Cebu City,Entrance,1,Regular,100,
 Casa Gorordo Museum,,Entrance,1,Students,50,
-Casa Gorordo Museum,,Entrance,1,Person with disability,50,
-Casa Gorordo Museum,,Entrance,1,Seniors,50,
+Casa Gorordo Museum,,Entrance,1,PWD,50,
+Casa Gorordo Museum,,Entrance,1,Senior Citizen,50,
 Cebu Provincial Museum,Cebu City,Entrance,1,Adult,30,
 Cebu Provincial Museum,,Entrance,1,Students,10,
 Cebu Provincial Museum,,Entrance,1,Senior Citizen,10,
@@ -29,7 +29,7 @@ Heritage of Cebu Monument,Cebu City,Entrance,1,General,0,
 Kabang Falls (Budlaan Falls),Cebu City,Entrance,1,General,0,
 Cebu Happy World Museum,Cebu City,Entrance,1,Adult,350,19 years old above
 Cebu Happy World Museum,,Entrance,1,Children,250,4 to 18 years old
-Cebu Happy World Museum,,Entrance,1,Person with disability,250,
+Cebu Happy World Museum,,Entrance,1,PWD,250,
 Cebu Happy World Museum,,Entrance,1,Senior Citizen,250,
 Bagacay Point Lighthouse,Liloan,Entrance,1,General,0,
 Cebu Metropolitan Cathedral,Cebu City,Entrance,1,General,0,
@@ -42,7 +42,7 @@ D' Family Park,,Swimming,0,Children,25,
 Crocolandia ,Talisay,Entrance,1,Adult,200,
 Crocolandia ,,Entrance,1,Children,150,
 Sirao Garden,Cebu City,Entrance,1,Regular,100,
-Sirao Garden,,Entrance,1,Person with disability,80,
+Sirao Garden,,Entrance,1,PWD,80,
 Sirao Garden,,Entrance,1,Senior Citizen,80,
 Sirao Garden,,Entrance,1,Children,50,4-12 years old
 Millennium Park,Lapu-Lapu City,Entrance,1,General,0,
@@ -60,7 +60,7 @@ Virgen de la Regla National Shrine,Lapu-Lapu City,Entrance,1,General,0,
 Buwakan ni Alejandra,Balamban,Entrance,1,Adults,100,Age 11-59
 Buwakan ni Alejandra,Balamban,Entrance,1,Children,75,Age 6-10
 Buwakan ni Alejandra,Balamban,Entrance,1,Senior Citizen,75,
-Buwakan ni Alejandra,Balamban,Entrance,1,Person with disability,75,
+Buwakan ni Alejandra,Balamban,Entrance,1,PWD,75,
 Tumalog Falls,,Entrance,1,General,50,
 Bluewater Resort Sumilon Island,,Weekday,1,Adult,2000,"Weekday Fee, with access to resort, no accommodation"
 Bluewater Resort Sumilon Island,,Weekend,1,Adult,2500,"Weekend Fee, with access to resort, no accommodation"
@@ -131,3 +131,30 @@ Capila de Sta. Ana,,Entrance,1,Students,50,
 Capila de Sta. Ana,,Entrance,1,Foreigners,200,
 Archdiocesan Museum of Cebu,,Entrance,1,General,50,
 OAD Tabor Hill,,Entrance,1,General,0,
+Freedom Park,,Entrance,1,General,0,
+Ayala Cebu Center,,Entrance,1,General,0,
+Parkmall,,Entrance,1,General,0,
+SM Seaside City Cebu,,Entrance,1,General,0,
+Robinsons Galleria Cebu,,Entrance,1,General,0,
+Banilad Town Centre,,Entrance,1,General,0,
+Gaisano Grand Mall Carcar,,Entrance,1,General,0,
+Gaisano Grand Fiestamall,,Entrance,1,General,0,
+Gaisano Grand Mall Moalboal,,Entrance,1,General,0,
+RJR Minigolf Moalboal,,1st Game,1,Adult,250,
+RJR Minigolf Moalboal,,2nd Game,0,Adult,150,
+RJR Minigolf Moalboal,,3rd Game,0,Adult,150,
+RJR Minigolf Moalboal,,1st Game,0,Teenager,150,12-18 yrs old
+RJR Minigolf Moalboal,,2nd Game,0,Teenager,100,12-18 yrs old
+RJR Minigolf Moalboal,,3rd Game,0,Teenager,50,12-18 yrs old
+RJR Minigolf Moalboal,,1st Game,0,Children,100,6-11 yrs old
+RJR Minigolf Moalboal,,2nd Game,0,Children,50,6-11 yrs old
+RJR Minigolf Moalboal,,3rd Game,0,Children,50,6-11 yrs old
+Moalboal Seaside Park,,Entrance,1,General,0,
+Robinsons Fuente,,Entrance,1,General,0,
+IL Corso Filinvest Malls,,Entrance,1,General,0,
+Ayala Malls Central Bloc,,Entrance,1,General,0,
+Starmall,,Entrance,1,General,0,
+Elizabeth Mall,,Entrance,1,General,0,
+Fuente Osmena Circle,,Entrance,1,General,0,
+Colonnade Mall,,Entrance,1,General,0,
+Iconique Mall,,Entrance,1,General,0,

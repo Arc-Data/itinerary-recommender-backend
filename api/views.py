@@ -926,12 +926,7 @@ def get_specific_business(request, location_id):
             location = Location.objects.get(owner=user, id=location_id)
     except (Location.DoesNotExist):
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
-    
-    if location.location_type == "1":
-        spot = Spot.objects.get(id=location_id)
-        serializer = SpotBusinessManageSerializer(spot)
-        return Response({'business': serializer.data}, status=status.HTTP_200_OK)
-    
+
     serializer = LocationBusinessManageSerializer(location)
     return Response({'business': serializer.data}, status=status.HTTP_200_OK)
 
@@ -1673,5 +1668,14 @@ def edit_driver(request, driver_id):
 def get_drivers(request):
     drivers = Driver.objects.all()
     serializer = DriverSerializer(drivers, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_specific_driver(driver_id,request):
+    driver = Driver.objects.get(id=driver_id)
+    serializer = DriverSerializer(driver)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
