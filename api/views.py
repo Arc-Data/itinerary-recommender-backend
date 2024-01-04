@@ -350,7 +350,6 @@ def update_itinerary_calendar(request, itinerary_id):
     end_date = request.data.get("endDate")
 
     itinerary = Itinerary.objects.get(pk=itinerary_id)
-    Day.objects.filter(itinerary=itinerary, completed=False).delete()
 
     start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
     end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
