@@ -350,7 +350,6 @@ def update_itinerary_calendar(request, itinerary_id):
     end_date = request.data.get("endDate")
 
     itinerary = Itinerary.objects.get(pk=itinerary_id)
-    Day.objects.filter(itinerary=itinerary, completed=False).delete()
 
     start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
     end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
@@ -1546,8 +1545,9 @@ def get_spot_chain_recommendations(request, day_id):
                 visited_list.add(item.location.id)
 
                 if day.completed and item.location.location_type == '1':
-                    for name in item.activity.all():
-                        activity_counts[name] += 1
+                    spot = Spot.objects.get(id=item.location.id)
+                    for spot in spot.activity.all():
+                        activity_counts[spot.name] += 1
 
     visited_list = set(visited_list)
 
@@ -1562,7 +1562,7 @@ def get_spot_chain_recommendations(request, day_id):
     ]
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list, activity_count)
+    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list, activity_counts)
 
     recommendations = []
     for id in recommendation_ids:
