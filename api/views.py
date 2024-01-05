@@ -1838,7 +1838,7 @@ def get_drivers(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_specific_driver(driver_id,request):
+def get_specific_driver(request, driver_id):
     driver = Driver.objects.get(id=driver_id)
     serializer = DriverSerializer(driver)
 
