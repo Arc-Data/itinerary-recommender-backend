@@ -360,10 +360,13 @@ def get_visited_locations(request):
     locations = []
 
     for itinerary in Itinerary.objects.filter(owner=user):
-        for day in Day.objects.filter(itinerary=itinerary):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
             for item in ItineraryItem.objects.filter(day=day):
                 locations.append(item.location)
 
+    for review in Review.objects.filter(user=user):
+        if review.location not in location:
+            locations.append(review.location)
 
     serializers = RecommendedLocationSerializer(locations, many=True)
     return Response(serializers.data, status=status.HTTP_200_OK)
