@@ -1317,7 +1317,7 @@ def get_visited_spot_activity(request):
     activities_occurrences = visited_spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
     total_activities = sum(activity['activity_count'] for activity in activities_occurrences)
     
-    activities_info = [
+    data = [
         {
             'activity': activity['activity__name'],
             'count': activity['activity_count'],
@@ -1325,7 +1325,7 @@ def get_visited_spot_activity(request):
         } for activity in activities_occurrences
     ]
 
-    return Response({'activities_info': activities_info, 'total_activities': total_activities}, status=status.HTTP_200_OK)
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
