@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
                     # Activities
                     activities = []
-                    activity_names = ['Sightseeing', 'Swimming', 'Hiking', 'Photography', 'Island Hopping', 'Shopping', 'Meditation', 'Diving', 'Camping', 'Boating', 'Cultural Exploration']
+                    activity_names = ['Sightseeing', 'Swimming', 'Hiking', 'Photography', 'Island Hopping', 'Shopping', 'Meditation', 'Diving', 'Camping', 'Boating', 'Cultural Exploration', 'Movie Watching', 'Food Trip', 'Nature Walks']
 
                     for activity_name in activity_names:
                         activity_value = int(row.get(activity_name, 0))

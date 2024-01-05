@@ -502,7 +502,6 @@ def update_itinerary_calendar(request, itinerary_id):
     end_date = request.data.get("endDate")
 
     itinerary = Itinerary.objects.get(pk=itinerary_id)
-    Day.objects.filter(itinerary=itinerary, completed=False).delete()
 
     start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
     end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
@@ -569,7 +568,6 @@ def edit_day_color(request, day_id):
 @api_view(["DELETE"])
 def delete_day(request, day_id):
     try:
-        print("Im here")
         day = Day.objects.get(id=day_id)
         day.delete()
         return Response({
@@ -958,9 +956,7 @@ def get_ownership_requests(request):
 @permission_classes([IsAuthenticated])
 def get_all_ownership_requests(request):
     requests = OwnershipRequest.objects.filter(is_approved=False)
-    print(requests)
     serializer = OwnershipRequestSerializer(requests, many=True)
-    print(serializer.data)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH"])
@@ -1081,12 +1077,7 @@ def get_specific_business(request, location_id):
             location = Location.objects.get(owner=user, id=location_id)
     except (Location.DoesNotExist):
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
-    
-    if location.location_type == "1":
-        spot = Spot.objects.get(id=location_id)
-        serializer = SpotBusinessManageSerializer(spot)
-        return Response({'business': serializer.data}, status=status.HTTP_200_OK)
-    
+
     serializer = LocationBusinessManageSerializer(location)
     return Response({'business': serializer.data}, status=status.HTTP_200_OK)
 
@@ -1160,7 +1151,6 @@ def create_food(request, location_id):
     )
 
     serializer = FoodSerializer(food)
-    print(serializer.data)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['DELETE'])
@@ -1300,7 +1290,6 @@ def edit_itinerary(request, itinerary_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_service(request, location_id):
-    print(request.data)
     try:
         location = Accommodation.objects.get(id=location_id, owner=request.user)
     except Accommodation.DoesNotExist:
@@ -1367,12 +1356,17 @@ def get_all_events(request):
     serializer = EventSerializerAdmin(events, many=True)
     return Response(serializer.data)
 
+@api_view(["GET"])
+def get_upcoming_events(request):
+    today = timezone.now().date()
+    upcoming_events = Event.objects.filter(start_date__gte=today)
+
+    serializer = EventSerializerAdmin(upcoming_events, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_event(request):
-    print(request.data)
-
     name = request.data.get('name')
     start_date = request.data.get('start_date')
     end_date = request.data.get('end_date')
@@ -1510,79 +1504,86 @@ def create_fee(request, location_id):
     serializer = FeeTypeSerializer(fee)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+
 @api_view(["GET"])
 def get_fees(request, location_id):
     spot = Spot.objects.get(id=location_id)
-    print(spot)
     fees = FeeType.objects.filter(spot=spot)
-    print(fees)
     serializer = FeeTypeSerializer(fees, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_fee(request, fee_id):
-    fee = FeeType.objects.filter(id=fee_id)
+def get_fee_type(request, fee_id):
+    fee = FeeType.objects.get(id=fee_id)
     serializer = FeeTypeSerializer(fee)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def edit_fee(request, audience_id):
-    audience_fee = AudienceType.objects.get(id=audience_id)
-    name = request.data.get('name') 
-    price = request.data.get('price')
-    description = request.data.get('description')
-
-    audience_fee.name = name
-    audience_fee.price = price
-    audience_fee.description = description
-    audience_fee.save()
+def edit_fee_type(request, fee_id):
+    name = request.data.get('name')
+    is_required = request.data.get('is_required')
+    
+    fee = FeeType.objects.get(id=fee_id)
+    fee.name = name 
+    fee.is_required = is_required
+    fee.save()
 
     return Response(status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def delete_fee(request, fee_id, audience_id):
-    pass
+def delete_fee_type(request, fee_id):
+    fee = FeeType.objects.get(id=fee_id)
 
-# @api_view(['POST'])
-# def get_spot_chain_recommendations(request, location_id):
-#     user = request.user 
-#     to_visit_list = request.data
-#     visited_list = set()
+    if not fee:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
-#     itineraries = Itinerary.objects.filter(user=user)
+    fee.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_audience_type(request, fee_id):
+    fee = FeeType.objects.get(id=fee_id)
+    name = request.data.get('name')
+    price = request.data.get('price')
     
-#     for itinerary in itineraries:
-#         for day in Day.objects.filter(itinerary=itinerary, completed=True):
-#             items = ItineraryItem.objects.filter(day=day)
-#             visited_list.update(item.location.id for item in items)
+    audience = AudienceType.objects.create(
+        fee_type=fee,
+        price=price,
+        name=name
+    )
+    serializer = AudienceTypeSerializer(audience)
 
-#     visited_list = set(visited_list)
-#     visited_list = visited_list.union(set(to_visit_list))
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-#     preferences = [
-#         int(user.preferences.activity),
-#         int(user.preferences.art), 
-#         int(user.preferences.culture),
-#         int(user.preferences.entertainment),
-#         int(user.preferences.history),
-#         int(user.preferences.nature),
-#         int(user.preferences.religion),
-#     ]
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def edit_audience_type(request, audience_id):
+    audience = AudienceType.objects.get(id=audience_id)
+    name = request.data.get('name')
+    price = request.data.get('price')
 
-#     manager = RecommendationsManager()
-#     recommendation_ids = manager.get_spot_chain_recommendation(user, location_id, preferences, visited_list)
+    audience.name = name
+    audience.price = price 
+    audience.save()
 
-#     recommendations = []
-#     for id in recommendation_ids:
-#         recommendation = Location.objects.get(pk=id)
-#         recommendations.append(recommendation)
+    return Response(status=status.HTTP_200_OK)
 
-#     recommendation_serializers = RecommendedLocationSerializer(recommendations, many=True, context={'location_id': location_id})
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_audience_type(request, audience_id):
+    audience = AudienceType.objects.get(id=audience_id)
 
-#     return Response(recommendation_serializers.data, status=status.HTTP_200_OK)
+    if not audience:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    audience.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -1686,13 +1687,19 @@ def get_spot_chain_recommendations(request, day_id):
     day = Day.objects.get(id=day_id)
     origin_location = ItineraryItem.objects.filter(day=day).last().location
     visited_list = set()
+    activity_counts = defaultdict(int)
 
     itineraries = Itinerary.objects.filter(user=user)
     
     for itinerary in itineraries:
         for day in Day.objects.filter(itinerary=itinerary):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
+            for item in ItineraryItem.objects.filter(day=day):
+                visited_list.add(item.location.id)
+
+                if day.completed and item.location.location_type == '1':
+                    spot = Spot.objects.get(id=item.location.id)
+                    for spot in spot.activity.all():
+                        activity_counts[spot.name] += 1
 
     visited_list = set(visited_list)
 
@@ -1707,7 +1714,7 @@ def get_spot_chain_recommendations(request, day_id):
     ]
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list)
+    recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list, activity_counts)
 
     recommendations = []
     for id in recommendation_ids:
@@ -1781,12 +1788,13 @@ def edit_driver(request, driver_id):
     email = request.data.get('email')
     contact = request.data.get('contact')
     facebook = request.data.get('facebook')
-    additional_information = request.data.get('info')
+    
+    additional_information = request.data.get('additional_information')
 
     car = request.data.get('car')
-    car_type = request.data.get('type')
-    max_capacity = request.data.get('capacity')
-    plate_number = request.data.get('plate')
+    car_type = request.data.get('car_type')
+    max_capacity = request.data.get('max_capacity')
+    plate_number = request.data.get('plate_number')
 
     driver = Driver.objects.get(id=driver_id)
 
@@ -1812,5 +1820,14 @@ def edit_driver(request, driver_id):
 def get_drivers(request):
     drivers = Driver.objects.all()
     serializer = DriverSerializer(drivers, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_specific_driver(driver_id,request):
+    driver = Driver.objects.get(id=driver_id)
+    serializer = DriverSerializer(driver)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
