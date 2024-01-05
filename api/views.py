@@ -226,20 +226,15 @@ def activate_account(request, uidb64, token):
     try:
         user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
         user = get_object_or_404(User, pk=user_id)
-
     except:
         return Response({'message': 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
 
     if user.is_active:
         return Response({'message': 'Account already activated'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if default_token_generator.check_token(user, token):
+    else:
         user.is_active = True
         user.save()
-
         return Response({'message': 'Account Activated Successfully',}, status=status.HTTP_200_OK)
-    else:
-        return Response({"message" 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def change_password(request):
@@ -358,6 +353,20 @@ def get_location(request, id):
     data = serializer.data
 
     return Response(data)
+
+@api_view(['GET'])
+def get_visited_locations(request):
+    user = request.user
+    locations = []
+
+    for itinerary in Itinerary.objects.filter(owner=user):
+        for day in Day.objects.filter(itinerary=itinerary):
+            for item in ItineraryItem.objects.filter(day=day):
+                locations.append(item.location)
+
+
+    serializers = RecommendedLocationSerializer(locations, many=True)
+    return Response(serializers.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

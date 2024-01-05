@@ -18,6 +18,7 @@ urlpatterns = [
     path('location/<int:id>/edit/', edit_location, name="edit-location"),
     path('location/request/', create_ownership_request, name="create_ownership_requests"),
     path('location/requests/', get_ownership_requests, name="get_ownership_requests"),
+    path('location/visited/', get_visited_locations, name="get_visited_locations"),
 
     path('location/paginated/', PaginatedLocationViewSet.as_view({'get': 'list'}, name="paginated_locations")),
 
