@@ -1266,7 +1266,7 @@ def get_tags_percent(request):
     return Response(data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-#@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def get_activity_percent(request):
     spots = Spot.objects.all()
     activities = spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
