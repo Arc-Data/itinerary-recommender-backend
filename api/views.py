@@ -1251,42 +1251,51 @@ def get_top_spots(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_tags_percent(request):
-    data = Tag.objects.annotate(
-        spot_count=Count('spots')
-    ).values('name', 'spot_count')
-
-    total_spots = Spot.objects.count()
-
-    for tag_percentage in data:
-        tag_percentage['percentage'] = round((tag_percentage['spot_count'] / total_spots) * 100, 2)
+    spots = Spot.objects.all()
+    tags_occurrences = spots.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
 
     return Response(data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def get_activity_percent(request):
-    data = Activity.objects.annotate(
-        spot_count=Count('spots')
-    ).values('name', 'spot_count')
-
-    total_spots = Spot.objects.count()
-
-    for activity_percentage in data:
-        activity_percentage['percentage'] = round((activity_percentage['spot_count'] / total_spots) * 100, 2)
+    spots = Spot.objects.all()
+    activities = spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
+    total_activities = sum(activity['activity_count'] for activity in activities)
+    
+    data = [
+        {
+            'activity': activity['activity__name'],
+            'count': activity['activity_count'],
+            'percentage': (activity['activity_count'] / total_activities) * 100
+        } for activity in activities
+    ]
 
     return Response(data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_foodtags_percent(request):
-    data = FoodTag.objects.annotate(
-        foodplace_count=Count('foodplaces')
-    ).values('name', 'foodplace_count')
-
-    total_foodplaces = FoodPlace.objects.count()
-
-    for food_tag_percentage in data:
-        food_tag_percentage['percentage'] = round((food_tag_percentage['foodplace_count'] / total_foodplaces) * 100, 2)
+    foodplace = FoodPlace.objects.all()
+    tags_occurrences = foodplace.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
 
     return Response(data, status=status.HTTP_200_OK)
 
