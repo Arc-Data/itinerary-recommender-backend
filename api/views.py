@@ -1636,12 +1636,13 @@ def edit_driver(request, driver_id):
     email = request.data.get('email')
     contact = request.data.get('contact')
     facebook = request.data.get('facebook')
-    additional_information = request.data.get('info')
+    
+    additional_information = request.data.get('additional_information')
 
     car = request.data.get('car')
-    car_type = request.data.get('type')
-    max_capacity = request.data.get('capacity')
-    plate_number = request.data.get('plate')
+    car_type = request.data.get('car_type')
+    max_capacity = request.data.get('max_capacity')
+    plate_number = request.data.get('plate_number')
 
     driver = Driver.objects.get(id=driver_id)
 
