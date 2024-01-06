@@ -33,8 +33,13 @@ class CustomUserManager(BaseUserManager):
     
 class RecommendationsManager():
     def calculate_activity_score(self, user_activities, model_spot_activities):
-        
-        return 0
+        activity_score = 0
+
+        for activity, frequency in model_spot_activities.items():
+            user_frequency = user_activities[activity]
+            activity_score += user_frequency / (frequency + 1)
+
+        return activity_score
 
     def get_content_recommendations(self, preferences, budget, visited_list, activity_list):
         from api.models import ModelItinerary, ModelItineraryLocationOrder
@@ -64,7 +69,7 @@ class RecommendationsManager():
                     'order_penalty_factor': order_penalty_factor
                 }
                 models_data.append(model_data)
-
+        
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
