@@ -475,6 +475,7 @@ def get_content_recommendations(request):
     user = request.user
     budget = request.data
     visited_list = set()
+    activity_list = defaultdict(int)
 
     preferences = [
         user.preferences.history,
@@ -486,15 +487,37 @@ def get_content_recommendations(request):
         user.preferences.culture
     ]
 
+    # get all itineraries concerned with a single user, and all related days which are marked as completed
+    # and add all related locations as "visited" while taking note of the frequencies of activities involved
+    # in those visits
     for itinerary in Itinerary.objects.filter(user=user):
         for day in Day.objects.filter(itinerary=itinerary, completed=True):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
+            for item in ItineraryItem.objects.filter(day=day):
+                location = item.location
+                visited_list.add(location.id)
+    
+                if location.location_type == '1':
+                    spot = Spot.objects.get(id=location.id)
+                    for activity in spot.get_activities:
+                        activity_list[activity] += 1
 
+    # treat reviews as a sign that a user has already visited a location, therefore check if there are reviews with
+    # related locations not added to the visited_list and are a spot in order to obtain the frequencies of 
+    # activities not mentioned
+    for review in Review.objects.filter(user=user):
+        location = review.location
+
+        if location.location_type == '1' and location.id not in visited_list:
+            spot = Spot.objects.get(id=location.id)
+            for activity in spot.get_activities:
+                activity_list[activity] += 1    
+
+
+    visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_content_recommendations(preferences, budget, visited_list)
+    recommendation_ids = manager.get_content_recommendations(preferences, budget, visited_list, activity_list)
     random.shuffle(recommendation_ids)
 
     recommendations = []
@@ -851,8 +874,8 @@ def get_homepage_recommendations(request):
             items = ItineraryItem.objects.filter(day=day)
             visited_list.update(item.location.id for item in items)
 
-    visited_list = set(visited_list)
-
+    # get the user's review of specific places as an indication that leaving a review = visited
+    visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
 

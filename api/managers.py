@@ -32,7 +32,11 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
     
 class RecommendationsManager():
-    def get_content_recommendations(self, preferences, budget, visited_list):
+    def calculate_activity_score(self, user_activities, model_spot_activities):
+        
+        return 0
+
+    def get_content_recommendations(self, preferences, budget, visited_list, activity_list):
         from api.models import ModelItinerary, ModelItineraryLocationOrder
         models_data = []
 
@@ -56,6 +60,7 @@ class RecommendationsManager():
                     'max_cost': model.total_max_cost,
                     'tags': model.get_tags,
                     'names': model.get_location_names,
+                    'activities': model.get_activities,
                     'order_penalty_factor': order_penalty_factor
                 }
                 models_data.append(model_data)
@@ -66,6 +71,7 @@ class RecommendationsManager():
 
         recommended_itineraries_data['binned_tags'] = binned_tags 
 
+        
         recommended_itineraries_data['jaccard_similarity'] = recommended_itineraries_data.apply(
             lambda row: (
                 self.calculate_jaccard_similarity(preferences, row['binned_tags'])
@@ -82,7 +88,7 @@ class RecommendationsManager():
         )
 
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
-        recommended_itineraries_data.head(12).to_clipboard()
+        recommended_itineraries_data.to_clipboard()
 
         return recommended_itineraries_data.head(12)['id'].tolist()
 
