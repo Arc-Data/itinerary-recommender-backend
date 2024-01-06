@@ -490,7 +490,7 @@ def get_content_recommendations(request):
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_content_recommendations(preferences, budget)
+    recommendation_ids = manager.get_content_recommendations(preferences, budget, visited_list)
     random.shuffle(recommendation_ids)
 
     recommendations = []

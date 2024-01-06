@@ -32,21 +32,33 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
     
 class RecommendationsManager():
-    def get_content_recommendations(self, preferences, budget):
-        from api.models import ModelItinerary
+    def get_content_recommendations(self, preferences, budget, visited_list):
+        from api.models import ModelItinerary, ModelItineraryLocationOrder
         models_data = []
 
         for model in ModelItinerary.objects.all():
             if model.total_min_cost <= budget:
+                model_locations = set()
+                order_penalty_factor = 1.0
+
+                for order_entry in ModelItineraryLocationOrder.objects.filter(itinerary=model):
+                    spot_id = order_entry.spot.id
+                    model_locations.add(spot_id)
+
+                common_visited = model_locations.intersection(visited_list)
+
+                if len(model_locations) > 0:
+                    order_penalty_factor = len(common_visited) / len(model_locations)
+
                 model_data = {
                     'id': model.id,
                     'min_cost': model.total_min_cost,
                     'max_cost': model.total_max_cost,
                     'tags': model.get_tags,
-                    'names': model.get_location_names
+                    'names': model.get_location_names,
+                    'order_penalty_factor': order_penalty_factor
                 }
                 models_data.append(model_data)
-
 
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
@@ -61,8 +73,15 @@ class RecommendationsManager():
             axis=1
         )
 
-        recommended_itineraries_data = recommended_itineraries_data[recommended_itineraries_data['jaccard_similarity'] > 0]
-        recommended_itineraries_data = recommended_itineraries_data.sort_values(by='jaccard_similarity', ascending=False)
+        jaccard_weight = 0.7
+        penalty_weight = 0.3
+
+        recommended_itineraries_data['final_score'] = (
+            jaccard_weight * recommended_itineraries_data['jaccard_similarity'] + 
+            penalty_weight * recommended_itineraries_data['order_penalty_factor']
+        )
+
+        recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
         recommended_itineraries_data.head(12).to_clipboard()
 
         return recommended_itineraries_data.head(12)['id'].tolist()
