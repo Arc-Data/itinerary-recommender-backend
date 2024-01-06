@@ -69,14 +69,15 @@ class RecommendationsManager():
                     'order_penalty_factor': order_penalty_factor
                 }
                 models_data.append(model_data)
-        
+
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
+        recommended_itineraries_data.to_clipboard()
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
+        tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
+        binned_tags.to_clipboard()
 
         recommended_itineraries_data['binned_tags'] = binned_tags 
-
-        
         recommended_itineraries_data['jaccard_similarity'] = recommended_itineraries_data.apply(
             lambda row: (
                 self.calculate_jaccard_similarity(preferences, row['binned_tags'])
