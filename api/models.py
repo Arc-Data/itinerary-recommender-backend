@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import timedelta
 from django.db import models
 from django.conf import settings
@@ -399,6 +400,17 @@ class ModelItinerary(models.Model):
 
         return set(tags_list)
     
+    @property
+    def get_activities(self):
+        activities = defaultdict(int)
+        for order in self.modelitinerarylocationorder_set.all():
+            spot_activities = order.spot.get_activities
+
+            for activity in spot_activities:
+                activities[activity] += 1
+
+        return activities
+
     @property
     def get_location_names(self):
         location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
