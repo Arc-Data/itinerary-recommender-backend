@@ -18,6 +18,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['set_preferences'] = user.set_preferences
         return token
 
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
 #Model Serializers
 class UserSerializers(serializers.ModelSerializer):

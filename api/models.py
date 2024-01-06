@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import timedelta
 from django.db import models
 from django.conf import settings
@@ -8,6 +9,7 @@ from .managers import CustomUserManager
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.db.models import Count, Avg
 from haversine import haversine, Unit
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -20,6 +22,8 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     set_preferences = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -51,12 +55,20 @@ def create_preferences(sender, instance, created, **kwargs):
        Preferences.objects.create(
            user=instance,
        ) 
-       print("Nice")
 
 @receiver(post_save, sender=User)
 def save_user_preferences(sender, instance, **kwargs):
     instance.preferences.save()
 
+class PasswordReset(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    key = models.CharField(max_length=20, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)  
+
+    def mark_as_used(self):
+        self.used = True
+        self.save()
 
 class Location(models.Model):
     owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
@@ -350,6 +362,17 @@ class ModelItinerary(models.Model):
 
         return set(tags_list)
     
+    @property
+    def get_activities(self):
+        activities = defaultdict(int)
+        for order in self.modelitinerarylocationorder_set.all():
+            spot_activities = order.spot.get_activities
+
+            for activity in spot_activities:
+                activities[activity] += 1
+
+        return activities
+
     @property
     def get_location_names(self):
         location_orders = self.modelitinerarylocationorder_set.all().order_by('order')

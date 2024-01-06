@@ -1,4 +1,8 @@
 from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, viewsets
@@ -6,7 +10,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils.crypto import get_random_string
 
 import pandas as pd
 import json
@@ -19,6 +25,14 @@ import random
 import datetime
 import numpy as np
 
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token)
+    }
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -26,9 +40,24 @@ class UserRegistrationView(CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/"
+
+        subject = 'Cebu Route - Activate Your Account'
+        message = f'Thank you for creating an account on Cebu Route. Please click the following link to activate your account:\n\n{activation_link}'
+        from_email = settings.EMAIL_FROM
+        recipient_list =  [user.email]
+
+        send_mail(subject, message, from_email, recipient_list)
 
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 
@@ -46,7 +75,8 @@ class LocationPlanViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
-
+        requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
+        queryset = queryset.exclude(id__in=requests)
 
         if query:
             queryset = queryset.filter(name__istartswith=query)
@@ -57,7 +87,7 @@ class LocationPlanViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = queryset.exclude(location_type=3)
 
         return queryset
-
+    
 class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationQuerySerializers
@@ -73,9 +103,12 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
         location_type = self.request.query_params.get('type', None)
+        requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
+        queryset = queryset.exclude(id__in=requests)
 
         if query:
             queryset = queryset.filter(name__istartswith=query)
+
 
         if hide:
             queryset = queryset.filter(is_closed=False)
@@ -128,6 +161,124 @@ class PaginatedLocationViewSet(viewsets.ReadOnlyModelViewSet):
 
         return queryset
     
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def forgot_password(request):
+    email = request.data.get('email')
+
+    try:
+        user = User.objects.get(email=email)
+    except:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    reset_instance, created = PasswordReset.objects.get_or_create(user=user)
+    reset_instance.key = get_random_string(length=20)
+    reset_instance.used = False
+    reset_instance.save()
+
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_link = f"{settings.FRONTEND_URL}/reset/{uidb64}/{reset_instance.key}"
+
+    subject = 'Reset Your Password'
+    message = f'You have requested to reset your password. Use the link to proceed.\n\n{reset_link}'
+    from_email = settings.EMAIL_FROM
+    recipient_list = [email]
+
+    send_mail(subject, message, from_email, recipient_list)
+
+    return Response({'message': "Password reset email sent successfully"}, status=status.HTTP_200_OK)
+
+@api_view(['POST', 'GET'])
+@permission_classes([AllowAny])
+def reset_password(request, uidb64, token):
+    if request.method == 'GET':
+        try:
+            user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
+            user = get_object_or_404(User, pk=user_id)
+            reset_instance = get_object_or_404(PasswordReset, user=user, key=token, used=False)
+        except:
+            return Response({'message': 'Invalid Reset Link'}, status=status.HTTP_400_BAD_REQUEST)
+    
+        return Response({'message': 'Valid Reset Link'}, status=status.HTTP_200_OK)
+
+    elif request.method == 'POST':
+        try:
+            user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
+            print(user_id)
+            user  = User.objects.get(pk=user_id)
+            print(user)
+            reset_instance = get_object_or_404(PasswordReset, user=user, key=token, used=False)
+
+            new_password = request.data.get('password')
+            hashed_password = make_password(new_password)
+            user.password = hashed_password
+            user.save()
+
+            reset_instance.mark_as_used()
+
+            return Response({'message': 'Password reset successful', 'email': user.email}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'message': 'Invalid Reset Link'}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({'message': 'An error occured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def activate_account(request, uidb64, token):
+    try:
+        user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
+        user = get_object_or_404(User, pk=user_id)
+    except:
+        return Response({'message': 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if user.is_active:
+        return Response({'message': 'Account already activated'}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        user.is_active = True
+        user.save()
+        return Response({'message': 'Account Activated Successfully',}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def change_password(request):
+    serializer = ChangePasswordSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    user = request.user 
+    print(user)
+    old_password = serializer.validated_data.get('old_password')
+    new_password = serializer.validated_data.get('new_password')
+
+    if not user.check_password(old_password):
+        return Response({'detail': 'Old Password is Incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user.set_password(new_password)
+    user.save()
+
+    return Response({'detail': 'Password set successfully'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def change_password_with_token(request, uidb64, token):
+    try:
+        user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
+        user = get_object_or_404(User, pk=user_id)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return Response({'message': 'Invalid user or token'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if default_token_generator.check_token(user, token):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_password = serializer.validated_data.get('new_password')
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'detail': 'Password changed successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'message': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['GET'])
 def get_related_days(request, itinerary_id):
     itinerary = Itinerary.objects.get(id=itinerary_id)
@@ -206,6 +357,23 @@ def get_location(request, id):
     data = serializer.data
 
     return Response(data)
+
+@api_view(['GET'])
+def get_visited_locations(request):
+    user = request.user
+    locations = []
+
+    for itinerary in Itinerary.objects.filter(owner=user):
+        for day in Day.objects.filter(itinerary=itinerary, completed=True):
+            for item in ItineraryItem.objects.filter(day=day):
+                locations.append(item.location)
+
+    for review in Review.objects.filter(user=user):
+        if review.location not in location:
+            locations.append(review.location)
+
+    serializers = RecommendedLocationSerializer(locations, many=True)
+    return Response(serializers.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -307,6 +475,7 @@ def get_content_recommendations(request):
     user = request.user
     budget = request.data
     visited_list = set()
+    activity_list = defaultdict(int)
 
     preferences = [
         user.preferences.history,
@@ -318,15 +487,37 @@ def get_content_recommendations(request):
         user.preferences.culture
     ]
 
+    # get all itineraries concerned with a single user, and all related days which are marked as completed
+    # and add all related locations as "visited" while taking note of the frequencies of activities involved
+    # in those visits
     for itinerary in Itinerary.objects.filter(user=user):
         for day in Day.objects.filter(itinerary=itinerary, completed=True):
-            items = ItineraryItem.objects.filter(day=day)
-            visited_list.update(item.location.id for item in items)
+            for item in ItineraryItem.objects.filter(day=day):
+                location = item.location
+                visited_list.add(location.id)
+    
+                if location.location_type == '1':
+                    spot = Spot.objects.get(id=location.id)
+                    for activity in spot.get_activities:
+                        activity_list[activity] += 1
 
+    # treat reviews as a sign that a user has already visited a location, therefore check if there are reviews with
+    # related locations not added to the visited_list and are a spot in order to obtain the frequencies of 
+    # activities not mentioned
+    for review in Review.objects.filter(user=user):
+        location = review.location
+
+        if location.location_type == '1' and location.id not in visited_list:
+            spot = Spot.objects.get(id=location.id)
+            for activity in spot.get_activities:
+                activity_list[activity] += 1    
+
+
+    visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    recommendation_ids = manager.get_content_recommendations(preferences, budget)
+    recommendation_ids = manager.get_content_recommendations(preferences, budget, visited_list, activity_list)
     random.shuffle(recommendation_ids)
 
     recommendations = []
@@ -683,8 +874,8 @@ def get_homepage_recommendations(request):
             items = ItineraryItem.objects.filter(day=day)
             visited_list.update(item.location.id for item in items)
 
-    visited_list = set(visited_list)
-
+    # get the user's review of specific places as an indication that leaving a review = visited
+    visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
 
@@ -1082,6 +1273,114 @@ def get_top_spots(request):
 
     spots = LocationTopSerializer(top_spots, many=True)
     return Response({'top_spots': spots.data}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_tags_percent(request):
+    spots = Spot.objects.all()
+    tags_occurrences = spots.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_activity_percent(request):
+    spots = Spot.objects.all()
+    activities = spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
+    total_activities = sum(activity['activity_count'] for activity in activities)
+    
+    data = [
+        {
+            'activity': activity['activity__name'],
+            'count': activity['activity_count'],
+            'percentage': (activity['activity_count'] / total_activities) * 100
+        } for activity in activities
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_foodtags_percent(request):
+    foodplace = FoodPlace.objects.all()
+    tags_occurrences = foodplace.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_visited_spot_tag(request):
+    completed_days = Day.objects.filter(completed=True)
+    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    tags_occurrences = visited_spots.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
+    
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_visited_spot_activity(request):
+    completed_days = Day.objects.filter(completed=True)
+    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    activities_occurrences = visited_spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
+    total_activities = sum(activity['activity_count'] for activity in activities_occurrences)
+    
+    data = [
+        {
+            'activity': activity['activity__name'],
+            'count': activity['activity_count'],
+            'percentage': (activity['activity_count'] / total_activities) * 100
+        } for activity in activities_occurrences
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_visited_foodplace_tag(request):
+    completed_days = Day.objects.filter(completed=True)
+    visited_foodplaces = FoodPlace.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    foodtags_occurrences = visited_foodplaces.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
+    total_foodtags = sum(tag['tag_count'] for tag in foodtags_occurrences)
+    
+    data = [
+        {
+            'foodtag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_foodtags) * 100
+        } for tag in foodtags_occurrences
+    ]
+    
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -1636,12 +1935,13 @@ def edit_driver(request, driver_id):
     email = request.data.get('email')
     contact = request.data.get('contact')
     facebook = request.data.get('facebook')
-    additional_information = request.data.get('info')
+    
+    additional_information = request.data.get('additional_information')
 
     car = request.data.get('car')
-    car_type = request.data.get('type')
-    max_capacity = request.data.get('capacity')
-    plate_number = request.data.get('plate')
+    car_type = request.data.get('car_type')
+    max_capacity = request.data.get('max_capacity')
+    plate_number = request.data.get('plate_number')
 
     driver = Driver.objects.get(id=driver_id)
 
@@ -1673,7 +1973,7 @@ def get_drivers(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_specific_driver(driver_id,request):
+def get_specific_driver(request, driver_id):
     driver = Driver.objects.get(id=driver_id)
     serializer = DriverSerializer(driver)
 

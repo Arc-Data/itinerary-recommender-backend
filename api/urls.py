@@ -8,12 +8,17 @@ urlpatterns = [
     path('token/', MyTokenObtainPairView.as_view(), name='token'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('register/', UserRegistrationView.as_view(), name="register"),
+    path('change-password/', change_password, name="change-password"),
+    path('forgot/', forgot_password, name='forgot-password'),
+    path('activate/<str:uidb64>/<str:token>/', activate_account, name="activate-account"),
+    path('reset/<str:uidb64>/<str:token>/', reset_password, name="activate-account"),
 
     path('location/create/', create_location, name="create-location"),
     path('location/<int:id>/delete/', delete_location, name="delete-location"),
     path('location/<int:id>/edit/', edit_location, name="edit-location"),
     path('location/request/', create_ownership_request, name="create_ownership_requests"),
     path('location/requests/', get_ownership_requests, name="get_ownership_requests"),
+    path('location/visited/', get_visited_locations, name="get_visited_locations"),
 
     path('location/paginated/', PaginatedLocationViewSet.as_view({'get': 'list'}, name="paginated_locations")),
 
@@ -103,6 +108,13 @@ urlpatterns = [
     path('dashboard/top-foodplaces/', get_top_foodplaces, name='get_top_foodplaces'),
     path('dashboard/top-bookmarks/', get_top_bookmarks, name='get_top_bookmarks'),
     path('dashboard/top-locations-itinerary/', get_top_locations_itinerary, name='get_top_locations_itinerary'),
+    path('dashboard/tags-percent/', get_tags_percent, name='get_tags_percent'),
+    path('dashboard/activity-percent/', get_activity_percent, name='get_activity_percent'),
+    path('dashboard/foodtag-percent/', get_foodtags_percent, name='get_foodtag_percent'),
+    path('dashboard/user-spot-tags/', get_visited_spot_tag, name='get_visited_spot_tag'),
+    path('dashboard/user-spot-activity/', get_visited_spot_activity, name='get_visited_spot_activity'),
+    path('dashboard/user-foodplace-tags/', get_visited_foodplace_tag, name='get_visited_foodplace_tag'),
+
     
     path('event/', get_all_events, name='get_all_events'),
     path('event/<int:event_id>/', get_event, name='get_event'),
