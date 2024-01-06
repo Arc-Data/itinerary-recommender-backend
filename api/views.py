@@ -1250,6 +1250,114 @@ def get_top_spots(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def get_tags_percent(request):
+    spots = Spot.objects.all()
+    tags_occurrences = spots.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_activity_percent(request):
+    spots = Spot.objects.all()
+    activities = spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
+    total_activities = sum(activity['activity_count'] for activity in activities)
+    
+    data = [
+        {
+            'activity': activity['activity__name'],
+            'count': activity['activity_count'],
+            'percentage': (activity['activity_count'] / total_activities) * 100
+        } for activity in activities
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_foodtags_percent(request):
+    foodplace = FoodPlace.objects.all()
+    tags_occurrences = foodplace.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_visited_spot_tag(request):
+    completed_days = Day.objects.filter(completed=True)
+    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    tags_occurrences = visited_spots.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
+    total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
+    
+    data = [
+        {
+            'tag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_tags) * 100
+        } for tag in tags_occurrences
+    ]
+    
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_visited_spot_activity(request):
+    completed_days = Day.objects.filter(completed=True)
+    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    activities_occurrences = visited_spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
+    total_activities = sum(activity['activity_count'] for activity in activities_occurrences)
+    
+    data = [
+        {
+            'activity': activity['activity__name'],
+            'count': activity['activity_count'],
+            'percentage': (activity['activity_count'] / total_activities) * 100
+        } for activity in activities_occurrences
+    ]
+
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_visited_foodplace_tag(request):
+    completed_days = Day.objects.filter(completed=True)
+    visited_foodplaces = FoodPlace.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    foodtags_occurrences = visited_foodplaces.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
+    total_foodtags = sum(tag['tag_count'] for tag in foodtags_occurrences)
+    
+    data = [
+        {
+            'foodtag': tag['tags__name'],
+            'count': tag['tag_count'],
+            'percentage': (tag['tag_count'] / total_foodtags) * 100
+        } for tag in foodtags_occurrences
+    ]
+    
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_top_accommodations(request):
     top_accommodations = Accommodation.objects.annotate(
         average_rating=Avg('review__rating'),
@@ -1838,7 +1946,7 @@ def get_drivers(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_specific_driver(driver_id,request):
+def get_specific_driver(request, driver_id):
     driver = Driver.objects.get(id=driver_id)
     serializer = DriverSerializer(driver)
 

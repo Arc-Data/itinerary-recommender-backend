@@ -108,6 +108,13 @@ urlpatterns = [
     path('dashboard/top-foodplaces/', get_top_foodplaces, name='get_top_foodplaces'),
     path('dashboard/top-bookmarks/', get_top_bookmarks, name='get_top_bookmarks'),
     path('dashboard/top-locations-itinerary/', get_top_locations_itinerary, name='get_top_locations_itinerary'),
+    path('dashboard/tags-percent/', get_tags_percent, name='get_tags_percent'),
+    path('dashboard/activity-percent/', get_activity_percent, name='get_activity_percent'),
+    path('dashboard/foodtag-percent/', get_foodtags_percent, name='get_foodtag_percent'),
+    path('dashboard/user-spot-tags/', get_visited_spot_tag, name='get_visited_spot_tag'),
+    path('dashboard/user-spot-activity/', get_visited_spot_activity, name='get_visited_spot_activity'),
+    path('dashboard/user-foodplace-tags/', get_visited_foodplace_tag, name='get_visited_foodplace_tag'),
+
     
     path('event/', get_all_events, name='get_all_events'),
     path('event/<int:event_id>/', get_event, name='get_event'),
