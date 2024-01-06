@@ -541,11 +541,15 @@ class ItinerarySerializers(serializers.ModelSerializer):
     
 class ItineraryItemSerializer(serializers.ModelSerializer):
     details = LocationPlanSerializers(source='location', read_only=True)
+    transport_type = serializers.SerializerMethodField()
 
     class Meta:
         model = ItineraryItem
-        fields = ['id', 'location', 'day', 'details']
+        fields = ['id', 'location', 'day', 'details', 'transport_type']
 
+    def get_transport_type(self, obj):
+        return obj.get_transportation_type()
+    
 class ItineraryItemNameSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
 
