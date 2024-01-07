@@ -1151,6 +1151,7 @@ def get_specific_business(request, location_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def edit_business(request, location_id):
+    # print(request.data)
     user = request.user
     try:
         if user.is_staff:
@@ -1170,7 +1171,19 @@ def edit_business(request, location_id):
 
     if request.data.get('location_type') == "1":
         spot = Spot.objects.get(id=location_id)
-        
+        new_tags = request.data.get('tags', [])
+        existing_tags = [spot.name for spot in spot.tags.all()]
+
+        removed_tags = set(existing_tags) - set(new_tags)
+        for tag_name in removed_tags:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.remove(tag)
+
+        added_tags = set(new_tags) - set(existing_tags)
+        for tag_name in added_tags:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
+
         spot.opening_time = request.data.get('opening_time', spot.opening_time)
         spot.closing_time = request.data.get('closing_time', spot.closing_time)
         spot.save()
