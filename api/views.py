@@ -762,9 +762,9 @@ def create_location(request):
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
 
-        # for activity_name in activities:
-        #     activity, created = Activity.objects.get_or_create(name=activity_name)
-        #     spot.tags.add(activity)
+        for activity_name in activities:
+            activity, created = Activity.objects.get_or_create(name=activity_name)
+            spot.tags.add(activity)
         spot.save()
         
 
@@ -773,9 +773,9 @@ def create_location(request):
         foodplace.opening_time = request.data.get("opening_time")
         foodplace.closing_time = request.data.get("closing_time")
         
-        # for tag_name in tag_names:
-        #     tag, created = FoodTag.objects.get_or_create(name=tag_name)
-        #     foodplace.tags.add(tag)
+        for tag_name in tag_names:
+            tag, created = FoodTag.objects.get_or_create(name=tag_name)
+            foodplace.tags.add(tag)
 
     if image:
         LocationImage.objects.create(
@@ -980,9 +980,9 @@ def create_ownership_request(request):
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
         
-        # for activity_name in activities:
-        #     activity, created = Activity.objects.get_or_create(name=activity_name)
-        #     spot.activity.add(activity)
+        for activity_name in activities:
+            activity, created = Activity.objects.get_or_create(name=activity_name)
+            spot.activity.add(activity)
         
         spot.save()
 
