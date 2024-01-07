@@ -169,6 +169,9 @@ class OwnershipRequest(models.Model):
     is_approved = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-timestamp']
+
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.ForeignKey("Location", on_delete=models.CASCADE)
@@ -338,36 +341,38 @@ class ItineraryItem(models.Model):
             previous_item = ItineraryItem.objects.get(order=self.order - 1, day=self.day)
             previous_location = previous_item.location
             distance = self.location.get_distance_from_origin(previous_location)
-            walking = 500
+            print(distance)
             print(self.order, self.location.name, previous_location.name, distance)
-            # unahin mo yung checks sa boating bago yung walking saka kung ano man
-            
+
+
             if self.location.location_type == '1':
                 spot = Spot.objects.get(id=self.location.id)
+                if previous_location.location_type == '1':
+                    previous_spot = Spot.objects.get(id=previous_location.id)
+                    if previous_spot.activity.filter(name="Boating").exists() or previous_spot.activity.filter(name="Island Hopping").exists():
+                        print("Other Transportation (Boat, Mixed, etc.)")
+                        return {
+                            "name": "Other Transportation (Boat, Mixed, etc.)", 
+                            "meters": distance
+                        }
                 # consider din dapat kung spot ba yung previous location
                 # if previous_location.activity.filter()
-                if  spot.activity.filter(name="Boating").exists() or spot.activity.filter(name="Island Hopping").exists(): 
-                    print("Boat")
+                elif  spot.activity.filter(name="Boating").exists() or spot.activity.filter(name="Island Hopping").exists(): 
+                    print("Other Transportation (Boat, Mixed, etc.)")
                     return {
-                        "name": "Mixed Transportation (Boat + Car)",
+                        "name": "Other Transportation (Boat, Mixed, etc.)",
                         "meters": distance
                     }
-            if walking < distance:
-                print("Car")
+            if distance <= 500:
+                return {
+                    "name": "Walk",
+                    "meters": distance
+                }
+            else:  
                 return {
                     "name": "Car",
                     "meters": distance
                 }
-            
-            elif distance <= walking: 
-                print ("Walking")
-                return {
-                    "name": "Car",
-                    "meters": distance
-                }
-            
-            else:
-                return 0
 
 class ModelItineraryLocationOrder(models.Model):
     itinerary = models.ForeignKey("ModelItinerary", on_delete=models.CASCADE)
