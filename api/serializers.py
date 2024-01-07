@@ -31,7 +31,7 @@ class UserSerializers(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'password')
+        fields = ('first_name', 'last_name', 'email', 'contact_number', 'password')
 
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])

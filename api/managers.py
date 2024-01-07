@@ -44,6 +44,7 @@ class RecommendationsManager():
     def get_content_recommendations(self, preferences, budget, visited_list, activity_list):
         from api.models import ModelItinerary, ModelItineraryLocationOrder
         models_data = []
+        print("Something in here")
 
         for model in ModelItinerary.objects.all():
             if model.total_min_cost <= budget:
@@ -70,12 +71,17 @@ class RecommendationsManager():
                 }
                 models_data.append(model_data)
 
+        print("Not working")
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
         recommended_itineraries_data.to_clipboard()
+        print("After recommended itineraries clipboard")
+        
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
         tags_binary.to_clipboard()
+        print("Not working")
+        
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
-        binned_tags.to_clipboard()
+        # binned_tags.to_clipboard()
 
         recommended_itineraries_data['binned_tags'] = binned_tags 
         recommended_itineraries_data['jaccard_similarity'] = recommended_itineraries_data.apply(
@@ -85,16 +91,18 @@ class RecommendationsManager():
             axis=1
         )
 
-        jaccard_weight = 0.7
+        jaccard_weight = 0.5
+        activity_weight = 0.2
         penalty_weight = 0.3
 
         recommended_itineraries_data['final_score'] = (
             jaccard_weight * recommended_itineraries_data['jaccard_similarity'] + 
-            penalty_weight * recommended_itineraries_data['order_penalty_factor']
+            penalty_weight * recommended_itineraries_data['order_penalty_factor'] + 
+            activity_weight * self.calculate_activity_score(activity_list, recommended_itineraries_data['activities'])
         )
 
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
-        recommended_itineraries_data.to_clipboard()
+        # recommended_itineraries_data.to_clipboard()
 
         return recommended_itineraries_data.head(12)['id'].tolist()
 
