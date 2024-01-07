@@ -719,6 +719,7 @@ def delete_review(request, location_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_location(request):
+    print(request.data.get("opening_time"))
     location_type = request.data.get("type")
     name = request.data.get("name")
     address = request.data.get("address")
@@ -730,8 +731,8 @@ def create_location(request):
     contact = request.data.get('contact')
     email = request.data.get('email')
 
-    tag_names = json.loads(request.data.get("tags", []))
-    activities = json.loads(request.data.get("activities", []))
+    # tag_names = json.loads(request.data.get("tags", []))
+    # activities = json.loads(request.data.get("activities", []))
 
     location = Location.objects.create(
         name=name,
@@ -746,22 +747,23 @@ def create_location(request):
         email=email,
     )
 
-    if location_type == 1:
+    if location_type == '1':
+        print("It might never end up here")
         spot = Spot.objects.get(id=location.id)
-        spot.opening_time = request.data.get("opening_time", spot.opening_time)
-        spot.closing_time = request.data.get("closing_time", spot.closing_time)
-        
-        for tag_name in tag_names:
-            tag = Tag.objects.get(name=tag_name)
-            spot.tags.add(tag)
+        spot.opening_time = request.data.get("opening_time")
+        spot.closing_time = request.data.get("closing_time")
 
-        for activity_name in activities:
-            activity = Activity.objects.get(name=activity_name)
-            spot.tags.add(activity)
-        
+        # for tag_name in tag_names:
+        #     tag = Tag.objects.get(name=tag_name)
+        #     spot.tags.add(tag)
+
+        # for activity_name in activities:
+        #     activity = Activity.objects.get(name=activity_name)
+        #     spot.tags.add(activity)
         spot.save()
+        
 
-    if location_type == 2:
+    if location_type == '2':
         foodplace = FoodPlace.objects.get(id=location.id)
         foodplace.opening_time = request.data.get("opening_time", foodplace.opening_time)
         foodplace.closing_time = request.data.get("closing_time", foodplace.closing_time)
@@ -945,7 +947,7 @@ def create_ownership_request(request):
     image = request.data.get('image')
     description = request.data.get('description')
     tag_names = json.loads(request.data.get("tags", []))
-    activities = json.loads(request.data.get("activities",[]))
+    # activities = json.loads(request.data.get("activities",[]))
 
     location = Location.objects.create(
         name=name,
@@ -961,6 +963,7 @@ def create_ownership_request(request):
 
     if location_type == '1':
         spot = Spot.objects.get(id=location.id)
+        print(request.data.get("opening_time"))
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
 
@@ -968,9 +971,9 @@ def create_ownership_request(request):
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
         
-        for activity_name in activities:
-            activity = Activity.objects.get_or_create(name=activity_name)
-            spot.activity.add(activity)
+        # for activity_name in activities:
+        #     activity = Activity.objects.get_or_create(name=activity_name)
+        #     spot.activity.add(activity)
         
         spot.save()
 
@@ -1754,26 +1757,27 @@ def delete_audience_type(request, audience_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_foodtags(request, location_id):
+    tag_name = request.data.get('tag')
     foodplace = FoodPlace.objects.get(id=location_id)
-    tag_names = request.data.get("tags", [])
-        
-    for tag_name in tag_names:
-        tag, created = FoodTag.objects.get_or_create(name=tag_name)
-        foodplace.tags.add(tag)
+    
+    tag, created = FoodTag.objects.get_or_create(name=tag_name)
+    foodplace.tags.add(tag)
 
-    return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
+    serializer = FoodTagSerializer(tag)
+    return Response({
+        "data": serializer.data,
+        "message": "Tags added to foodplace"
+    }, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def remove_foodtags(request, location_id):
+    tag_name = request.data.get('tag')
     foodplace = FoodPlace.objects.get(id=location_id)
-    tag_names = request.data.get("tags", [])
-        
-    for tag_name in tag_names:
-        tag = FoodTag.objects.get(name=tag_name)
-        foodplace.tags.remove(tag)
+    tag = FoodTag.objects.get(name=tag_name)
 
+    foodplace.tags.remove(tag)
     return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
 
 
