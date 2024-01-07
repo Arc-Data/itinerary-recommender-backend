@@ -1819,14 +1819,11 @@ def get_spot_tags(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_tags(request, location_id):
+    tag_name = request.data.get('tag')
     spot = Spot.objects.get(id=location_id)
-    tag_names = request.data.get("tags", [])
-        
-    for tag_name in tag_names:
-        tag = Tag.objects.get(name=tag_name)
+    tag = Tag.objects.get(name=tag_name)
 
-        if not spot.tags.filter(name=tag_name).exists():
-                spot.tags.add(tag)
+    spot.tags.add(tag)
 
     return Response({"message": "Tags added to spot"}, status=status.HTTP_200_OK)
 
@@ -1834,16 +1831,65 @@ def add_tags(request, location_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def remove_tags(request, location_id):
+    tag_name = request.data.get('tag')
     spot = Spot.objects.get(id=location_id)
-    tag_names = request.data.get("tags", [])
-        
-    for tag_name in tag_names:
-        tag = Tag.objects.get(name=tag_name)
+    tag = Tag.objects.get(name=tag_name)
 
-        if spot.tags.filter(name=tag_name).exists():
-                spot.tags.remove(tag)
+    spot.tags.remove(tag)
 
     return Response({"message": "Tags removed from spot"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_activity(request, location_id):
+    activity_name = request.data.get('activity')
+    spot = Spot.objects.get(id=location_id)
+    activity, created = Activity.objects.get_or_create(name=activity_name)
+
+    spot.activity.add(activity)
+
+    return Response({"message": "Activity added to spot"}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def remove_activity(request, location_id):
+    activity_name = request.data.get('activity')
+    spot = Spot.objects.get(id=location_id)
+    activity = Activity.objects.get(name=activity_name)
+
+    spot.activity.remove(activity)
+
+    return Response({"message": "Activity removed from spot"}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def search_activity(request):
+    query = request.query_params.get('query', '')
+    if not query:
+        activity = Activity.objects.all()
+    else:
+        activity = Activity.objects.filter(name__icontains=query)
+
+    serializer = ActivitySerializer(activity, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_create_activity(request):
+    activity_name = request.data.get('query')
+    activity, created = Activity.objects.get_or_create(name=activity_name)
+
+    serializer = ActivitySerializer(activity)
+
+    if created:
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
