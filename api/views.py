@@ -1319,7 +1319,7 @@ def get_top_spots(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_tags_percent(request):
-    spots = Spot.objects.all()
+    spots = Spot.objects.exclude(tags__name__isnull=True)
     tags_occurrences = spots.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
     total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
     
@@ -1336,7 +1336,7 @@ def get_tags_percent(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_activity_percent(request):
-    spots = Spot.objects.all()
+    spots = Spot.objects.exclude(activity__name__isnull=True)
     activities = spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
     total_activities = sum(activity['activity_count'] for activity in activities)
     
@@ -1353,7 +1353,7 @@ def get_activity_percent(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_foodtags_percent(request):
-    foodplace = FoodPlace.objects.all()
+    foodplace = FoodPlace.objects.exclude(tags__name__isnull=True)
     tags_occurrences = foodplace.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count') 
     total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
     
