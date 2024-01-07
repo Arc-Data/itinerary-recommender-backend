@@ -82,9 +82,14 @@ urlpatterns = [
     path('user/business/<int:location_id>/edit/remove_foodtags/', remove_foodtags, name='remove_foodtags'), #edit foodplace tags
     path('user/business/<int:location_id>/edit/add_tags/', add_tags, name='add_tags'), #edit spot tags
     path('user/business/<int:location_id>/edit/remove_tags/', remove_tags, name='remove_tags'), #edit spot tags
+    path('user/business/<int:location_id>/edit/add_activity/', add_activity, name='add_activity'), #edit spot activity
+    path('user/business/<int:location_id>/edit/remove_activity/', remove_activity, name='remove_activity'), #edit spot activity
     
     path('foodtag/get/', get_create_foodtag, name='get_create_foodtag'),
     path('foodtag/search/', search_foodtag, name='search_foodtag'),
+
+    path('activity/get/', get_create_activity, name='get_create_activity'),
+    path('activity/search/', search_activity, name='search_activity'),
 
     path('tags/get/', get_spot_tags, name="get_spot_tags"),
     
@@ -115,7 +120,6 @@ urlpatterns = [
     path('dashboard/user-spot-activity/', get_visited_spot_activity, name='get_visited_spot_activity'),
     path('dashboard/user-foodplace-tags/', get_visited_foodplace_tag, name='get_visited_foodplace_tag'),
 
-    
     path('event/', get_all_events, name='get_all_events'),
     path('event/<int:event_id>/', get_event, name='get_event'),
     path('event/create/', create_event, name='create_event'),

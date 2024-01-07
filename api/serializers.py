@@ -858,6 +858,11 @@ class FoodTagSerializer(serializers.ModelSerializer):
         model = FoodTag
         fields = ['name']
 
+class ActivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = ['name']
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
