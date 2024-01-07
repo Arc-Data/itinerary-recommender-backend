@@ -731,8 +731,13 @@ def create_location(request):
     contact = request.data.get('contact')
     email = request.data.get('email')
 
-    # tag_names = json.loads(request.data.get("tags", []))
-    # activities = json.loads(request.data.get("activities", []))
+    if location_type == '1' or location_type == '2':
+        print("tags here")
+        #tag_names = json.loads(request.data.get("tags", []))
+    
+    if location_type == '1':
+        print("activity here")
+        # activities = json.loads(request.data.get("activities",[]))
 
     location = Location.objects.create(
         name=name,
@@ -765,13 +770,12 @@ def create_location(request):
 
     if location_type == '2':
         foodplace = FoodPlace.objects.get(id=location.id)
-        foodplace.opening_time = request.data.get("opening_time", foodplace.opening_time)
-        foodplace.closing_time = request.data.get("closing_time", foodplace.closing_time)
-        tag_names = request.data.get("tags", [])
+        foodplace.opening_time = request.data.get("opening_time")
+        foodplace.closing_time = request.data.get("closing_time")
         
-        for tag_name in tag_names:
-            tag = FoodTag.objects.get(name=tag_name)
-            foodplace.tags.add(tag)
+        # for tag_name in tag_names:
+        #     tag = FoodTag.objects.get(name=tag_name)
+        #     foodplace.tags.add(tag)
 
     if image:
         LocationImage.objects.create(
@@ -946,8 +950,13 @@ def create_ownership_request(request):
     email = request.data.get('email')
     image = request.data.get('image')
     description = request.data.get('description')
-    tag_names = json.loads(request.data.get("tags", []))
-    # activities = json.loads(request.data.get("activities",[]))
+    
+    if location_type == '1' or location_type == '2':
+        tag_names = json.loads(request.data.get("tags", []))
+    
+    if location_type == '1':
+        print("activity here")
+        # activities = json.loads(request.data.get("activities",[]))
 
     location = Location.objects.create(
         name=name,
@@ -979,6 +988,8 @@ def create_ownership_request(request):
 
     if location_type == '2':
         foodplace = FoodPlace.objects.get(id=location.id)
+        foodplace.opening_time = request.data.get("opening_time", foodplace.opening_time)
+        foodplace.closing_time = request.data.get("closing_time", foodplace.closing_time)
 
         for tag_name in tag_names:
             tag, created = FoodTag.objects.get_or_create(name=tag_name)
@@ -1193,10 +1204,14 @@ def get_set_preferences(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) 
 def create_food(request, location_id):
+    user = request.user
     try:
-        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+        if user.is_staff:
+            location = FoodPlace.objects.get(id=location_id)
+        else:
+            location = FoodPlace.objects.get(id=location_id, owner=user)
     except FoodPlace.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1217,8 +1232,12 @@ def create_food(request, location_id):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_food(request, location_id, food_id):
+    user = request.user
     try:
-        location = FoodPlace.objects.get(id=location_id, owner=request.user)
+        if user.is_staff:
+            location = FoodPlace.objects.get(id=location_id)
+        else:
+            location = FoodPlace.objects.get(id=location_id, owner=user)
         food = Food.objects.get(id=food_id, location=location)
     except (FoodPlace.DoesNotExist, Food.DoesNotExist):
         return Response({"error": "Food or Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
@@ -1459,8 +1478,12 @@ def edit_itinerary(request, itinerary_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_service(request, location_id):
+    user = request.user
     try:
-        location = Accommodation.objects.get(id=location_id, owner=request.user)
+        if user.is_staff:
+            location = Accommodation.objects.get(id=location_id)
+        else:
+            location = Accommodation.objects.get(id=location_id, owner=user)
     except Accommodation.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1485,8 +1508,12 @@ def create_service(request, location_id):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_service(request, location_id, service_id):
+    user = request.user
     try:
-        location = Accommodation.objects.get(id=location_id, owner=request.user)
+        if user.is_staff:
+            location = Accommodation.objects.get(id=location_id)
+        else:
+            location = Accommodation.objects.get(id=location_id, owner=user)
         service = Service.objects.get(id=service_id, location=location)
     except (Accommodation.DoesNotExist, Service.DoesNotExist):
         return Response({"error": "Food or Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
