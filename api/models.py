@@ -347,30 +347,30 @@ class ItineraryItem(models.Model):
                 if previous_location.location_type == '1':
                     previous_spot = Spot.objects.get(id=previous_location.id)
                     if previous_spot.activity.filter(name="Boating").exists() or previous_spot.activity.filter(name="Island Hopping").exists():
-                        print("Mixed Transportation (Boat + Car)")
+                        print("Other Transportation (Boat, Mixed, etc.)")
                         return {
-                            "name": "Mixed Transportation (Boat + Car)", 
+                            "name": "Other Transportation (Boat, Mixed, etc.)", 
                             "meters": distance
                         }
                 # consider din dapat kung spot ba yung previous location
                 # if previous_location.activity.filter()
                 elif  spot.activity.filter(name="Boating").exists() or spot.activity.filter(name="Island Hopping").exists(): 
-                    print("Mixed Transportation (Boat + Car)")
+                    print("Other Transportation (Boat, Mixed, etc.)")
                     return {
-                        "name": "Mixed Transportation (Boat + Car)",
+                        "name": "Other Transportation (Boat, Mixed, etc.)",
                         "meters": distance
                     }
             if walking < distance:
-                print("Car")
+                print("Vehicle")
                 return {
-                    "name": "Car",
+                    "name": "Vehicle",
                     "meters": distance
                 }
             
             elif distance <= walking: 
                 print ("Walking")
                 return {
-                    "name": "Car",
+                    "name": "Walking",
                     "meters": distance
                 }
             
