@@ -1999,31 +1999,6 @@ def list_contact_forms(request):
     serializer = ContactFormSerializer(contact_forms, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_contact_form(request, form_id):
-    try:
-        contact_form = ContactForm.objects.get(id=form_id, user=request.user)
-    except ContactForm.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    serializer = ContactFormSerializer(contact_form)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_responded_contact_forms(request):
-    contact_forms = ContactForm.objects.filter(admin_responded=True)
-    serializer = ContactFormSerializer(contact_forms, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_unresponded_contact_forms(request):
-    contact_forms = ContactForm.objects.filter(admin_responded=False)
-    serializer = ContactFormSerializer(contact_forms, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_admin_response(request, form_id):
