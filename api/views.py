@@ -730,6 +730,9 @@ def create_location(request):
     contact = request.data.get('contact')
     email = request.data.get('email')
 
+    tag_names = json.loads(request.data.get("tags", []))
+    activities = json.loads(request.data.get("activities", []))
+
     location = Location.objects.create(
         name=name,
         address=address,
@@ -737,7 +740,7 @@ def create_location(request):
         longitude=longitude,
         description=description,
         location_type=location_type,
-        is_closed=True,
+        is_closed=False,
         website=website,
         contact=contact,
         email=email,
@@ -747,12 +750,14 @@ def create_location(request):
         spot = Spot.objects.get(id=location.id)
         spot.opening_time = request.data.get("opening_time", spot.opening_time)
         spot.closing_time = request.data.get("closing_time", spot.closing_time)
-
-        tag_names = request.data.get("tags", [])
         
         for tag_name in tag_names:
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
+
+        for activity_name in activities:
+            activity = Activity.objects.get(name=activity_name)
+            spot.tags.add(activity)
         
         spot.save()
 
@@ -938,6 +943,7 @@ def create_ownership_request(request):
     image = request.data.get('image')
     description = request.data.get('description')
     tag_names = json.loads(request.data.get("tags", []))
+    activities = json.loads(request.data.get("activities",[]))
 
     location = Location.objects.create(
         name=name,
@@ -959,6 +965,10 @@ def create_ownership_request(request):
         for tag_name in tag_names:
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
+        
+        for activity_name in activities:
+            activity = Activity.objects.get_or_create(name=activity_name)
+            spot.activity.add(activity)
         
         spot.save()
 
@@ -1147,8 +1157,14 @@ def edit_business(request, location_id):
         
         spot.opening_time = request.data.get('opening_time', spot.opening_time)
         spot.closing_time = request.data.get('closing_time', spot.closing_time)
-        spot.description = request.data.get('description', spot.description)
-        spot.save()    
+        spot.save()
+
+    if request.data.get('location_type') == "2":
+        foodplace = FoodPlace.objects.get(id=location_id)
+        
+        foodplace.opening_time = request.data.get('opening_time', spot.opening_time)
+        foodplace.closing_time = request.data.get('closing_time', spot.closing_time)
+        foodplace.save()     
 
     return Response(status=status.HTTP_200_OK)
 
