@@ -973,8 +973,8 @@ def create_ownership_request(request):
     if location_type == '1':
         spot = Spot.objects.get(id=location.id)
         print(request.data.get("opening_time"))
-        spot.opening_time = request.data.get("opening_time", spot.opening_time)
-        spot.closing_time = request.data.get("closing_time", spot.closing_time)
+        spot.opening_time = request.data.get("opening_time")
+        spot.closing_time = request.data.get("closing_time")
 
         for tag_name in tag_names:
             tag = Tag.objects.get(name=tag_name)
@@ -988,8 +988,8 @@ def create_ownership_request(request):
 
     if location_type == '2':
         foodplace = FoodPlace.objects.get(id=location.id)
-        foodplace.opening_time = request.data.get("opening_time", foodplace.opening_time)
-        foodplace.closing_time = request.data.get("closing_time", foodplace.closing_time)
+        foodplace.opening_time = request.data.get("opening_time")
+        foodplace.closing_time = request.data.get("closing_time")
 
         for tag_name in tag_names:
             tag, created = FoodTag.objects.get_or_create(name=tag_name)
