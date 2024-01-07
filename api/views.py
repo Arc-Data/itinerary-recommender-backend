@@ -1164,8 +1164,8 @@ def edit_business(request, location_id):
     if request.data.get('location_type') == "2":
         foodplace = FoodPlace.objects.get(id=location_id)
         
-        foodplace.opening_time = request.data.get('opening_time', spot.opening_time)
-        foodplace.closing_time = request.data.get('closing_time', spot.closing_time)
+        foodplace.opening_time = request.data.get('opening_time', foodplace.opening_time)
+        foodplace.closing_time = request.data.get('closing_time', foodplace.closing_time)
         foodplace.save()     
 
     return Response(status=status.HTTP_200_OK)
