@@ -340,16 +340,24 @@ class ItineraryItem(models.Model):
             distance = self.location.get_distance_from_origin(previous_location)
             print(distance)
             print(self.order, self.location.name, previous_location.name, distance)
-            # unahin mo yung checks sa boating bago yung walking saka kung ano man
-            
+
+
             if self.location.location_type == '1':
                 spot = Spot.objects.get(id=self.location.id)
+                if previous_location.location_type == '1':
+                    previous_spot = Spot.objects.get(id=previous_location.id)
+                    if previous_spot.activity.filter(name="Boating").exists() or previous_spot.activity.filter(name="Island Hopping").exists():
+                        print("Other Transportation (Boat, Mixed, etc.)")
+                        return {
+                            "name": "Other Transportation (Boat, Mixed, etc.)", 
+                            "meters": distance
+                        }
                 # consider din dapat kung spot ba yung previous location
                 # if previous_location.activity.filter()
-                if  spot.activity.filter(name="Boating").exists() or spot.activity.filter(name="Island Hopping").exists(): 
-                    print("Boat")
+                elif  spot.activity.filter(name="Boating").exists() or spot.activity.filter(name="Island Hopping").exists(): 
+                    print("Other Transportation (Boat, Mixed, etc.)")
                     return {
-                        "name": "Mixed Transportation (Boat + Car)",
+                        "name": "Other Transportation (Boat, Mixed, etc.)",
                         "meters": distance
                     }
             if distance <= 500:
@@ -361,7 +369,7 @@ class ItineraryItem(models.Model):
             else:  
                 print("Car")
                 return {
-                    "name": "Car",
+                    "name": "Walking",
                     "meters": distance
                 }
 
