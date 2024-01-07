@@ -801,10 +801,11 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
     requester = UserSerializers(source='user')
     image = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
+    activity = serializers.SerializerMethodField()
 
     class Meta:
         model = OwnershipRequest
-        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags')
+        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags', 'activity')
 
     def get_image(self, obj):
         primary_image = obj.location.images.filter(is_primary_image=True).first()
@@ -826,7 +827,15 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
             return [tag.name for tag in foodplace.tags.all()]
         
         return None
+    
+    def get_activity(self,obj):
+        if obj.location.location_type == "1":
+            spot = Spot.objects.get(id=obj.location.id)
 
+            return [activity.name for activity in spot.activity.all()]
+        
+        return None
+        
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
