@@ -1979,3 +1979,15 @@ def get_specific_driver(request, driver_id):
     serializer = DriverSerializer(driver)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["POST"])
+@permission_classes(["IsAuthenticated"])
+def create_contact_form(request):
+    user = request.user
+    query = request.data
+
+    ContactForm.objects.create(
+        user=user,
+        query=query
+    )
+    return Response(status=status.HTTP_201_CREATED)
