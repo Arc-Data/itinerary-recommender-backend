@@ -763,6 +763,8 @@ def create_location(request):
 
     if location_type == 2:
         foodplace = FoodPlace.objects.get(id=location.id)
+        foodplace.opening_time = request.data.get("opening_time", foodplace.opening_time)
+        foodplace.closing_time = request.data.get("closing_time", foodplace.closing_time)
         tag_names = request.data.get("tags", [])
         
         for tag_name in tag_names:
