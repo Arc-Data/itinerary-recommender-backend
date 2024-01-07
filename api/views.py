@@ -1756,10 +1756,8 @@ def add_foodtags(request, location_id):
     tag_names = request.data.get("tags", [])
         
     for tag_name in tag_names:
-        tag = FoodTag.objects.get(name=tag_name)
-
-        if not foodplace.tags.filter(name=tag_name).exists():
-                foodplace.tags.add(tag)
+        tag, created = FoodTag.objects.get_or_create(name=tag_name)
+        foodplace.tags.add(tag)
 
     return Response({"message": "Tags added to foodplace"}, status=status.HTTP_200_OK)
 
@@ -1772,9 +1770,7 @@ def remove_foodtags(request, location_id):
         
     for tag_name in tag_names:
         tag = FoodTag.objects.get(name=tag_name)
-
-        if foodplace.tags.filter(name=tag_name).exists():
-                foodplace.tags.remove(tag)
+        foodplace.tags.remove(tag)
 
     return Response({"message": "Tags removed from foodplace"}, status=status.HTTP_200_OK)
 
