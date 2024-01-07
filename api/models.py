@@ -506,7 +506,14 @@ class Driver(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+class ContactForm(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    query = models.CharField(max_length=220)
+    date_created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-date_created']
 
 @receiver(post_save, sender=Spot)
 def create_default_fee(sender, instance, created, **kwargs):
