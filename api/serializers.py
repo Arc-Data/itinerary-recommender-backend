@@ -868,6 +868,11 @@ class DriverSerializer(serializers.ModelSerializer):
         model = Driver
         fields = '__all__'
 
+class ContactFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactForm
+        fields = ['id', 'user', 'query', 'date_created']
+
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()

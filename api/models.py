@@ -511,6 +511,7 @@ class ContactForm(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     query = models.CharField(max_length=220)
     date_created = models.DateTimeField(auto_now_add=True)
+    admin_responded = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-date_created']
