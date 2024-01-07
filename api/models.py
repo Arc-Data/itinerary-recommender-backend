@@ -169,6 +169,9 @@ class OwnershipRequest(models.Model):
     is_approved = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-timestamp']
+
 class Bookmark(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.ForeignKey("Location", on_delete=models.CASCADE)

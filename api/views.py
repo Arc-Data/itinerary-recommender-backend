@@ -1981,10 +1981,11 @@ def get_specific_driver(request, driver_id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["POST"])
-@permission_classes(["IsAuthenticated"])
+@permission_classes([IsAuthenticated])
 def create_contact_form(request):
+    print("Hello", request.data)
     user = request.user
-    query = request.data
+    query = request.data.get('query')
 
     ContactForm.objects.create(
         user=user,
