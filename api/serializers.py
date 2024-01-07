@@ -869,6 +869,8 @@ class DriverSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ContactFormSerializer(serializers.ModelSerializer):
+    user = UserSerializers()
+
     class Meta:
         model = ContactForm
         fields = ['id', 'user', 'query', 'date_created', 'admin_responded']
