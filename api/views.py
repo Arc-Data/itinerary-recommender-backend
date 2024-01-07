@@ -1371,7 +1371,7 @@ def get_foodtags_percent(request):
 @permission_classes([IsAuthenticated])
 def get_visited_spot_tag(request):
     completed_days = Day.objects.filter(completed=True)
-    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days).exclude(tags__name__isnull=True)
     tags_occurrences = visited_spots.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
     total_tags = sum(tag['tag_count'] for tag in tags_occurrences)
     
@@ -1390,7 +1390,7 @@ def get_visited_spot_tag(request):
 @permission_classes([IsAuthenticated])
 def get_visited_spot_activity(request):
     completed_days = Day.objects.filter(completed=True)
-    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    visited_spots = Spot.objects.filter(location_ptr__itineraryitem__day__in=completed_days).exclude(activity__name__isnull=True)
     activities_occurrences = visited_spots.values('activity__name').annotate(activity_count=Count('activity__name')).order_by('-activity_count')
     total_activities = sum(activity['activity_count'] for activity in activities_occurrences)
     
@@ -1409,7 +1409,7 @@ def get_visited_spot_activity(request):
 @permission_classes([IsAuthenticated])
 def get_visited_foodplace_tag(request):
     completed_days = Day.objects.filter(completed=True)
-    visited_foodplaces = FoodPlace.objects.filter(location_ptr__itineraryitem__day__in=completed_days)
+    visited_foodplaces = FoodPlace.objects.filter(location_ptr__itineraryitem__day__in=completed_days).exclude(tags__name__isnull=True)
     foodtags_occurrences = visited_foodplaces.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
     total_foodtags = sum(tag['tag_count'] for tag in foodtags_occurrences)
     
