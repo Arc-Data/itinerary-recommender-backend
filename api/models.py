@@ -22,6 +22,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     set_preferences = models.BooleanField(default=False)
+    contact_number = models.CharField(max_length=11, default="09202750407")
     is_active = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
@@ -505,7 +506,15 @@ class Driver(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
+class ContactForm(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    query = models.CharField(max_length=220)
+    date_created = models.DateTimeField(auto_now_add=True)
+    admin_responded = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['-date_created']
 
 @receiver(post_save, sender=Spot)
 def create_default_fee(sender, instance, created, **kwargs):

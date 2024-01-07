@@ -41,6 +41,7 @@ class UserRegistrationView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
+            print(request.data)
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = serializer.save()
@@ -1977,4 +1978,37 @@ def get_specific_driver(request, driver_id):
     driver = Driver.objects.get(id=driver_id)
     serializer = DriverSerializer(driver)
 
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["POST"])
+@permission_classes(["IsAuthenticated"])
+def create_contact_form(request):
+    user = request.user
+    query = request.data
+
+    ContactForm.objects.create(
+        user=user,
+        query=query
+    )
+    return Response(status=status.HTTP_201_CREATED)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_contact_forms(request):
+    contact_forms = ContactForm.objects.all()
+    serializer = ContactFormSerializer(contact_forms, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_admin_response(request, form_id):
+    try:
+        contact_form = ContactForm.objects.get(id=form_id)
+    except ContactForm.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    contact_form.admin_responded = not contact_form.admin_responded
+    contact_form.save()
+
+    serializer = ContactFormSerializer(contact_form)
     return Response(serializer.data, status=status.HTTP_200_OK)

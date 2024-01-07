@@ -31,7 +31,7 @@ class UserSerializers(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'password')
+        fields = ('first_name', 'last_name', 'email', 'contact_number', 'password')
 
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])
@@ -867,6 +867,13 @@ class DriverSerializer(serializers.ModelSerializer):
     class Meta:
         model = Driver
         fields = '__all__'
+
+class ContactFormSerializer(serializers.ModelSerializer):
+    user = UserSerializers()
+
+    class Meta:
+        model = ContactForm
+        fields = ['id', 'user', 'query', 'date_created', 'admin_responded']
 
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):

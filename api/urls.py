@@ -142,4 +142,8 @@ urlpatterns = [
     path('driver/add/', add_driver, name='add_driver'),
     path('driver/<int:driver_id>/', get_specific_driver, name='get_specific_driver'),
     path('driver/<int:driver_id>/edit/', edit_driver, name='edit_driver'),
+
+    path('contact/create/', create_contact_form, name="create_contact_form"),
+    path('contact/list/', list_contact_forms, name="list_contact_forms"),
+    path('contact/<int:form_id>/toggle-response/', update_admin_response, name="toggle_admin_response")
 ]
