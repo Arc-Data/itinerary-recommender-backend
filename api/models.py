@@ -156,7 +156,7 @@ class Location(models.Model):
             event for event in nearby_events
             if haversine(spot_coordinates, (event.latitude, event.longitude), unit=Unit.METERS) <= radius_meters
         ]
-        print(nearby_events)
+        # print(nearby_events)
 
         return nearby_events
 
@@ -330,6 +330,44 @@ class ItineraryItem(models.Model):
     
     def __str__(self):
         return f"{self.day.date} - {self.location.name} - {self.order}"
+
+    def get_transportation_type(self):
+        if self.order == 0:
+            return 0
+        else:
+            previous_item = ItineraryItem.objects.get(order=self.order - 1, day=self.day)
+            previous_location = previous_item.location
+            distance = self.location.get_distance_from_origin(previous_location)
+            walking = 500
+            print(self.order, self.location.name, previous_location.name, distance)
+            # unahin mo yung checks sa boating bago yung walking saka kung ano man
+            
+            if self.location.location_type == '1':
+                spot = Spot.objects.get(id=self.location.id)
+                # consider din dapat kung spot ba yung previous location
+                # if previous_location.activity.filter()
+                if  spot.activity.filter(name="Boating").exists() or spot.activity.filter(name="Island Hopping").exists(): 
+                    print("Boat")
+                    return {
+                        "name": "Mixed Transportation (Boat + Car)",
+                        "meters": distance
+                    }
+            if walking < distance:
+                print("Car")
+                return {
+                    "name": "Car",
+                    "meters": distance
+                }
+            
+            elif distance <= walking: 
+                print ("Walking")
+                return {
+                    "name": "Car",
+                    "meters": distance
+                }
+            
+            else:
+                return 0
 
 class ModelItineraryLocationOrder(models.Model):
     itinerary = models.ForeignKey("ModelItinerary", on_delete=models.CASCADE)
