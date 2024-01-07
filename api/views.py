@@ -1995,7 +1995,7 @@ def create_contact_form(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_contact_forms(request):
-    contact_forms = ContactForm.objects.filter(user=request.user)
+    contact_forms = ContactForm.objects.all()
     serializer = ContactFormSerializer(contact_forms, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

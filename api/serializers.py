@@ -871,7 +871,7 @@ class DriverSerializer(serializers.ModelSerializer):
 class ContactFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactForm
-        fields = ['id', 'user', 'query', 'date_created']
+        fields = ['id', 'user', 'query', 'date_created', 'admin_responded']
 
 #Sample Serializers
 class SampleLocationSerializer(serializers.ModelSerializer):
