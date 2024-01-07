@@ -733,11 +733,11 @@ def create_location(request):
 
     if location_type == '1' or location_type == '2':
         print("tags here")
-        #tag_names = json.loads(request.data.get("tags", []))
+        tag_names = json.loads(request.data.get("tags", []))
     
     if location_type == '1':
         print("activity here")
-        # activities = json.loads(request.data.get("activities",[]))
+        activities = json.loads(request.data.get("activities",[]))
 
     location = Location.objects.create(
         name=name,
@@ -758,13 +758,13 @@ def create_location(request):
         spot.opening_time = request.data.get("opening_time")
         spot.closing_time = request.data.get("closing_time")
 
-        # for tag_name in tag_names:
-        #     tag = Tag.objects.get(name=tag_name)
-        #     spot.tags.add(tag)
+        for tag_name in tag_names:
+            tag = Tag.objects.get(name=tag_name)
+            spot.tags.add(tag)
 
-        # for activity_name in activities:
-        #     activity = Activity.objects.get(name=activity_name)
-        #     spot.tags.add(activity)
+        for activity_name in activities:
+            activity = Activity.objects.get(name=activity_name)
+            spot.tags.add(activity)
         spot.save()
         
 
@@ -773,9 +773,9 @@ def create_location(request):
         foodplace.opening_time = request.data.get("opening_time")
         foodplace.closing_time = request.data.get("closing_time")
         
-        # for tag_name in tag_names:
-        #     tag = FoodTag.objects.get(name=tag_name)
-        #     foodplace.tags.add(tag)
+        for tag_name in tag_names:
+            tag = FoodTag.objects.get(name=tag_name)
+            foodplace.tags.add(tag)
 
     if image:
         LocationImage.objects.create(
@@ -956,7 +956,7 @@ def create_ownership_request(request):
     
     if location_type == '1':
         print("activity here")
-        # activities = json.loads(request.data.get("activities",[]))
+        activities = json.loads(request.data.get("activities",[]))
 
     location = Location.objects.create(
         name=name,
@@ -980,9 +980,9 @@ def create_ownership_request(request):
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
         
-        # for activity_name in activities:
-        #     activity = Activity.objects.get_or_create(name=activity_name)
-        #     spot.activity.add(activity)
+        for activity_name in activities:
+            activity = Activity.objects.get_or_create(name=activity_name)
+            spot.activity.add(activity)
         
         spot.save()
 
