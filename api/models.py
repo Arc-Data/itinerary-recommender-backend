@@ -338,7 +338,7 @@ class ItineraryItem(models.Model):
             previous_item = ItineraryItem.objects.get(order=self.order - 1, day=self.day)
             previous_location = previous_item.location
             distance = self.location.get_distance_from_origin(previous_location)
-            walking = 500
+            print(distance)
             print(self.order, self.location.name, previous_location.name, distance)
             # unahin mo yung checks sa boating bago yung walking saka kung ano man
             
@@ -352,22 +352,18 @@ class ItineraryItem(models.Model):
                         "name": "Mixed Transportation (Boat + Car)",
                         "meters": distance
                     }
-            if walking < distance:
+            if distance <= 500:
+                print("Walk ")
+                return {
+                    "name": "Walk",
+                    "meters": distance
+                }
+            else:  
                 print("Car")
                 return {
                     "name": "Car",
                     "meters": distance
                 }
-            
-            elif distance <= walking: 
-                print ("Walking")
-                return {
-                    "name": "Car",
-                    "meters": distance
-                }
-            
-            else:
-                return 0
 
 class ModelItineraryLocationOrder(models.Model):
     itinerary = models.ForeignKey("ModelItinerary", on_delete=models.CASCADE)
