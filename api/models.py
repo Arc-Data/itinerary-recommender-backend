@@ -364,15 +364,13 @@ class ItineraryItem(models.Model):
                         "meters": distance
                     }
             if distance <= 500:
-                print("Walk ")
                 return {
                     "name": "Walk",
                     "meters": distance
                 }
             else:  
-                print("Car")
                 return {
-                    "name": "Walking",
+                    "name": "Car",
                     "meters": distance
                 }
 
