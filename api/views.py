@@ -2026,7 +2026,7 @@ def get_unresponded_contact_forms(request):
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def update_contact_form_admin_response(request, form_id):
+def update_admin_response(request, form_id):
     try:
         contact_form = ContactForm.objects.get(id=form_id)
     except ContactForm.DoesNotExist:
