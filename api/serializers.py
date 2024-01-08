@@ -834,7 +834,7 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
 
             return [activity.name for activity in spot.activity.all()]
         
-        return None
+        return []
         
 
 class EventSerializer(serializers.ModelSerializer):
