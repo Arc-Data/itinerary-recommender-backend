@@ -826,7 +826,7 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
             
             return [tag.name for tag in foodplace.tags.all()]
         
-        return None
+        return []
     
     def get_activity(self,obj):
         if obj.location.location_type == "1":
