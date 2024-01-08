@@ -480,16 +480,15 @@ def get_content_recommendations(request):
     activity_list = defaultdict(int)
 
     preferences = [
+        user.preferences.activity,
+        user.preferences.art, 
+        user.preferences.culture,
+        user.preferences.entertainment,
         user.preferences.history,
         user.preferences.nature,
         user.preferences.religion,
-        user.preferences.art, 
-        user.preferences.activity,
-        user.preferences.entertainment,
-        user.preferences.culture
     ]
 
-    print("Got through preferences")
     # get all itineraries concerned with a single user, and all related days which are marked as completed
     # and add all related locations as "visited" while taking note of the frequencies of activities involved
     # in those visits

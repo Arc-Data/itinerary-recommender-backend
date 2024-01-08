@@ -72,6 +72,7 @@ class RecommendationsManager():
                 model_data = {
                     'id': model.id,
                     'min_cost': total_min_cost,
+                    'names': model.get_location_names,
                     'tags': model.get_tags,
                     'activities': model.get_activities,
                     'order_penalty_factor': order_penalty_factor
@@ -82,8 +83,12 @@ class RecommendationsManager():
 
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
+        tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
+        preferences_array = np.tile(preferences, (len(recommended_itineraries_data), 1))
+
+        recommended_itineraries_data['preferences'] = preferences_array.tolist()
         recommended_itineraries_data['binned_tags'] = binned_tags 
         recommended_itineraries_data['jaccard_similarity'] = recommended_itineraries_data.apply(
             lambda row: (
@@ -96,9 +101,15 @@ class RecommendationsManager():
             lambda row: self.calculate_activity_score(activity_list, row)
         )
 
+
         activity_scores = activity_scores.values.reshape(1, -1)
         activity_scores = activity_scores / activity_scores.max() if activity_scores.max() != 0 else activity_scores / 1.0
         recommended_itineraries_data['activity_score'] = activity_scores.flatten()
+        
+        # recommended_itineraries_data = recommended_itineraries_data[
+        #     (recommended_itineraries_data['jaccard_similarity'] > 0) &
+        #     (recommended_itineraries_data['activity_score'] > 0)
+        # ]
 
         jaccard_weight = 0.6
         activity_weight = 0.1
@@ -113,11 +124,12 @@ class RecommendationsManager():
         recommended_itineraries_data['final_score'] = recommended_itineraries_data['final_score'].values.reshape(-1, 1)
         recommended_itineraries_data['final_score'] = recommended_itineraries_data['final_score'] / recommended_itineraries_data['final_score'].max()
         
-        keep_columns = ['id', 'activity_score', 'order_penalty_factor', 'jaccard_similarity','activity_score','final_score']
+        keep_columns = ['id', 'names', 'tags', 'preferences', 'binned_tags', 'activity_score', 'order_penalty_factor', 'jaccard_similarity','activity_score','final_score']
         recommended_itineraries_data = recommended_itineraries_data[keep_columns]
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
 
-        return recommended_itineraries_data.head(12)['id'].tolist()
+        recommended_itineraries_data.to_clipboard()
+        return recommended_itineraries_data.head(6)['id'].tolist()
         
 
     def get_hybrid_recommendations(self):
