@@ -521,14 +521,14 @@ class ContactForm(models.Model):
     class Meta:
         ordering = ['-date_created']
 
-@receiver(post_save, sender=Spot)
-def create_default_fee(sender, instance, created, **kwargs):
-    if created:
-        FeeType.objects.create(spot=instance, name="Entrance Fee")
-        print("Created Default Fee Type for location: ", instance.name)
+# @receiver(post_save, sender=Spot)
+# def create_default_fee(sender, instance, created, **kwargs):
+#     if created:
+#         FeeType.objects.create(spot=instance, name="Entrance Fee")
+#         print("Created Default Fee Type for location: ", instance.name)
 
-@receiver(post_save, sender=FeeType)
-def create_default_audience_type(sender, instance, created, **kwargs):
-    if created:
-        AudienceType.objects.create(fee_type=instance, name="General", price=0)
-        print("Created Default Audience Type")
+# @receiver(post_save, sender=FeeType)
+# def create_default_audience_type(sender, instance, created, **kwargs):
+#     if created:
+#         AudienceType.objects.create(fee_type=instance, name="General", price=0)
+#         print("Created Default Audience Type")

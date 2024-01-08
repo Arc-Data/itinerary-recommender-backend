@@ -110,7 +110,6 @@ class RecommendationsManager():
         keep_columns = ['id', 'names' ,'min_cost', 'max_cost', 'activity_score', 'order_penalty_factor', 'jaccard_similarity','activity_score','final_score']
         recommended_itineraries_data = recommended_itineraries_data[keep_columns]
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
-        recommended_itineraries_data.to_clipboard()
 
         return recommended_itineraries_data.head(12)['id'].tolist()
         
@@ -223,8 +222,6 @@ class RecommendationsManager():
 
         keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'activities','activities_count', 'activity_count_score', 'jaccard_similarity', 'visit_count_score', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted= merged_data_sorted[keep_columns]
-        merged_data_sorted.to_clipboard()
-
 
         return merged_data_sorted.head(4)['id'].tolist()
     
@@ -262,12 +259,7 @@ class RecommendationsManager():
         locations_data = locations_data.sort_values(by='distance_from_origin')
         locations_data = locations_data.head(15)
         locations_data = locations_data.reset_index()
-        # locations_data.to_clipboard()
 
-        # commented out while script for applying food tags arent in play yet
-        # tags_binary = pd.get_dummies(locations_data['foodtags'].explode()).groupby(level=0).max().astype(int)
-        # binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
-        
         if clicks_data:
             clicks_df = pd.DataFrame(clicks_data)
             merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
@@ -369,7 +361,6 @@ class RecommendationsManager():
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
-        merged_data_sorted.to_clipboard()
 
         return merged_data_sorted.head(4)['id'].tolist()
 
@@ -432,5 +423,4 @@ class RecommendationsManager():
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
         merged_data = merged_data.sort_values(by='scaled_score', ascending=False)
 
-        merged_data.to_clipboard()
         return merged_data.head(4)['id'].to_list()
