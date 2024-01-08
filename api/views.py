@@ -1916,16 +1916,14 @@ def search_activity(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_create_activity(request):
-    activity_name = request.data.get('query')
+    activity_name = request.query_params.get('query', '')
     activity, created = Activity.objects.get_or_create(name=activity_name)
 
     serializer = ActivitySerializer(activity)
-
     if created:
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     else:
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 @api_view(['GET'])
 def get_spot_chain_recommendations(request, day_id):
