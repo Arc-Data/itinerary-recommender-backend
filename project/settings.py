@@ -31,7 +31,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = [
-    'itinerary-recommender-backend-production.up.railway.app',
+    'irs-backend.onrender.com',
     'main--cebu-route.netlify.app',
     'cebu-route.netlify.app',
     'localhost',
