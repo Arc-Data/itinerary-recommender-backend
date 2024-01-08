@@ -52,7 +52,7 @@ class RecommendationsManager():
         from api.models import ModelItinerary, ModelItineraryLocationOrder
         models_data = []
 
-        for model, idx in enumerate(ModelItinerary.objects.all()):
+        for idx, model in enumerate(ModelItinerary.objects.all()):
             print(idx)
             if model.total_min_cost <= budget:
                 model_locations = set()
