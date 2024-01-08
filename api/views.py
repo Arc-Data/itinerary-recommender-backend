@@ -473,6 +473,7 @@ def update_preferences(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
+    
     user = request.user
     budget = request.data
     visited_list = set()
@@ -731,14 +732,6 @@ def create_location(request):
     contact = request.data.get('contact')
     email = request.data.get('email')
 
-    if location_type == '1' or location_type == '2':
-        print("tags here")
-        tag_names = json.loads(request.data.get("tags", []))
-    
-    if location_type == '1':
-        print("activity here")
-        activities = json.loads(request.data.get("activities",[]))
-
     location = Location.objects.create(
         name=name,
         address=address,
@@ -753,8 +746,10 @@ def create_location(request):
     )
 
     if location_type == '1':
-        print("It might never end up here")
         spot = Spot.objects.get(id=location.id)
+        tag_names = json.loads(request.data.get("tags", []))
+        activities = json.loads(request.data.get("activities",[]))
+
         spot.opening_time = request.data.get("opening_time")
         spot.closing_time = request.data.get("closing_time")
 
@@ -764,7 +759,7 @@ def create_location(request):
 
         for activity_name in activities:
             activity, created = Activity.objects.get_or_create(name=activity_name)
-            spot.tags.add(activity)
+            spot.activity.add(activity)
         spot.save()
         
 
