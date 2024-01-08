@@ -50,33 +50,36 @@ class RecommendationsManager():
     # @profile
     def get_content_recommendations(self, preferences, budget, visited_list, activity_list):
         from api.models import ModelItinerary, ModelItineraryLocationOrder
-        eligible_models = ModelItinerary.objects.filter(total_min_cost__lte=budget)
+        all_models = ModelItinerary.objects.all()
         models_data = []
 
-        for idx, model in enumerate(ModelItinerary.objects.filter(total_min_cost__lte=budget)):
+        for idx, model in enumerate(all_models):
             print(idx)
-            model_locations = set()
-            order_penalty_factor = 1.0
+            if model.total_min_cost <= budget:
+                model_locations = set()
+                order_penalty_factor = 1.0
 
-            model_orders = ModelItineraryLocationOrder.objects.filter(itinerary=model)
-            spot_ids = [order_entry.spot.id for order_entry in model_orders]
-            common_visited = model_locations.intersection(visited_list)
+                model_orders = ModelItineraryLocationOrder.objects.filter(itinerary=model)
+                spot_ids = [order_entry.spot.id for order_entry in model_orders]
+                model_locations.update(spot_ids)
 
-            if model_locations:
-                visited_ratio = len(common_visited) / len(model_locations)
-                order_penalty_factor = max(0, 1 - visited_ratio)
-            else:
-                order_penalty_factor = 1
+                common_visited = model_locations.intersection(visited_list)
 
-            model_data = {
-                'id': model.id,
-                'tags': model.get_tags,
-                'activities': model.get_activities,
-                'order_penalty_factor': order_penalty_factor
-            }
-            models_data.append(model_data)
+                if model_locations:
+                    visited_ratio = len(common_visited) / len(model_locations)
+                    order_penalty_factor = max(0, 1 - visited_ratio)
 
-        print("Did i get past here though?")
+                model_data = {
+                    'id': model.id,
+                    'min_cost': model.total_min_cost,
+                    'max_cost': model.total_max_cost,
+                    'tags': model.get_tags,
+                    'activities': model.get_activities,
+                    'order_penalty_factor': order_penalty_factor
+                }
+                models_data.append(model_data)
+
+        print("Did I get past here though?")
 
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
