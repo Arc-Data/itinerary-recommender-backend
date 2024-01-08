@@ -148,8 +148,11 @@ DATABASES = {
     }
 }
 
-database_url = env("DB_URL")
-DATABASES['default'] = dj_database_url.parse(database_url)
+# basically this line determines whether you are using the local database settings (as stated above) or the production database settings
+# so you need to constantly comment this when you are using test settings, and take care to not push it out uncommented
+
+# database_url = env("DB_URL")
+# DATABASES['default'] = dj_database_url.parse(database_url)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

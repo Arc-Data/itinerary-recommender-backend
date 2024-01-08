@@ -38,7 +38,11 @@ class RecommendationsManager():
 
         for activity, frequency in model_spot_activities.items():
             user_frequency = user_activities.get(activity, 0)
-            activity_score += user_frequency / (frequency + 1)
+            try:
+                activity_score += user_frequency / (frequency + 1)
+            except RuntimeWarning as e:
+                activity_score += 0
+                print("Error", {e})
 
         return activity_score
 
@@ -74,6 +78,8 @@ class RecommendationsManager():
                 }
                 models_data.append(model_data)
 
+        print("Did i get past here though?")
+
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
@@ -91,7 +97,11 @@ class RecommendationsManager():
         )
 
         activity_scores = activity_scores.values.reshape(1, -1)
-        activity_scores = activity_scores / activity_scores.max()
+        if activity_scores.max() != 0:
+            activity_scores = activity_scores / activity_scores.max()
+        else:
+            activity_scores = activity_scores / 1.0 
+
         recommended_itineraries_data['activity_score'] = activity_scores.flatten()
 
         jaccard_weight = 0.6
