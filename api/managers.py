@@ -308,6 +308,7 @@ class RecommendationsManager():
             print(f"An exception has occured while querying firebase data: {e}")
             return 
 
+        print("After user clicks")
         locations_data = []
         tag_visit_counts = defaultdict(int)
         spots = Spot.objects.exclude(tags=None)
@@ -327,6 +328,7 @@ class RecommendationsManager():
                     tag_visit_counts[tag_name] += 1
 
         locations_data = pd.DataFrame.from_records(locations_data)
+        print("After Locations Data gets initialized into DF")
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
@@ -341,6 +343,7 @@ class RecommendationsManager():
             merged_data['amount'] = 0
 
         merged_data['binned_tags'] = binned_tags
+        print("After clicks and tags")
 
         merged_data['visit_count'] = merged_data['tags'].apply(lambda tags: sum(tag_visit_counts[tag] for tag in tags))
         merged_data['visit_count_score'] = visited_weight * merged_data['visit_count']
@@ -366,7 +369,7 @@ class RecommendationsManager():
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
-
+        print("Should have been sorted around here")
         return merged_data_sorted.head(4)['id'].tolist()
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):

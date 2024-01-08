@@ -889,6 +889,7 @@ def get_homepage_recommendations(request):
     visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
+    print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids:
