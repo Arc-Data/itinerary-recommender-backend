@@ -1833,7 +1833,9 @@ def search_foodtag(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_create_foodtag(request):
-    tag_name = request.data.get('query')
+    print(request)
+    tag_name = request.query_params.get('query')
+    
     food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
 
     serializer = FoodTagSerializer(food_tag)
@@ -1964,6 +1966,7 @@ def get_spot_chain_recommendations(request, day_id):
     recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list, activity_counts)
 
     recommendations = []
+    print
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)

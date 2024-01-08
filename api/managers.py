@@ -54,8 +54,8 @@ class RecommendationsManager():
         models_data = []
 
         for idx, model in enumerate(all_models):
-            print(idx)
-            if model.total_min_cost <= budget:
+            total_min_cost = model.total_min_cost
+            if total_min_cost <= budget:
                 model_locations = set()
                 order_penalty_factor = 1.0
 
@@ -71,8 +71,7 @@ class RecommendationsManager():
 
                 model_data = {
                     'id': model.id,
-                    'min_cost': model.total_min_cost,
-                    'max_cost': model.total_max_cost,
+                    'min_cost': total_min_cost,
                     'tags': model.get_tags,
                     'activities': model.get_activities,
                     'order_penalty_factor': order_penalty_factor

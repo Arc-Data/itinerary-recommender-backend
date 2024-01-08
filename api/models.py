@@ -395,17 +395,23 @@ class ModelItinerary(models.Model):
         location_orders = self.modelitinerarylocationorder_set.all().order_by('order')
         return sum(location_order.spot.get_max_cost for location_order in location_orders)
 
+    # @property
+    # def get_tags(self):
+    #     tags_list = []
+
+    #     for location_order in self.modelitinerarylocationorder_set.all().order_by('order'):
+    #         location = location_order.spot
+    #         if location.location_type == '1':
+    #             tags_list.extend(tag.name for tag in location.tags.all())
+
+    #     return set(tags_list)
+
     @property
     def get_tags(self):
-        tags_list = []
-
-        for location_order in self.modelitinerarylocationorder_set.all().order_by('order'):
-            location = location_order.spot
-            if location.location_type == '1':
-                tags_list.extend(tag.name for tag in location.tags.all())
-
-        return set(tags_list)
-    
+        return set(tag.name for location_order in self.modelitinerarylocationorder_set.all().order_by('order')
+                if location_order.spot.location_type == '1'
+                for tag in location_order.spot.tags.all())
+   
     @property
     def get_activities(self):
         activities = defaultdict(int)
