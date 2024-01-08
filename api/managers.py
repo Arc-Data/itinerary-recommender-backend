@@ -70,8 +70,6 @@ class RecommendationsManager():
 
             model_data = {
                 'id': model.id,
-                'min_cost': model.total_min_cost,
-                'max_cost': model.total_max_cost,
                 'tags': model.get_tags,
                 'activities': model.get_activities,
                 'order_penalty_factor': order_penalty_factor
@@ -113,7 +111,7 @@ class RecommendationsManager():
         recommended_itineraries_data['final_score'] = recommended_itineraries_data['final_score'].values.reshape(-1, 1)
         recommended_itineraries_data['final_score'] = recommended_itineraries_data['final_score'] / recommended_itineraries_data['final_score'].max()
         
-        keep_columns = ['id','min_cost', 'max_cost', 'activity_score', 'order_penalty_factor', 'jaccard_similarity','activity_score','final_score']
+        keep_columns = ['id', 'activity_score', 'order_penalty_factor', 'jaccard_similarity','activity_score','final_score']
         recommended_itineraries_data = recommended_itineraries_data[keep_columns]
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
 
