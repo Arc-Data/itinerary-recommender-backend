@@ -152,6 +152,7 @@ class RecommendationsManager():
             clicks_data = user_clicks.val() or {}
         except Exception as e:
             print(f"an unexpected error has occured: {e}")
+            clicks_data = {}
         
         tag_visit_counts = defaultdict(int)
         origin_spot = Location.objects.get(id=location_id)
@@ -244,6 +245,7 @@ class RecommendationsManager():
             clicks_data = user_clicks.val() or {}
         except Exception as e:
             print(f"an unexpected error has occured: {e}")
+            clicks_data = {}
 
         origin_location = Location.objects.get(id=location_id)
         foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list)
@@ -306,7 +308,7 @@ class RecommendationsManager():
             clicks_data = user_clicks.val() or {}
         except Exception as e:
             print(f"An exception has occured while querying firebase data: {e}")
-            return 
+            clicks_data = {}
 
         print("After user clicks")
         locations_data = []
@@ -384,7 +386,9 @@ class RecommendationsManager():
         try:
             user_clicks = db.child("users").child(user.id).child("clicks").get()
             clicks_data = user_clicks.val() or {}
+            print(clicks_data)
         except Exception as e:
+            clicks_data = {}
             print(f"An unexpected error has occurred: {e}")
 
         locations_data = []
