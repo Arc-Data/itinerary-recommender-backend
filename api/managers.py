@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import MinMaxScaler
+# from memory_profiler import profile
 
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
@@ -46,6 +47,7 @@ class RecommendationsManager():
 
         return activity_score
 
+    # @profile
     def get_content_recommendations(self, preferences, budget, visited_list, activity_list):
         from api.models import ModelItinerary, ModelItineraryLocationOrder
         models_data = []
@@ -97,11 +99,7 @@ class RecommendationsManager():
         )
 
         activity_scores = activity_scores.values.reshape(1, -1)
-        if activity_scores.max() != 0:
-            activity_scores = activity_scores / activity_scores.max()
-        else:
-            activity_scores = activity_scores / 1.0 
-
+        activity_scores = activity_scores / activity_scores.max() if activity_scores.max() != 0 else activity_scores / 1.0
         recommended_itineraries_data['activity_score'] = activity_scores.flatten()
 
         jaccard_weight = 0.6
@@ -139,6 +137,7 @@ class RecommendationsManager():
 
         return similarity
 
+    # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):
         from .models import Spot, Location
         max_distance = 10000
@@ -156,8 +155,6 @@ class RecommendationsManager():
         except Exception as e:
             print(f"an unexpected error has occured: {e}")
         
-        print("Received Activity Counts, ", activity_count)
-
         tag_visit_counts = defaultdict(int)
         origin_spot = Location.objects.get(id=location_id)
         spots = Spot.objects.exclude(id=location_id).exclude(tags=None)

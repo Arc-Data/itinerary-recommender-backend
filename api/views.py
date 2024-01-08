@@ -473,7 +473,7 @@ def update_preferences(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
-    
+    print("Starting the request")
     user = request.user
     budget = request.data
     visited_list = set()
@@ -489,6 +489,7 @@ def get_content_recommendations(request):
         user.preferences.culture
     ]
 
+    print("Got through preferences")
     # get all itineraries concerned with a single user, and all related days which are marked as completed
     # and add all related locations as "visited" while taking note of the frequencies of activities involved
     # in those visits
@@ -513,12 +514,13 @@ def get_content_recommendations(request):
             spot = Spot.objects.get(id=location.id)
             for activity in spot.get_activities:
                 activity_list[activity] += 1    
-
+    print("Right after activity list")
 
     visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
+    print("Starting content recommendations")
     recommendation_ids = manager.get_content_recommendations(preferences, budget, visited_list, activity_list)
     random.shuffle(recommendation_ids)
 

@@ -184,6 +184,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+ALLOWED_COMMANDS = ['runserver', 'run_server_profiler']
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
