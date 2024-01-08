@@ -50,35 +50,33 @@ class RecommendationsManager():
     # @profile
     def get_content_recommendations(self, preferences, budget, visited_list, activity_list):
         from api.models import ModelItinerary, ModelItineraryLocationOrder
+        eligible_models = ModelItinerary.objects.filter(total_min_cost__lte=budget)
         models_data = []
 
-        for idx, model in enumerate(ModelItinerary.objects.all()):
+        for idx, model in enumerate(ModelItinerary.objects.filter(total_min_cost__lte=budget)):
             print(idx)
-            if model.total_min_cost <= budget:
-                model_locations = set()
-                order_penalty_factor = 1.0
+            model_locations = set()
+            order_penalty_factor = 1.0
 
-                for order_entry in ModelItineraryLocationOrder.objects.filter(itinerary=model):
-                    spot_id = order_entry.spot.id
-                    model_locations.add(spot_id)
+            model_orders = ModelItineraryLocationOrder.objects.filter(itinerary=model)
+            spot_ids = [order_entry.spot.id for order_entry in model_orders]
+            common_visited = model_locations.intersection(visited_list)
 
-                common_visited = model_locations.intersection(visited_list)
+            if model_locations:
+                visited_ratio = len(common_visited) / len(model_locations)
+                order_penalty_factor = max(0, 1 - visited_ratio)
+            else:
+                order_penalty_factor = 1
 
-                if len(model_locations) > 0:
-                    visited_ratio = len(common_visited) / len(model_locations)
-                    order_penalty_factor = max(0, 1 - visited_ratio)
-                else:
-                    order_penalty_factor = 1
-
-                model_data = {
-                    'id': model.id,
-                    'min_cost': model.total_min_cost,
-                    'max_cost': model.total_max_cost,
-                    'tags': model.get_tags,
-                    'activities': model.get_activities,
-                    'order_penalty_factor': order_penalty_factor
-                }
-                models_data.append(model_data)
+            model_data = {
+                'id': model.id,
+                'min_cost': model.total_min_cost,
+                'max_cost': model.total_max_cost,
+                'tags': model.get_tags,
+                'activities': model.get_activities,
+                'order_penalty_factor': order_penalty_factor
+            }
+            models_data.append(model_data)
 
         print("Did i get past here though?")
 
