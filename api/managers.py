@@ -144,6 +144,49 @@ class RecommendationsManager():
         similarity = intersection / union if union != 0 else 0.0
 
         return similarity
+    
+    def get_foodplace_recommendations(self, visited_list, food_tag_collections):
+        from .models import FoodPlace
+        
+        food_tags_df = pd.DataFrame(list(food_tag_collections.items()), columns=['food_tag', 'visited_count'])
+        food_tags_df['weight'] = food_tags_df['visited_count'] / food_tags_df['visited_count'].sum()
+
+        all_food_places = FoodPlace.objects.exclude(id__in=visited_list)   
+        
+        overall_tag_counter = defaultdict(int)
+
+        for food_place in all_food_places:
+            food_tags =  food_place.get_foodtags()
+            for food_tag in food_tags:
+                overall_tag_counter[food_tag] += 1
+        
+         # Convert overall_tag_counter to a pandas DataFrame
+        overall_tags_df = pd.DataFrame(list(overall_tag_counter.items()), columns=['food_tag', 'overall_count'])
+
+        # Merge the user's and overall tags DataFrames on 'food_tag'
+        merged_df = pd.merge(food_tags_df, overall_tags_df, on='food_tag', how='outer').fillna(0)
+
+        # Calculate weights based on the ratio of the visited_count to the overall_count
+        merged_df['weight'] = merged_df['visited_count'] / merged_df['overall_count']
+
+        # Sort food tags by weighted frequency in descending order
+        sorted_food_tags = merged_df.sort_values(by='weight', ascending=False)[['food_tag', 'weight']]
+
+        # Get the top_n recommended food places based on food tags
+        recommended_location_ids = []
+
+        for _, row in sorted_food_tags.iterrows():
+            # Filter food places with the current food tag
+            matching_food_places = all_food_places.filter(tags__name=row['food_tag'])
+
+            # Exclude already visited locations
+            matching_food_places = matching_food_places.exclude(id__in=visited_location_ids)
+
+            # Add location IDs to the recommended list
+            recommended_location_ids.extend(matching_food_places.values_list('id', flat=True)[:top_n])
+
+        # Now 'recommended_location_ids' contains location IDs recommended for the user
+        return recommended_location_ids
 
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):

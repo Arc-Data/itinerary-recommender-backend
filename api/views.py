@@ -2148,3 +2148,30 @@ def update_admin_response(request, form_id):
 
     serializer = ContactFormSerializer(contact_form)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_foodplace_recommendtions(request):
+    from api.models import Review
+    user = request.user
+
+    visited_food_places_reviews = Review.objects.filter(user=user, location__location_type="2")
+    visited_location_ids_reviews = visited_food_places_reviews.values_list('location', flat=True).distinct()
+
+    visited_location_ids_itineraries = Day.objects.filter(completed=True, itinerary__user=user).values_list('itinerary__itineraryitem__location', flat=True).distinct()
+    visited_location_ids = set(visited_location_ids_reviews) | set(visited_location_ids_itineraries)
+
+    visited_food_places = FoodPlace.objects.filter(id__in=visited_location_ids)
+
+    food_tag_collections = defaultdict(int)
+
+    for food_place in visited_food_places:
+        food_tags = food_place.get_foodtags()
+
+        for food_tag in food_tags:
+            food_tag_collections[food_tag] += 1
+
+
+    manager = RecommendationsManager.get_foodplace_recommendations(visited_food_places, food_tag_collections)
+
+    return Response(status=status.HTTP_200_OK)

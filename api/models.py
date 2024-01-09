@@ -292,6 +292,10 @@ class FoodPlace(Location):
         else:
             return 300.0
 
+    @property 
+    def get_foodtags(self):
+        return [tag.name for tag in self.tags.all()]
+
     
 
 class Accommodation(Location):
