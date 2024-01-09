@@ -10,5 +10,4 @@ venv/
 ENV/ 
 env.bak/ 
 venv.bak/
-media/
 backend/api/management/commands/run_server_profiler.py

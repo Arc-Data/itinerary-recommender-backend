@@ -2,12 +2,10 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 
 class EmailBackend(ModelBackend):
-    def authenticate(self, request, email = None, password = None, **kwargs):
+    def authenticate(self, request, username, password = None, **kwargs):
         UserModel = get_user_model()
-        kwargs = {'email': email}
-
         try:
-            user = UserModel.objects.get(**kwargs)
+            user = UserModel.objects.get(email=username)
         except UserModel.DoesNotExist:
             raise Exception("No active account found with the given credentials")
         
