@@ -83,7 +83,6 @@ class RecommendationsManager():
 
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
-        tags_binary.to_clipboard()
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
         preferences_array = np.tile(preferences, (len(recommended_itineraries_data), 1))
@@ -128,7 +127,6 @@ class RecommendationsManager():
         recommended_itineraries_data = recommended_itineraries_data[keep_columns]
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
 
-        recommended_itineraries_data.to_clipboard()
         return recommended_itineraries_data.head(6)['id'].tolist()
         
 
