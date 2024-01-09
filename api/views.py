@@ -1165,7 +1165,7 @@ def get_specific_business(request, location_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def edit_business(request, location_id):
-    # print(request.data)
+    data = json.loads(request.data.get('data', {}))
     user = request.user
     try:
         if user.is_staff:
@@ -1175,17 +1175,20 @@ def edit_business(request, location_id):
     except Location.DoesNotExist:
         return Response({"error": "Location not found or you do not have permission"}, status=status.HTTP_404_NOT_FOUND)
 
-    location.name = request.data.get('name', location.name)
-    location.address = request.data.get('address', location.address)
-    location.longitude = request.data.get('longitude', location.longitude)
-    location.latitude = request.data.get('latitude', location.latitude)
-    location.description = request.data.get('description', location.description)
+    location.name = data.get('name', location.name)
+    location.address = data.get('address', location.address)
+    location.contact = data.get('contact', location.contact)
+    location.email = data.get('email', location.email)
+    location.website = data.get('contact', location.website)
+    location.longitude = data.get('longitude', location.longitude)
+    location.latitude = data.get('latitude', location.latitude)
+    location.description = data.get('description', location.description)
     
     location.save()
 
-    if request.data.get('location_type') == "1":
+    if data.get('location_type') == "1":
         spot = Spot.objects.get(id=location_id)
-        new_tags = request.data.get('tags', [])
+        new_tags = data.get('tags', [])
         existing_tags = [spot.name for spot in spot.tags.all()]
 
         removed_tags = set(existing_tags) - set(new_tags)
@@ -1198,19 +1201,17 @@ def edit_business(request, location_id):
             tag = Tag.objects.get(name=tag_name)
             spot.tags.add(tag)
 
-        spot.opening_time = request.data.get('opening_time', spot.opening_time)
-        spot.closing_time = request.data.get('closing_time', spot.closing_time)
+        spot.opening_time = data.get('opening_time', spot.opening_time)
+        spot.closing_time = data.get('closing_time', spot.closing_time)
         spot.save()
 
-    if request.data.get('location_type') == "2":
+    if data.get('location_type') == "2":
         foodplace = FoodPlace.objects.get(id=location_id)
-        
-        foodplace.opening_time = request.data.get('opening_time', foodplace.opening_time)
-        foodplace.closing_time = request.data.get('closing_time', foodplace.closing_time)
+        foodplace.opening_time = data.get('opening_time', foodplace.opening_time)
+        foodplace.closing_time = data.get('closing_time', foodplace.closing_time)
         foodplace.save()     
 
     if 'image' in request.FILES:
-        print("I am here")
         image = request.FILES['image']
 
         location_image = LocationImage.objects.get(
@@ -1223,7 +1224,6 @@ def edit_business(request, location_id):
 
         location_image.image = image
         location_image.save() 
-
 
     return Response(status=status.HTTP_200_OK)
 
