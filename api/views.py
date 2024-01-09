@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
+from django.core.files.storage import default_storage
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -1207,6 +1208,22 @@ def edit_business(request, location_id):
         foodplace.opening_time = request.data.get('opening_time', foodplace.opening_time)
         foodplace.closing_time = request.data.get('closing_time', foodplace.closing_time)
         foodplace.save()     
+
+    if 'image' in request.FILES:
+        print("I am here")
+        image = request.FILES['image']
+
+        location_image = LocationImage.objects.get(
+            location=location,
+            is_primary_image=True,
+        )
+
+        old_image_path = location_image.image.path
+        default_storage.delete(old_image_path)
+
+        location_image.image = image
+        location_image.save() 
+
 
     return Response(status=status.HTTP_200_OK)
 
