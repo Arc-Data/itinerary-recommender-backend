@@ -46,7 +46,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 return Response({"detail": "User with this email not found."}, status=status.HTTP_401_UNAUTHORIZED)
             elif "Unable to log in with provided credentials" in str(e):
                 return Response({"detail": "Incorrect password."}, status=status.HTTP_401_UNAUTHORIZED)
-            elif "User account is disabled" in str(e):
+            elif "Account is inactive. Try checking your email for the activation link." in str(e):
                 return Response({"detail": "Account is inactive. Try checking your email for the activation link."}, status=status.HTTP_401_UNAUTHORIZED)
 
         response = super().post(request, *args, **kwargs)
