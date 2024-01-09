@@ -36,6 +36,22 @@ def get_tokens_for_user(user):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            if "No active account found with the given credentials" in str(e):
+                return Response({"detail": "User with this email not found."}, status=status.HTTP_401_UNAUTHORIZED)
+            elif "Unable to log in with provided credentials" in str(e):
+                return Response({"detail": "Incorrect password."}, status=status.HTTP_401_UNAUTHORIZED)
+            elif "User account is disabled" in str(e):
+                return Response({"detail": "Account is inactive. Try checking your email for the activation link."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        response = super().post(request, *args, **kwargs)
+        return response
+
 class UserRegistrationView(CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
