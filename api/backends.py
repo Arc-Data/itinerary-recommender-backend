@@ -13,7 +13,6 @@ class EmailBackend(ModelBackend):
             raise Exception("Account is inactive. Try checking your email for the activation link.")
 
         if user.check_password(password):
-            print("correct password")
             return user
         else:
             raise Exception("Unable to log in with provided credentials")
