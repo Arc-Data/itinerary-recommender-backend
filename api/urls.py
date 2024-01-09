@@ -59,6 +59,7 @@ urlpatterns = [
     path('recommendations/homepage/', get_homepage_recommendations, name='get_homepage_recommendations'), 
     path('recommendations/<int:day_id>/nearby/spot/', get_spot_chain_recommendations, name="get_spot_chain_recommendations"),
     path('recommendations/<int:day_id>/nearby/foodplace/', get_food_chain_recommendations, name="get_food_chain_recommendations"),
+    path('recommendations/foodplace/', get_foodplace_recommendations, name="get_food_chain_recommendations"),
 
     path('bookmarks/', get_bookmarks, name='get_bookmarks'),
 

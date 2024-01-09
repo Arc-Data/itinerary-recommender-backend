@@ -147,46 +147,60 @@ class RecommendationsManager():
     
     def get_foodplace_recommendations(self, visited_list, food_tag_collections):
         from .models import FoodPlace
-        
+
+        print(food_tag_collections)
+        tag_weight = 0.5
+        rating_weight = 0.5
+
+        all_food_places = FoodPlace.objects.exclude(id__in=visited_list) 
+
+        all_food_places_data = []
+        for food_place in all_food_places:
+            location_data = {
+                'id': food_place.id,
+                'name': food_place.name,
+                'tags': food_place.get_foodtags,
+                'rating': food_place.get_avg_rating,
+                'num_rating': food_place.get_num_ratings
+            }
+            all_food_places_data.append(location_data)
+
+        all_food_places_df = pd.DataFrame(all_food_places_data)
+        all_food_places_df.to_clipboard()
+
         food_tags_df = pd.DataFrame(list(food_tag_collections.items()), columns=['food_tag', 'visited_count'])
         food_tags_df['weight'] = food_tags_df['visited_count'] / food_tags_df['visited_count'].sum()
 
-        all_food_places = FoodPlace.objects.exclude(id__in=visited_list)   
+        location_scores = defaultdict(float)
+
+        for _, row in all_food_places_df.iterrows():
+            for tag in row['tags']:
+                tag_weight = food_tags_df.loc[food_tags_df['food_tag'] == tag, 'weight'].values
+                if tag_weight:
+                    location_scores[row['id']] += tag_weight[0]
+
+        recommended_location_df = pd.DataFrame(list(location_scores.items()), columns=['id', 'score'])
+
+        recommended_location_df = pd.merge(recommended_location_df, all_food_places_df, on='id')
+
+        recommended_location_df = recommended_location_df[['id', 'name', 'tags', 'score', 'rating', 'num_rating']]
         
-        overall_tag_counter = defaultdict(int)
+        recommended_location_df['tag_score'] = recommended_location_df['score'] * tag_weight
+        recommended_location_df['rating_score'] = (
+            (recommended_location_df['rating'] * recommended_location_df['num_rating'] +
+            2 * (1 - recommended_location_df['num_rating'] / (recommended_location_df['num_rating'] + 1))) * rating_weight
+        )
 
-        for food_place in all_food_places:
-            food_tags =  food_place.get_foodtags()
-            for food_tag in food_tags:
-                overall_tag_counter[food_tag] += 1
+        recommended_location_df['final_score'] = (
+            recommended_location_df['tag_score'] + recommended_location_df['rating_score'] 
+        )
         
-         # Convert overall_tag_counter to a pandas DataFrame
-        overall_tags_df = pd.DataFrame(list(overall_tag_counter.items()), columns=['food_tag', 'overall_count'])
-
-        # Merge the user's and overall tags DataFrames on 'food_tag'
-        merged_df = pd.merge(food_tags_df, overall_tags_df, on='food_tag', how='outer').fillna(0)
-
-        # Calculate weights based on the ratio of the visited_count to the overall_count
-        merged_df['weight'] = merged_df['visited_count'] / merged_df['overall_count']
-
-        # Sort food tags by weighted frequency in descending order
-        sorted_food_tags = merged_df.sort_values(by='weight', ascending=False)[['food_tag', 'weight']]
-
-        # Get the top_n recommended food places based on food tags
-        recommended_location_ids = []
-
-        for _, row in sorted_food_tags.iterrows():
-            # Filter food places with the current food tag
-            matching_food_places = all_food_places.filter(tags__name=row['food_tag'])
-
-            # Exclude already visited locations
-            matching_food_places = matching_food_places.exclude(id__in=visited_location_ids)
-
-            # Add location IDs to the recommended list
-            recommended_location_ids.extend(matching_food_places.values_list('id', flat=True)[:top_n])
-
-        # Now 'recommended_location_ids' contains location IDs recommended for the user
-        return recommended_location_ids
+        scaler = MinMaxScaler()
+        recommended_location_df[['final_score']] = scaler.fit_transform(
+            recommended_location_df[['final_score']]
+        )
+        recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
+        return recommended_location_df.head(4)['id'].to_list()
 
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):

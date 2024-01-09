@@ -2150,28 +2150,41 @@ def update_admin_response(request, form_id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_foodplace_recommendtions(request):
+# @permission_classes([IsAuthenticated])
+def get_foodplace_recommendations(request):
     from api.models import Review
-    user = request.user
+    # user = request.user
+    user = User.objects.get(id=24)
 
     visited_food_places_reviews = Review.objects.filter(user=user, location__location_type="2")
     visited_location_ids_reviews = visited_food_places_reviews.values_list('location', flat=True).distinct()
 
-    visited_location_ids_itineraries = Day.objects.filter(completed=True, itinerary__user=user).values_list('itinerary__itineraryitem__location', flat=True).distinct()
+    visited_location_ids_itineraries = ItineraryItem.objects.filter(day__completed=True, day__itinerary__user=user, location__location_type='2').values_list('location', flat=True).distinct()
     visited_location_ids = set(visited_location_ids_reviews) | set(visited_location_ids_itineraries)
+
+    print(visited_location_ids)
+    if len(visited_location_ids) == 0:
+        return Response([], status=status.HTTP_200_OK)
 
     visited_food_places = FoodPlace.objects.filter(id__in=visited_location_ids)
 
     food_tag_collections = defaultdict(int)
 
     for food_place in visited_food_places:
-        food_tags = food_place.get_foodtags()
+        food_tags = food_place.get_foodtags
 
         for food_tag in food_tags:
             food_tag_collections[food_tag] += 1
 
 
-    manager = RecommendationsManager.get_foodplace_recommendations(visited_food_places, food_tag_collections)
+    manager = RecommendationsManager()
+    recommendation_ids = manager.get_foodplace_recommendations(visited_food_places, food_tag_collections)
+    
+    recommendation_locations = []
+    for id in recommendation_ids:
+        location = Location.objects.get(id=id)
+        recommendation_locations.append(location)
 
-    return Response(status=status.HTTP_200_OK)
+    serializer = RecommendedLocationSerializer(recommendation_locations, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)

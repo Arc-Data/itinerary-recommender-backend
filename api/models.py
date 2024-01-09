@@ -103,6 +103,11 @@ class Location(models.Model):
         return avg_rating if avg_rating is not None else 0.0
 
     @property
+    def get_num_ratings(self):
+        return self.review_set.count()
+        
+
+    @property
     def get_min_cost(self):
         if self.location_type == "1":
             spot = Spot.objects.get(id=self.id)
