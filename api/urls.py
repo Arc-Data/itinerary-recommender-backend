@@ -47,7 +47,7 @@ urlpatterns = [
 
     path('day-item/', create_itinerary_item, name="create-itinerary-item"),
     path('day-item/<int:day_id>/delete/', delete_day_item, name="delete-day-item"),
-    path('update-ordering/', update_ordering, name="update-item-ordering"),
+    path('update-ordering/<int:day_id>/', update_ordering, name="update-item-ordering"),
 
     path('spot/<int:pk>/', spot),
 
