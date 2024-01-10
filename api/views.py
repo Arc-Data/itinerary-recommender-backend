@@ -2153,18 +2153,13 @@ def update_admin_response(request, form_id):
 # @permission_classes([IsAuthenticated])
 def get_foodplace_recommendations(request):
     from api.models import Review
-    # user = request.user
-    user = User.objects.get(id=24)
+    user = request.user
 
     visited_food_places_reviews = Review.objects.filter(user=user, location__location_type="2")
     visited_location_ids_reviews = visited_food_places_reviews.values_list('location', flat=True).distinct()
 
     visited_location_ids_itineraries = ItineraryItem.objects.filter(day__completed=True, day__itinerary__user=user, location__location_type='2').values_list('location', flat=True).distinct()
     visited_location_ids = set(visited_location_ids_reviews) | set(visited_location_ids_itineraries)
-
-    print(visited_location_ids)
-    if len(visited_location_ids) == 0:
-        return Response([], status=status.HTTP_200_OK)
 
     visited_food_places = FoodPlace.objects.filter(id__in=visited_location_ids)
 

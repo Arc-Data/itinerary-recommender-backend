@@ -147,12 +147,13 @@ class RecommendationsManager():
     
     def get_foodplace_recommendations(self, visited_list, food_tag_collections):
         from .models import FoodPlace
-
+        print(visited_list)
         print(food_tag_collections)
         tag_weight = 0.5
         rating_weight = 0.5
+        default_rating = 3.5  # Adjust this based on your dataset
 
-        all_food_places = FoodPlace.objects.exclude(id__in=visited_list) 
+        all_food_places = FoodPlace.objects.exclude(id__in=visited_list)
 
         all_food_places_data = []
         for food_place in all_food_places:
@@ -161,7 +162,7 @@ class RecommendationsManager():
                 'name': food_place.name,
                 'tags': food_place.get_foodtags,
                 'rating': food_place.get_avg_rating,
-                'num_rating': food_place.get_num_ratings
+                'num_ratings': food_place.get_num_ratings,  # Add a method to get the number of ratings for a location
             }
             all_food_places_data.append(location_data)
 
@@ -179,29 +180,22 @@ class RecommendationsManager():
                 if tag_weight:
                     location_scores[row['id']] += tag_weight[0]
 
-        recommended_location_df = pd.DataFrame(list(location_scores.items()), columns=['id', 'score'])
+        recommended_location_df = pd.DataFrame(list(location_scores.items()), columns=['id', 'tag_score'])
 
+        # Merge with FoodPlace to get additional details
         recommended_location_df = pd.merge(recommended_location_df, all_food_places_df, on='id')
 
-        recommended_location_df = recommended_location_df[['id', 'name', 'tags', 'score', 'rating', 'num_rating']]
-        
-        recommended_location_df['tag_score'] = recommended_location_df['score'] * tag_weight
-        recommended_location_df['rating_score'] = (
-            (recommended_location_df['rating'] * recommended_location_df['num_rating'] +
-            2 * (1 - recommended_location_df['num_rating'] / (recommended_location_df['num_rating'] + 1))) * rating_weight
-        )
-
+        # Calculate the final score using a weighted combination of tag_score, rating, and default rating
         recommended_location_df['final_score'] = (
-            recommended_location_df['tag_score'] + recommended_location_df['rating_score'] 
+            recommended_location_df['tag_score'] * tag_weight +
+            recommended_location_df['rating'] * rating_weight +
+            recommended_location_df['num_ratings'] / (recommended_location_df['num_ratings'] + 1) * default_rating  # Smoothing to prevent division by zero
         )
-        
-        scaler = MinMaxScaler()
-        recommended_location_df[['final_score']] = scaler.fit_transform(
-            recommended_location_df[['final_score']]
-        )
-        recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
-        return recommended_location_df.head(4)['id'].to_list()
 
+        recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
+
+        recommended_location_df.to_clipboard()
+        return recommended_location_df.head(4)['id'].to_list()
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):
         from .models import Spot, Location
