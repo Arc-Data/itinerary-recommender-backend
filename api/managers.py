@@ -167,7 +167,6 @@ class RecommendationsManager():
             all_food_places_data.append(location_data)
 
         all_food_places_df = pd.DataFrame(all_food_places_data)
-        all_food_places_df.to_clipboard()
 
         food_tags_df = pd.DataFrame(list(food_tag_collections.items()), columns=['food_tag', 'visited_count'])
         food_tags_df['weight'] = food_tags_df['visited_count'] / food_tags_df['visited_count'].sum()
@@ -194,7 +193,6 @@ class RecommendationsManager():
 
         recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
 
-        recommended_location_df.to_clipboard()
         return recommended_location_df.head(4)['id'].to_list()
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):
