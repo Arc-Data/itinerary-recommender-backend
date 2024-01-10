@@ -14,6 +14,9 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.crypto import get_random_string
+from django.db.models import Q, Max, Sum
+from datetime import datetime
+import calendar
 
 import pandas as pd
 import json
@@ -23,7 +26,6 @@ from .models import *
 from .serializers import *
 
 import random
-import datetime
 import numpy as np
 
 def get_tokens_for_user(user):
@@ -408,8 +410,8 @@ def create_itinerary(request):
 
     if itinerary_serializer.is_valid():
         itinerary = itinerary_serializer.save()
-        current_date = datetime.datetime.strptime(start_date, '%m/%d/%Y')
-        end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y')
+        current_date = datetime.strptime(start_date, '%m/%d/%Y')
+        end_date = datetime.strptime(end_date, '%m/%d/%Y')
         
         order = 1
         while current_date <= end_date:
@@ -562,8 +564,8 @@ def update_itinerary_calendar(request, itinerary_id):
 
     itinerary = Itinerary.objects.get(pk=itinerary_id)
 
-    start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
-    end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+    start_date = datetime.strptime(start_date, '%m/%d/%Y').date()
+    end_date = datetime.strptime(end_date, '%m/%d/%Y').date()
 
     days = []
 
@@ -1123,7 +1125,7 @@ def rate_day(request, day_id):
 def get_active_trips(request):
     user = request.user
     itineraries = Itinerary.objects.filter(user=user)
-    current_date = datetime.datetime.now().date()
+    current_date = datetime.now().date()
 
     days = []
     for itinerary in itineraries:
@@ -1614,8 +1616,8 @@ def create_event(request):
     longitude = request.data.get('longitude')
 
     if start_date and end_date:
-        start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
-        end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+        start_date = datetime.strptime(start_date, '%m/%d/%Y').date()
+        end_date = datetime.strptime(end_date, '%m/%d/%Y').date()
     else:
         return Response({'error': 'start_date and end_date are required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1647,8 +1649,8 @@ def update_event(request, event_id):
     latitude = request.data.get('latitude')
     longitude = request.data.get('longitude')
 
-    start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y').date()
-    end_date = datetime.datetime.strptime(end_date, '%m/%d/%Y').date()
+    start_date = datetime.strptime(start_date, '%m/%d/%Y').date()
+    end_date = datetime.strptime(end_date, '%m/%d/%Y').date()
 
     event.name = name
     event.start_date = start_date
@@ -2150,7 +2152,7 @@ def update_admin_response(request, form_id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def get_foodplace_recommendations(request):
     from api.models import Review
     user = request.user
@@ -2183,3 +2185,64 @@ def get_foodplace_recommendations(request):
     serializer = RecommendedLocationSerializer(recommendation_locations, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+def monthly_report(request, month):
+    current_year = datetime.now().year
+
+    # Calculate the first day and the last day of the selected month
+    first_day = datetime(year=current_year, month=month, day=1)
+    last_day = datetime(year=current_year, month=month, day=calendar.monthrange(current_year, month)[1], hour=23, minute=59, second=59)
+
+
+    # Query to get all completed days in the selected month
+    completed_days = Day.objects.filter(date__range=(first_day, last_day), completed=True)
+
+    unique_visitors_count = (
+        Itinerary.objects
+        .filter(day__in=completed_days)
+        .values('user')
+        .annotate(max_people=Max('number_of_people'))
+        .aggregate(unique_visitors_count=Sum('max_people'))
+    )['unique_visitors_count']
+    # Calculate the frequency of each location visited during the month
+    location_frequency = (
+        ItineraryItem.objects
+        .filter(day__date__range=(first_day, last_day), day__completed=True)
+        .values('location__name')
+        .annotate(frequency=Count('location'))
+    )
+
+    # Additional information about completed trips
+    completed_trips_info = []
+
+    # Group itinerary items by date
+    itinerary_items_by_date = {}
+    for item in ItineraryItem.objects.filter(day__in=completed_days):
+        date_key = item.day.date
+        if date_key not in itinerary_items_by_date:
+            itinerary_items_by_date[date_key] = {
+                'total_locations_visited': 0,
+                'itinerary_items': [],
+            }
+        itinerary_items_by_date[date_key]['total_locations_visited'] += 1
+        itinerary_items_by_date[date_key]['itinerary_items'].append({
+            'location__name': item.location.name,
+            'order': item.order,
+        })
+
+    # Process the grouped information
+    for date_key, data in itinerary_items_by_date.items():
+        completed_trips_info.append({
+            'date': date_key,
+            'total_locations_visited': data['total_locations_visited'],
+        })
+
+    context = {
+        'completed_trips': len(completed_days),
+        'unique_visitor_counts': unique_visitors_count,
+        'location_frequency': list(location_frequency),
+        'completed_trips_info': completed_trips_info,
+    }
+
+    return Response(context, status=status.HTTP_200_OK)

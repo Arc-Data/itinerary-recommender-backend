@@ -150,5 +150,6 @@ urlpatterns = [
 
     path('contact/create/', create_contact_form, name="create_contact_form"),
     path('contact/list/', list_contact_forms, name="list_contact_forms"),
-    path('contact/<int:form_id>/toggle-response/', update_admin_response, name="toggle_admin_response")
+    path('contact/<int:form_id>/toggle-response/', update_admin_response, name="toggle_admin_response"),
+    path('monthly-report/<int:month>/', monthly_report, name="monthly_report"),
 ]
