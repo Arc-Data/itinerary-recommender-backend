@@ -345,7 +345,7 @@ def delete_itinerary(request, itinerary_id):
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def update_ordering(request):
+def update_ordering(request, day_id):
     items = request.data.get("items")
 
     for order, item in enumerate(items):
@@ -353,7 +353,13 @@ def update_ordering(request):
         itinerary_item.order = order
         itinerary_item.save()
 
-    return Response({'message': 'Ordering Updated Successfully'}, status=status.HTTP_200_OK)
+    serializer = ItineraryItemSerializer(items, many=True)
+
+    day = Day.objects.get(id=day_id)
+    itinerary_items = ItineraryItem.objects.filter(day=day)
+    serializer = ItineraryItemSerializer(itinerary_items, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["PATCH"])
 def edit_itinerary_name(request, itinerary_id):
