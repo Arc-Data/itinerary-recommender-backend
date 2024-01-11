@@ -44,19 +44,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as e:
-            print(e)
             error_detail_code = e.detail['non_field_errors'][0]
-
             return Response({"detail": error_detail_code}, status=status.HTTP_401_UNAUTHORIZED)
-            # if "no_active_account" in e.detail.get('code', ''):
-            #     return Response({"detail": "User with this email not found."}, status=status.HTTP_401_UNAUTHORIZED)
-            # elif "incorrect_password" in e.detail.get('code', ''):
-            #     print("Do this")
-            #     return Response({"detail": "Incorrect password."}, status=status.HTTP_401_UNAUTHORIZED)
-            # elif "inactive_account" in e.detail.get('code', ''):
-            #     return Response({"detail": "Account is inactive. Try checking your email for the activation link."}, status=status.HTTP_401_UNAUTHORIZED)
-            # elif "invalid_credentials" in e.detail.get('code', ''):
-            #     return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
         response = super().post(request, *args, **kwargs)
         return response
@@ -66,24 +55,11 @@ class UserRegistrationView(CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
-            print(request.data)
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            user = serializer.save()
+            serializer.save()
         except Exception as e:
-            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        
-        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/"
-
-        subject = 'Cebu Route - Activate Your Account'
-        message = f'Thank you for creating an account on Cebu Route. Please click the following link to activate your account:\n\n{activation_link}'
-        from_email = settings.EMAIL_FROM
-        recipient_list =  [user.email]
-
-        send_mail(subject, message, from_email, recipient_list)
 
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
 

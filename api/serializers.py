@@ -42,6 +42,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             if not user.is_active:
                 raise serializers.ValidationError('Account inactive')
             
+            if user.requires_otp:
+                print("this")
+                raise serializers.ValidationError('OTP setup required.')
+            
             refresh = self.get_token(user)
 
             data = {}

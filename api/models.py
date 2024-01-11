@@ -19,7 +19,7 @@ import os, math
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
-    reqiures_otp = models.BooleanField(default=True)
+    requires_otp = models.BooleanField(default=False)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     set_preferences = models.BooleanField(default=False)
