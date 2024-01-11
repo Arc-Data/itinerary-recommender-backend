@@ -129,7 +129,7 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
     
 @api_view(["POST"])
 def generate_user_otp(request):
-    user = User.objects.get(id=24)
+    user = request.user
     otp_code = generate_otp(user)
 
     subject = "Verify its you"
@@ -143,26 +143,24 @@ def generate_user_otp(request):
 @api_view(["POST"])
 def verify_otp_user(request):
     code = request.data.get('code')
-    # user = request.user
-    user = User.objects.get(id=24)
+    user = request.user
     otp = OTP.objects.get(user=user)
-    print(otp)
 
     if not otp:
+        print("How")
         return Response({'detail': 'How does this happen'}, status=status.HTTP_400_BAD_REQUEST)
-
-    print(otp.expiration_time, timezone.now())
 
     if otp.is_expired:
         return Response({'detail': "OTP already expired"})
 
+    print(otp.otp, code)
     if otp.otp != code:
         return Response({'detail': 'Code does not match'}, status=status.HTTP_400_BAD_REQUEST)
     
     user.requires_otp = False
     user.save()
 
-    return Response({'detail': 'OTP verification success'}, status=status.HTTP_200_OK)
+    return Response({'detail': 'Success'}, status=status.HTTP_200_OK)
 
 class CustomNumberPagination(PageNumberPagination):
     page_size = 10
@@ -265,28 +263,11 @@ def reset_password(request, uidb64, token):
             return Response({'message': 'An error occured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
-def activate_account(request, uidb64, token):
-    try:
-        user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
-        user = get_object_or_404(User, pk=user_id)
-    except:
-        return Response({'message': 'Invalid Activation Link'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if user.is_active:
-        return Response({'message': 'Account already activated'}, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        user.is_active = True
-        user.save()
-        return Response({'message': 'Account Activated Successfully',}, status=status.HTTP_200_OK)
-
-@api_view(['POST'])
 def change_password(request):
     serializer = ChangePasswordSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     user = request.user 
-    print(user)
     old_password = serializer.validated_data.get('old_password')
     new_password = serializer.validated_data.get('new_password')
 

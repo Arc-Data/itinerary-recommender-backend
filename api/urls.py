@@ -10,7 +10,6 @@ urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name="register"),
     path('change-password/', change_password, name="change-password"),
     path('forgot/', forgot_password, name='forgot-password'),
-    path('activate/<str:uidb64>/<str:token>/', activate_account, name="activate-account"),
     path('reset/<str:uidb64>/<str:token>/', reset_password, name="activate-account"),
 
     path('location/create/', create_location, name="create-location"),
