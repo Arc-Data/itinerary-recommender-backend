@@ -24,7 +24,6 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=30)
     set_preferences = models.BooleanField(default=False)
     contact_number = models.CharField(max_length=11, default="09202750407")
-    is_active = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

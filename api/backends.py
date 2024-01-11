@@ -9,9 +9,6 @@ class EmailBackend(ModelBackend):
         except UserModel.DoesNotExist:
             raise Exception("No active account found with the given credentials")
         
-        if not user.is_active:
-            raise Exception("Account is inactive. Try checking your email for the activation link.")
-
         if user.check_password(password):
             return user
         else:
