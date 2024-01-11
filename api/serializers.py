@@ -17,6 +17,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_staff'] = user.is_staff
         token['full_name'] = user.get_full_name()
         token['set_preferences'] = user.set_preferences
+        token['otp_required'] = user.requires_otp
         return token
 
     def get_user(self, username):
@@ -41,10 +42,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
             if not user.is_active:
                 raise serializers.ValidationError('Account inactive')
-            
-            if user.requires_otp:
-                print("this")
-                raise serializers.ValidationError('OTP setup required.')
             
             refresh = self.get_token(user)
 
