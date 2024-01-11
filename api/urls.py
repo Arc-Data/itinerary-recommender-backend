@@ -152,4 +152,6 @@ urlpatterns = [
     path('contact/list/', list_contact_forms, name="list_contact_forms"),
     path('contact/<int:form_id>/toggle-response/', update_admin_response, name="toggle_admin_response"),
     path('monthly-report/<int:month>/', monthly_report, name="monthly_report"),
+
+    path('generate-otp/', generate_user_otp, name="generate_user_otp"),
 ]

@@ -16,6 +16,14 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 import os, math
 
+class OTP(models.Model):
+    user = models.OneToOneField("User", on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    expiration_time = models.DateTimeField(default=timezone.now)
+
+    def is_expired(self):
+        return self.expiration_time < timezone.now()
+
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True)

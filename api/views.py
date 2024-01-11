@@ -24,6 +24,7 @@ import json
 from .managers import *
 from .models import *
 from .serializers import *
+from .utils import generate_otp
 
 import random
 import numpy as np
@@ -125,6 +126,19 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
             
         
         return queryset
+    
+@api_view(["POST"])
+def generate_user_otp(request):
+    user = User.objects.get(id=24)
+    otp_code = generate_otp(user)
+
+    subject = "Verify its you"
+    message = f"Use the {otp_code} to verify your account."
+    from_email = settings.EMAIL_FROM
+    recipient_list = [user.email]
+
+    send_mail(subject, message, from_email, recipient_list)
+    return Response(status=status.HTTP_200_OK)
     
 class CustomNumberPagination(PageNumberPagination):
     page_size = 10
