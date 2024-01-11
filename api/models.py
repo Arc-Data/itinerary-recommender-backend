@@ -21,6 +21,7 @@ class OTP(models.Model):
     otp = models.CharField(max_length=6)
     expiration_time = models.DateTimeField(default=timezone.now)
 
+    @property
     def is_expired(self):
         return self.expiration_time < timezone.now()
 

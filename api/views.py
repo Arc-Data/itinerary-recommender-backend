@@ -140,6 +140,30 @@ def generate_user_otp(request):
     send_mail(subject, message, from_email, recipient_list)
     return Response(status=status.HTTP_200_OK)
     
+@api_view(["POST"])
+def verify_otp_user(request):
+    code = request.data.get('code')
+    # user = request.user
+    user = User.objects.get(id=24)
+    otp = OTP.objects.get(user=user)
+    print(otp)
+
+    if not otp:
+        return Response({'detail': 'How does this happen'}, status=status.HTTP_400_BAD_REQUEST)
+
+    print(otp.expiration_time, timezone.now())
+
+    if otp.is_expired:
+        return Response({'detail': "OTP already expired"})
+
+    if otp.otp != code:
+        return Response({'detail': 'Code does not match'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user.requires_otp = False
+    user.save()
+
+    return Response({'detail': 'OTP verification success'}, status=status.HTTP_200_OK)
+
 class CustomNumberPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'

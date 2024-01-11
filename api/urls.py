@@ -154,4 +154,5 @@ urlpatterns = [
     path('monthly-report/<int:month>/', monthly_report, name="monthly_report"),
 
     path('generate-otp/', generate_user_otp, name="generate_user_otp"),
+    path('verify-otp/', verify_otp_user, name="verify_user_otp"),
 ]
