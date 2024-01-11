@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import make_password
 from django.db.models import Avg
+from django.contrib.auth import get_user_model
 
 from datetime import datetime
 
@@ -17,6 +18,39 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['full_name'] = user.get_full_name()
         token['set_preferences'] = user.set_preferences
         return token
+
+    def get_user(self, username):
+        User = get_user_model()
+        try:
+            return User.objects.get(**{self.username_field: username})
+        except User.DoesNotExist:
+            return None
+    
+    def validate(self, attrs):
+        username = attrs.get(self.username_field)
+        password = attrs.get("password")
+        
+        if username and password:
+            user = self.get_user(username)
+
+            if user is None:
+                raise serializers.ValidationError('Email does not exist')
+
+            if not user.check_password(password):
+                raise serializers.ValidationError('Incorrect Password')
+
+            if not user.is_active:
+                raise serializers.ValidationError('Account inactive')
+            
+            refresh = self.get_token(user)
+
+            data = {}
+            data['refresh'] = str(refresh)
+            data['access'] = str(refresh.access_token)
+
+            return data
+
+        return super().validate(attrs)
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
