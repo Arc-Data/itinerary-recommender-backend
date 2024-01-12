@@ -58,8 +58,15 @@ class UserRegistrationView(CreateAPIView):
         try:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
+            print("Valid")
             serializer.save()
         except Exception as e:
+            email_error = serializer.errors.get('email', None)
+            # print(serializer.errors)
+
+            if email_error:
+                return Response({'detail': 'This email is already in use'},status=status.HTTP_400_BAD_REQUEST)
+
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
