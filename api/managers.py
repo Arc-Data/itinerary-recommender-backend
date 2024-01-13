@@ -207,6 +207,9 @@ class RecommendationsManager():
         visited_weight = 0.1
 
         try:
+            print(db)
+            print(db.child("users"))
+            print(db.child("users").child(user.id))
             user_clicks = db.child("users").child(user.id).child("clicks").get()
             clicks_data = user_clicks.val() or {}
         except Exception as e:
