@@ -1728,11 +1728,16 @@ def get_top_locations_itinerary(request):
         itineraryitem__day__completed=True
     ).annotate(
         total_occurrences=Count('itineraryitem__day')
-    ).order_by('-total_occurrences')[:10]
+    ).order_by('-total_occurrences')
 
-    serializer = TopLocationItinerarySerializer(top_locations, many=True)
+    paginator = PageNumberPagination()
+    paginator.page_size = 10 
 
-    return Response({'top_locations_itinerary': serializer.data}, status=status.HTTP_200_OK)
+    result_page = paginator.paginate_queryset(top_locations, request)
+
+    serializer = TopLocationItinerarySerializer(result_page, many=True)
+
+    return paginator.get_paginated_response({'top_locations_itinerary': serializer.data})
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -2252,10 +2257,20 @@ def monthly_report(request, month):
             'total_locations_visited': data['total_locations_visited'],
         })
 
+    paginator_loc = PageNumberPagination()
+    paginator_loc.page_size = 10
+
+    paginator = PageNumberPagination()
+    paginator.page_size = 10
+
+    # not done
+    completed_trips_info = paginator.paginate_queryset(completed_trips_info, request)
+    pag_location_frequency = paginator_loc.paginate_queryset(list(location_frequency), request)
+
     context = {
         'completed_trips': len(completed_days),
         'unique_visitor_counts': unique_visitors_count,
-        'location_frequency': list(location_frequency),
+        'location_frequency': pag_location_frequency,
         'completed_trips_info': completed_trips_info,
     }
 
@@ -2287,11 +2302,10 @@ def generate_strong_password(length=12):
 
 def send_password_change_notification_email(user, new_password):
     subject = 'Password Change Notification'
-    message = f'Thank you for testing our website.\n\n' \
-              f'However, due to security reasons, we have decided to change the password of accounts.\n' \
-              f'We are deeply sorry for the inconvenience, and we truly appreciate your efforts in testing our system.\n' \
-              f'Hence, your password has been changed.\n' \
-              f'Your new password is: {new_password}\n\n' \
+    message = f'Thank you for testing our website. We very truly appreciate your efforts and contribution for our system and project.\n\n' \
+              f'However, to further improve our system, we have decided to change the password of accounts.\n' \
+              f'We are deeply sorry for the inconvenience, and we truly appreciate your efforts in testing in our system.\n' \
+              f'If you have decide to test our website again, your new password is: {new_password}\n\n' \
               f'Please keep this information secure and do not share it with others.\n\n' \
               f'Thank you!'
     from_email = settings.EMAIL_FROM
