@@ -193,7 +193,7 @@ class RecommendationsManager():
 
         recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
 
-        return recommended_location_df.head(4)['id'].to_list()
+        return recommended_location_df.head(8)['id'].to_list()
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):
         from .models import Spot, Location
@@ -288,7 +288,7 @@ class RecommendationsManager():
         keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'activities','activities_count', 'activity_count_score', 'jaccard_similarity', 'visit_count_score', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted= merged_data_sorted[keep_columns]
 
-        return merged_data_sorted.head(4)['id'].tolist()
+        return merged_data_sorted.head(6)['id'].tolist()
     
     
     def get_foodplace_recommendation(self, user, location_id, visit_list):
@@ -351,7 +351,7 @@ class RecommendationsManager():
         keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted = merged_data_sorted[keep_columns]
 
-        return merged_data_sorted.head(4)['id'].tolist()
+        return merged_data_sorted.head(6)['id'].tolist()
     
 
     def get_homepage_recommendation(self, user, preferences, visited_list):
@@ -431,7 +431,7 @@ class RecommendationsManager():
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
         print("Should have been sorted around here")
-        return merged_data_sorted.head(4)['id'].tolist()
+        return merged_data_sorted.head(8)['id'].tolist()
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
         from api.models import Spot
