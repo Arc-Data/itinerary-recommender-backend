@@ -147,8 +147,6 @@ class RecommendationsManager():
     
     def get_foodplace_recommendations(self, visited_list, food_tag_collections):
         from .models import FoodPlace
-        print(visited_list)
-        print(food_tag_collections)
         tag_weight = 0.5
         rating_weight = 0.5
         default_rating = 3.5  # Adjust this based on your dataset
@@ -362,6 +360,12 @@ class RecommendationsManager():
         visited_weight = 0.2
 
         try:
+            print(db)
+            print(db.child("users"))
+            print(db.child("users").child(user.id))
+            test = db.child("users").child(user.id).get()
+            print(test)
+            print(test.val())
             user_clicks = db.child("users").child(user.id).child("clicks").get()
             clicks_data = user_clicks.val() or {}
         except Exception as e:
