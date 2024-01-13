@@ -494,4 +494,4 @@ class RecommendationsManager():
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
         merged_data = merged_data.sort_values(by='scaled_score', ascending=False)
 
-        return merged_data.head(4)['id'].to_list()
+        return merged_data.head(8)['id'].to_list()
