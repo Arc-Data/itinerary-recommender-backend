@@ -82,9 +82,11 @@ urlpatterns = [
     path('user/business/<int:location_id>/edit/remove_foodtags/', remove_foodtags, name='remove_foodtags'), #edit foodplace tags
     path('user/business/<int:location_id>/edit/add_tags/', add_tags, name='add_tags'), #edit spot tags
     path('user/business/<int:location_id>/edit/remove_tags/', remove_tags, name='remove_tags'), #edit spot tags
-    path('user/business/<int:location_id>/edit/add_activity/', add_activity, name='add_activity'), #edit spot activity
     path('user/business/<int:location_id>/edit/remove_activity/', remove_activity, name='remove_activity'), #edit spot activity
     
+    path('business/<int:location_id>/activity/add/', add_activity, name="add_activity"),
+    path('business/<int:location_id>/activity/remove/', remove_activity, name="remove_activity"),
+
     path('foodtag/get/', get_create_foodtag, name='get_create_foodtag'),
     path('foodtag/search/', search_foodtag, name='search_foodtag'),
 

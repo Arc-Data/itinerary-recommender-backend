@@ -1929,21 +1929,20 @@ def remove_tags(request, location_id):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
 def add_activity(request, location_id):
     activity_name = request.data.get('activity')
     spot = Spot.objects.get(id=location_id)
     activity, created = Activity.objects.get_or_create(name=activity_name)
-
     spot.activity.add(activity)
 
     return Response({"message": "Activity added to spot"}, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def remove_activity(request, location_id):
     activity_name = request.data.get('activity')
+    print(activity)
     spot = Spot.objects.get(id=location_id)
     activity = Activity.objects.get(name=activity_name)
 
