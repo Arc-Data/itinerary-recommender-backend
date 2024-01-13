@@ -207,9 +207,6 @@ class RecommendationsManager():
         visited_weight = 0.1
 
         try:
-            print(db)
-            print(db.child("users"))
-            print(db.child("users").child(user.id))
             user_clicks = db.child("users").child(user.id).child("clicks").get()
             clicks_data = user_clicks.val() or {}
         except Exception as e:
@@ -255,7 +252,6 @@ class RecommendationsManager():
             merged_data['amount'] = 0
 
         merged_data['binned_tags'] = binned_tags
-        print(merged_data['activities'])
 
         merged_data['jaccard_similarity'] = merged_data.apply(
             lambda row: (
@@ -291,7 +287,7 @@ class RecommendationsManager():
         keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'activities','activities_count', 'activity_count_score', 'jaccard_similarity', 'visit_count_score', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted= merged_data_sorted[keep_columns]
 
-        return merged_data_sorted.head(4)['id'].tolist()
+        return merged_data_sorted.head(6)['id'].tolist()
     
     
     def get_foodplace_recommendation(self, user, location_id, visit_list):
@@ -354,7 +350,7 @@ class RecommendationsManager():
         keep_columns = ['id', 'name', 'binned_tags', 'rating', 'amount', 'distance_from_origin', 'weighted_score', 'scaled_score']
         merged_data_sorted = merged_data_sorted[keep_columns]
 
-        return merged_data_sorted.head(4)['id'].tolist()
+        return merged_data_sorted.head(6)['id'].tolist()
     
 
     def get_homepage_recommendation(self, user, preferences, visited_list):
@@ -438,8 +434,6 @@ class RecommendationsManager():
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
         from api.models import Spot
-        # this is from the details page, put higher prioritization on preference similarity
-        # but should I add a weight for the tags the user has already visited?
 
         jaccard_weight = 0.7
         rating_weight = 0.2
@@ -455,7 +449,7 @@ class RecommendationsManager():
 
         locations_data = []
         tag_visit_counts = defaultdict(int)
-        spots = Spot.objects.exclude(tags=None, id=location_id)
+        spots = Spot.objects.exclude(tags=None).exclude(id=location_id)
 
         for spot in spots:
             spot_data = {
