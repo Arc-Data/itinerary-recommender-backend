@@ -2260,3 +2260,40 @@ def monthly_report(request, month):
     }
 
     return Response(context, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def notify_and_change_password(request):    
+    ids = [21] #target one user
+
+    # for all users:
+    #target_users = User.objects.all() 
+
+    #uncomment target_users code below if all
+    target_users = User.objects.filter(id__in=ids) 
+    
+    for target_user in target_users:
+        new_password = generate_strong_password()
+        target_user.set_password(new_password)
+        target_user.save()
+
+        send_password_change_notification_email(target_user, new_password)
+
+    return Response({'message': 'Password changed successfully and notification sent.'})
+
+def generate_strong_password(length=12):
+    characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=[]{}|;:,.<>?'
+    password = get_random_string(length, characters)
+    return password
+
+def send_password_change_notification_email(user, new_password):
+    subject = 'Password Change Notification'
+    message = f'Thank you for testing our website.\n\n' \
+              f'However, due to security reasons, we have decided to change the password of accounts.\n' \
+              f'Hence, your password has been changed.\n' \
+              f'Your new password is: {new_password}\n\n' \
+              f'Please keep this information secure and do not share it with others.\n\n' \
+              f'Thank you!'
+    from_email = settings.EMAIL_FROM
+    recipient_list = [user.email]
+
+    send_mail(subject, message, from_email, recipient_list)
