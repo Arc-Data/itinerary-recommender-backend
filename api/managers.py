@@ -356,12 +356,6 @@ class RecommendationsManager():
         visited_weight = 0.2
 
         try:
-            print(db)
-            print(db.child("users"))
-            print(db.child("users").child(user.id))
-            test = db.child("users").child(user.id).get()
-            print(test)
-            print(test.val())
             user_clicks = db.child("users").child(user.id).child("clicks").get()
             clicks_data = user_clicks.val() or {}
         except Exception as e:
@@ -430,7 +424,6 @@ class RecommendationsManager():
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
 
-        merged_data_sorted.to_clipboard()
         return merged_data_sorted.head(4)['id'].tolist()
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
