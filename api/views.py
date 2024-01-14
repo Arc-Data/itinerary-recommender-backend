@@ -58,7 +58,6 @@ class UserRegistrationView(CreateAPIView):
         try:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            print("Valid")
             serializer.save()
         except Exception as e:
             email_error = serializer.errors.get('email', None)
@@ -1182,6 +1181,7 @@ def get_specific_business(request, location_id):
 @permission_classes([IsAuthenticated])
 def edit_business(request, location_id):
     data = json.loads(request.data.get('data', {}))
+    print(data)
     user = request.user
     try:
         if user.is_staff:
@@ -1916,7 +1916,7 @@ def add_tags(request, location_id):
     return Response({"message": "Tags added to spot"}, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def remove_tags(request, location_id):
     tag_name = request.data.get('tag')
@@ -1939,10 +1939,8 @@ def add_activity(request, location_id):
 
 
 @api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
 def remove_activity(request, location_id):
     activity_name = request.data.get('activity')
-    print(activity)
     spot = Spot.objects.get(id=location_id)
     activity = Activity.objects.get(name=activity_name)
 
