@@ -2205,7 +2205,6 @@ def monthly_report(request, month):
     first_day = datetime(year=current_year, month=month, day=1)
     last_day = datetime(year=current_year, month=month, day=calendar.monthrange(current_year, month)[1], hour=23, minute=59, second=59)
 
-
     # Query to get all completed days in the selected month
     completed_days = Day.objects.filter(date__range=(first_day, last_day), completed=True)
 
@@ -2216,6 +2215,7 @@ def monthly_report(request, month):
         .annotate(max_people=Max('number_of_people'))
         .aggregate(unique_visitors_count=Sum('max_people'))
     )['unique_visitors_count']
+
     # Calculate the frequency of each location visited during the month
     location_frequency = (
         ItineraryItem.objects
@@ -2229,13 +2229,19 @@ def monthly_report(request, month):
 
     # Group itinerary items by date
     itinerary_items_by_date = {}
+    total_locations_visited_in_month = 0
+
     for item in ItineraryItem.objects.filter(day__in=completed_days):
         date_key = item.day.date
+        total_locations_visited_in_month += 1
+
         if date_key not in itinerary_items_by_date:
             itinerary_items_by_date[date_key] = {
                 'total_locations_visited': 0,
+                'percentage_completed': 0,
                 'itinerary_items': [],
             }
+
         itinerary_items_by_date[date_key]['total_locations_visited'] += 1
         itinerary_items_by_date[date_key]['itinerary_items'].append({
             'location__name': item.location.name,
@@ -2244,9 +2250,12 @@ def monthly_report(request, month):
 
     # Process the grouped information
     for date_key, data in itinerary_items_by_date.items():
+        percentage_completed = (data['total_locations_visited'] / total_locations_visited_in_month) * 100
+
         completed_trips_info.append({
             'date': date_key,
             'total_locations_visited': data['total_locations_visited'],
+            'percentage_completed_trips': percentage_completed,
         })
 
     context = {
