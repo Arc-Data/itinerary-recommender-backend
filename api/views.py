@@ -2278,7 +2278,7 @@ def monthly_report(request, month):
 
 @api_view(['POST'])
 def notify_and_change_password(request):    
-    ids = [21] #target one user
+    ids = [100] #target one user
 
     # for all users:
     #target_users = User.objects.all() 
@@ -2303,7 +2303,8 @@ def generate_strong_password(length=12):
 def send_password_change_notification_email(user, new_password):
     subject = 'Password Change Notification'
     message = f'Thank you for trying out and testing our system CebuRoute, which is a part of our research into implementing a travel planner with a recommendation system for people who are interested in visiting Cebu.\n\n' \
-              f'As students and newbie developers, we might have been lax in terms of our security. In fact, the website has been flagged as deceptive by Google due to issues with form validation on the login page.\n' \
+              f'As students and newbie developers, we might have been lax in terms of our security. \n' \
+              f'In fact, the website has been flagged as deceptive by Google due to issues with form validation on the login page.\n' \
               f'Rest assured that we are doing our best to protect your privacy and we are trying our best to resolve the issue with Google. \n' \
               f'But to do so, we decided to reimplement the system so that it requires strong passwords. \n' \
               f'If you decide to test our website again, you may log in using the new password we have set for you: {new_password} \n' \
