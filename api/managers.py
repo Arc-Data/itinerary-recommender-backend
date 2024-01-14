@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import MinMaxScaler
 # from memory_profiler import profile
 
+from django.db.models import Count, Q
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from collections import OrderedDict, defaultdict
@@ -202,7 +203,9 @@ class RecommendationsManager():
         
         tag_visit_counts = defaultdict(int)
         origin_spot = Location.objects.get(id=location_id)
-        spots = Spot.objects.exclude(id=location_id).exclude(tags=None)
+        spots = Spot.objects.exclude(id=location_id).exclude(tags=None).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         locations_data = []
         for spot in spots:
@@ -215,7 +218,7 @@ class RecommendationsManager():
                     'rating': spot.get_avg_rating,
                     'distance_from_origin': distance_from_origin,
                     'activities': spot.get_activities,
-                    'amount': spot.get_amount_of_clicks(user)
+                    'amount': spot.amount
                 }
                 locations_data.append(spot_data)
             else:
@@ -281,7 +284,9 @@ class RecommendationsManager():
         distance_weight = 0.6
 
         origin_location = Location.objects.get(id=location_id)
-        foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list)
+        foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         locations_data = []
         for foodplace in foodplaces:
@@ -292,7 +297,7 @@ class RecommendationsManager():
                 'foodtags': [tag.name for tag in foodplace.tags.all()],
                 'rating': foodplace.get_avg_rating,
                 'distance_from_origin': distance_from_origin,
-                'amount': foodplace.get_amount_of_clicks(user)
+                'amount': foodplace.amount
             }
             locations_data.append(foodplace_data)
 
@@ -331,17 +336,11 @@ class RecommendationsManager():
         rating_weight = 0.2
         visited_weight = 0.2
 
-        try:
-            user_clicks = db.child("users").child(user.id).child("clicks").get()
-            clicks_data = user_clicks.val() or {}
-        except Exception as e:
-            print(f"An exception has occured while querying firebase data: {e}")
-            clicks_data = {}
-
-        print("After user clicks")
         locations_data = []
         tag_visit_counts = defaultdict(int)
-        spots = Spot.objects.exclude(tags=None)
+        spots = Spot.objects.exclude(tags=None).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         for spot in spots:
             if spot.id not in visited_list:
@@ -350,8 +349,9 @@ class RecommendationsManager():
                     'name': spot.name,
                     'tags': [tag.name for tag in spot.tags.all()],
                     'rating': spot.get_avg_rating,
-                    'amount' : spot.get_amount_of_clicks(user)
+                    'amount' : spot.amount
                 }
+                print(spot)
                 locations_data.append(spot_data)
             else:
                 for tag in spot.tags.all():
@@ -405,7 +405,9 @@ class RecommendationsManager():
 
         locations_data = []
         tag_visit_counts = defaultdict(int)
-        spots = Spot.objects.exclude(tags=None).exclude(id=location_id)
+        spots = Spot.objects.exclude(tags=None).exclude(id=location_id).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         for spot in spots:
             spot_data = {
@@ -413,7 +415,7 @@ class RecommendationsManager():
                 'name': spot.name,
                 'tags': [tag.name for tag in spot.tags.all()],
                 'rating': spot.get_avg_rating,
-                'amount': spot.get_amount_of_clicks(user)
+                'amount': spot.amount
             }
             locations_data.append(spot_data)
 
