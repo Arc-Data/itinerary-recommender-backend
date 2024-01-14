@@ -187,7 +187,7 @@ class RecommendationsManager():
 
         recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
 
-        return recommended_location_df.head(4)['id'].to_list()
+        return recommended_location_df.head(8)['id'].to_list()
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):
         from .models import Spot, Location
@@ -423,8 +423,8 @@ class RecommendationsManager():
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
-
-        return merged_data_sorted.head(4)['id'].tolist()
+        print("Should have been sorted around here")
+        return merged_data_sorted.head(8)['id'].tolist()
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
         from api.models import Spot
@@ -485,4 +485,4 @@ class RecommendationsManager():
         merged_data['scaled_score'] = scaler.fit_transform(weighted_score_array)
         merged_data = merged_data.sort_values(by='scaled_score', ascending=False)
 
-        return merged_data.head(4)['id'].to_list()
+        return merged_data.head(8)['id'].to_list()
