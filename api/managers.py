@@ -79,9 +79,8 @@ class RecommendationsManager():
                 }
                 models_data.append(model_data)
 
-        print("Did I get past here though?")
-
         recommended_itineraries_data = pd.DataFrame.from_records(models_data)
+
         tags_binary = pd.get_dummies(recommended_itineraries_data['tags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
@@ -95,23 +94,21 @@ class RecommendationsManager():
             ),
             axis=1
         )
-
+        
         activity_scores = recommended_itineraries_data['activities'].apply(
             lambda row: self.calculate_activity_score(activity_list, row)
         )
-
 
         activity_scores = activity_scores.values.reshape(1, -1)
         activity_scores = activity_scores / activity_scores.max() if activity_scores.max() != 0 else activity_scores / 1.0
         recommended_itineraries_data['activity_score'] = activity_scores.flatten()
         
-        # recommended_itineraries_data = recommended_itineraries_data[
-        #     (recommended_itineraries_data['jaccard_similarity'] > 0) &
-        #     (recommended_itineraries_data['activity_score'] > 0)
-        # ]
+        recommended_itineraries_data = recommended_itineraries_data[
+            ~( (recommended_itineraries_data['activity_score'] == 0) & (recommended_itineraries_data['jaccard_similarity'] == 0) )
+        ]
 
-        jaccard_weight = 0.6
-        activity_weight = 0.1
+        jaccard_weight = 0.5
+        activity_weight = 0.2
         penalty_weight = 0.3
 
         recommended_itineraries_data['final_score'] = (
@@ -126,7 +123,7 @@ class RecommendationsManager():
         keep_columns = ['id', 'names', 'tags', 'preferences', 'binned_tags', 'activity_score', 'order_penalty_factor', 'jaccard_similarity','activity_score','final_score']
         recommended_itineraries_data = recommended_itineraries_data[keep_columns]
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
-
+        recommended_itineraries_data.to_clipboard()
         return recommended_itineraries_data.head(6)['id'].tolist()
         
 
@@ -151,7 +148,7 @@ class RecommendationsManager():
         rating_weight = 0.5
         default_rating = 3.5  # Adjust this based on your dataset
 
-        all_food_places = FoodPlace.objects.exclude(id__in=visited_list)
+        all_food_places = FoodPlace.objects.exclude(id__in=visited_list).exclude(tags=None)
 
         all_food_places_data = []
         for food_place in all_food_places:

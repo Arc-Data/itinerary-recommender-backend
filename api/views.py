@@ -61,7 +61,6 @@ class UserRegistrationView(CreateAPIView):
             serializer.save()
         except Exception as e:
             email_error = serializer.errors.get('email', None)
-            # print(serializer.errors)
 
             if email_error:
                 return Response({'detail': 'This email is already in use'},status=status.HTTP_400_BAD_REQUEST)
@@ -153,13 +152,11 @@ def verify_otp_user(request):
     otp = OTP.objects.get(user=user)
 
     if not otp:
-        print("How")
         return Response({'detail': 'How does this happen'}, status=status.HTTP_400_BAD_REQUEST)
 
     if otp.is_expired:
         return Response({'detail': "OTP already expired"})
 
-    print(otp.otp, code)
     if otp.otp != code:
         return Response({'detail': 'Code does not match'}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -248,9 +245,7 @@ def reset_password(request, uidb64, token):
     elif request.method == 'POST':
         try:
             user_id = str(urlsafe_base64_decode(uidb64), 'utf-8')
-            print(user_id)
             user  = User.objects.get(pk=user_id)
-            print(user)
             reset_instance = get_object_or_404(PasswordReset, user=user, key=token, used=False)
 
             new_password = request.data.get('password')
@@ -505,7 +500,6 @@ def update_preferences(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def get_content_recommendations(request):
-    print("Starting the request")
     user = request.user
     budget = request.data
     visited_list = set()
@@ -545,13 +539,11 @@ def get_content_recommendations(request):
             spot = Spot.objects.get(id=location.id)
             for activity in spot.get_activities:
                 activity_list[activity] += 1    
-    print("Right after activity list")
 
     visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     preferences = np.array(preferences, dtype=int)
 
     manager = RecommendationsManager()
-    print("Starting content recommendations")
     recommendation_ids = manager.get_content_recommendations(preferences, budget, visited_list, activity_list)
     random.shuffle(recommendation_ids)
 
@@ -753,7 +745,6 @@ def delete_review(request, location_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_location(request):
-    print(request.data.get("opening_time"))
     location_type = request.data.get("type")
     name = request.data.get("name")
     address = request.data.get("address")
@@ -920,7 +911,6 @@ def get_homepage_recommendations(request):
     visited_list.update(review.location.id for review in Review.objects.filter(user=user))
     manager = RecommendationsManager()
     recommendation_ids = manager.get_homepage_recommendation(user, preferences, visited_list)
-    print(recommendation_ids)
 
     recommendations = []
     for id in recommendation_ids:
@@ -984,7 +974,6 @@ def create_ownership_request(request):
         tag_names = json.loads(request.data.get("tags", []))
     
     if location_type == '1':
-        print("activity here")
         activities = json.loads(request.data.get("activities",[]))
 
     location = Location.objects.create(
@@ -1001,7 +990,6 @@ def create_ownership_request(request):
 
     if location_type == '1':
         spot = Spot.objects.get(id=location.id)
-        print(request.data.get("opening_time"))
         spot.opening_time = request.data.get("opening_time")
         spot.closing_time = request.data.get("closing_time")
 
@@ -1181,7 +1169,6 @@ def get_specific_business(request, location_id):
 @permission_classes([IsAuthenticated])
 def edit_business(request, location_id):
     data = json.loads(request.data.get('data', {}))
-    print(data)
     user = request.user
     try:
         if user.is_staff:
@@ -1887,7 +1874,6 @@ def search_foodtag(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_create_foodtag(request):
-    print(request)
     tag_name = request.query_params.get('query')
     
     food_tag, created = FoodTag.objects.get_or_create(name=tag_name)
@@ -2017,7 +2003,7 @@ def get_spot_chain_recommendations(request, day_id):
     recommendation_ids = manager.get_spot_chain_recommendation(user, origin_location.id, preferences, visited_list, activity_counts)
 
     recommendations = []
-    print
+
     for id in recommendation_ids:
         recommendation = Location.objects.get(pk=id)
         recommendations.append(recommendation)
@@ -2136,7 +2122,6 @@ def get_specific_driver(request, driver_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_contact_form(request):
-    print("Hello", request.data)
     user = request.user
     query = request.data.get('query')
 
@@ -2284,13 +2269,13 @@ def monthly_report(request, month):
 
 @api_view(['POST'])
 def notify_and_change_password(request):    
-    ids = [100] #target one user
+    # ids = [100] #target one user
 
     # for all users:
-    #target_users = User.objects.all() 
+    target_users = User.objects.all() 
 
     #uncomment target_users code below if all
-    target_users = User.objects.filter(id__in=ids) 
+    # target_users = User.objects.filter(id__in=ids) 
 
     for target_user in target_users:
         new_password = generate_strong_password()
@@ -2309,13 +2294,13 @@ def generate_strong_password(length=12):
 def send_password_change_notification_email(user, new_password):
     subject = 'Password Change Notification'
     message = f'Thank you for trying out and testing our system CebuRoute, which is a part of our research into implementing a travel planner with a recommendation system for people who are interested in visiting Cebu.\n\n' \
-              f'As students and newbie developers, we might have been lax in terms of our security. \n' \
-              f'In fact, the website has been flagged as deceptive by Google due to issues with form validation on the login page.\n' \
-              f'Rest assured that we are doing our best to protect your privacy and we are trying our best to resolve the issue with Google. \n' \
-              f'But to do so, we decided to reimplement the system so that it requires strong passwords. \n' \
-              f'If you decide to test our website again, you may log in using the new password we have set for you: {new_password} \n' \
-              f'You can also use the forgot password mechanism to customize your password (do not forget to input the new password given as your old password). \n' \
-              f'Once again, we are truly thankful for your cooperation and time to test our system, and we are very sorry for the oversight on our part, as we are also preparing for our final defense on January 15.'
+              f'Recently, Google flagged our website as a potential Phishing website and for a website we did for a research project we realize we might have been lax in terms of our security procedures.\n' \
+              f'We would like to assure you that we are not doing anything that might compromise the data you put in, and that we are trying to resolve the issue with Google. \n' \
+              f'But to do so, we decided to reimplement the system so that it requires using strong passwords. \n' \
+              f'If you decide to test our website again, you may log in using the new password we have set for you: \n\n\nPassword: {new_password} \n\n' \
+              f'you can also use the forgot password mechanism to customize your password. \n' \
+              f'Once again, we are truly thankful for your cooperation and time taken to try out our system!'
+            
     from_email = settings.EMAIL_FROM
     recipient_list = [user.email]
 

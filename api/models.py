@@ -170,7 +170,6 @@ class Location(models.Model):
             event for event in nearby_events
             if haversine(spot_coordinates, (event.latitude, event.longitude), unit=Unit.METERS) <= radius_meters
         ]
-        # print(nearby_events)
 
         return nearby_events
 
@@ -359,16 +358,12 @@ class ItineraryItem(models.Model):
             previous_item = ItineraryItem.objects.get(order=self.order - 1, day=self.day)
             previous_location = previous_item.location
             distance = self.location.get_distance_from_origin(previous_location)
-            print(distance)
-            print(self.order, self.location.name, previous_location.name, distance)
-
 
             if self.location.location_type == '1':
                 spot = Spot.objects.get(id=self.location.id)
                 if previous_location.location_type == '1':
                     previous_spot = Spot.objects.get(id=previous_location.id)
                     if previous_spot.activity.filter(name="Boating").exists() or previous_spot.activity.filter(name="Island Hopping").exists():
-                        print("Other Transportation (Boat, Mixed, etc.)")
                         return {
                             "name": "Other Transportation (Boat, Mixed, etc.)", 
                             "meters": distance
@@ -376,7 +371,6 @@ class ItineraryItem(models.Model):
                 # consider din dapat kung spot ba yung previous location
                 # if previous_location.activity.filter()
                 elif  spot.activity.filter(name="Boating").exists() or spot.activity.filter(name="Island Hopping").exists(): 
-                    print("Other Transportation (Boat, Mixed, etc.)")
                     return {
                         "name": "Other Transportation (Boat, Mixed, etc.)",
                         "meters": distance
@@ -549,10 +543,8 @@ class ContactForm(models.Model):
 def create_default_fee(sender, instance, created, **kwargs):
     if created:
         FeeType.objects.create(spot=instance, name="Entrance Fee")
-        print("Created Default Fee Type for location: ", instance.name)
 
 @receiver(post_save, sender=FeeType)
 def create_default_audience_type(sender, instance, created, **kwargs):
     if created:
         AudienceType.objects.create(fee_type=instance, name="General", price=0)
-        print("Created Default Audience Type")

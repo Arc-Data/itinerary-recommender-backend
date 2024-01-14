@@ -6,9 +6,14 @@ from api.models import Location, User, Review
 class Command(BaseCommand):
     help = 'Create or update reviews for a location with 5-star ratings'
 
+    def add_arguments(self, parser):
+        parser.add_argument('location_id', type=int, help="Location ID")
+        parser.add_argument('rating', type=int, help="Desired Location Rating")
+
     def handle(self, *args, **options):
         # Prompt user for location ID
-        location_id = input('Enter the ID of the location to review: ')
+        location_id = options['location_id']
+        rating = options['rating']
 
         try:
             location = Location.objects.get(pk=location_id)
@@ -21,10 +26,9 @@ class Command(BaseCommand):
         for user_id in user_ids:
             user = User.objects.get(pk=user_id)
 
-            # Create or update review
             review, created = Review.objects.get_or_create(user=user, location=location, defaults={'rating': 5})
             review.comment = f"This is a test review."
-            review.rating = 5
+            review.rating = rating
             review.datetime_created = timezone.now()
             review.save()
 
