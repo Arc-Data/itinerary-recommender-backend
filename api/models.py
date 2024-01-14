@@ -548,6 +548,15 @@ class ContactForm(models.Model):
     class Meta:
         ordering = ['-date_created']
 
+class UserClick(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    amount = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.user.email} clicked on {self.location.name}: {self.amount}x"
+
+
 @receiver(post_save, sender=Spot)
 def create_default_fee(sender, instance, created, **kwargs):
     if created:

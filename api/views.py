@@ -2297,3 +2297,18 @@ def send_password_change_notification_email(user, new_password):
     recipient_list = [user.email]
 
     send_mail(subject, message, from_email, recipient_list)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def user_click(request, location_id):
+    user = request.user
+
+    location = get_object_or_404(Location, id=location_id)
+
+    click, created = UserClick.objects.get_or_create(user=user, location=location)
+    if not created:
+        click.amount += 1
+        click.save()
+
+    return Response("Clicked", status=status.HTTP_200_OK)

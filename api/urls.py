@@ -156,5 +156,7 @@ urlpatterns = [
 
     path('generate-otp/', generate_user_otp, name="generate_user_otp"),
     path('verify-otp/', verify_otp_user, name="verify_user_otp"),
-    path('notify-change-password/', notify_and_change_password, name="notify_and_change_password")
+    path('notify-change-password/', notify_and_change_password, name="notify_and_change_password"),
+
+    path('click/<int:location_id>/', user_click, name="user_click")
 ]
