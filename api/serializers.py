@@ -552,7 +552,7 @@ class ItineraryListSerializers(serializers.ModelSerializer):
                 url = LocationImage.objects.get(is_primary_image=True, location=location).image.url
                 return url
 
-        return "/media/location_images/DefaultLocationImage.jpg"
+        return None
 
     def get_trip_duration(self, object):
         days = Day.objects.filter(itinerary=object)
@@ -840,7 +840,7 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OwnershipRequest
-        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags', 'activity')
+        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags', 'activity', 'status')
 
     def get_image(self, obj):
         primary_image = obj.location.images.filter(is_primary_image=True).first()

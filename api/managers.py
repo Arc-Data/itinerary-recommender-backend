@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import MinMaxScaler
 # from memory_profiler import profile
 
+from django.db.models import Count, Q
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from collections import OrderedDict, defaultdict
@@ -143,7 +144,7 @@ class RecommendationsManager():
     
     def get_foodplace_recommendations(self, visited_list, food_tag_collections):
         from .models import FoodPlace
-        tag_weight = 0.5
+        food_tag_weight = 0.5
         rating_weight = 0.5
         default_rating = 3.5  # Adjust this based on your dataset
 
@@ -161,7 +162,6 @@ class RecommendationsManager():
             all_food_places_data.append(location_data)
 
         all_food_places_df = pd.DataFrame(all_food_places_data)
-        all_food_places_df.to_clipboard()
 
         food_tags_df = pd.DataFrame(list(food_tag_collections.items()), columns=['food_tag', 'visited_count'])
         food_tags_df['weight'] = food_tags_df['visited_count'] / food_tags_df['visited_count'].sum()
@@ -169,25 +169,23 @@ class RecommendationsManager():
         location_scores = defaultdict(float)
 
         for _, row in all_food_places_df.iterrows():
+            tag_score = 0  
             for tag in row['tags']:
                 tag_weight = food_tags_df.loc[food_tags_df['food_tag'] == tag, 'weight'].values
                 if tag_weight:
-                    location_scores[row['id']] += tag_weight[0]
+                    tag_score += tag_weight[0]
+            location_scores[row['id']] = tag_score
 
         recommended_location_df = pd.DataFrame(list(location_scores.items()), columns=['id', 'tag_score'])
-
-        # Merge with FoodPlace to get additional details
         recommended_location_df = pd.merge(recommended_location_df, all_food_places_df, on='id')
 
-        # Calculate the final score using a weighted combination of tag_score, rating, and default rating
         recommended_location_df['final_score'] = (
-            recommended_location_df['tag_score'] * tag_weight +
-            recommended_location_df['rating'] * rating_weight +
+            recommended_location_df['tag_score'] * food_tag_weight +
+            recommended_location_df['rating'] * rating_weight + 
             recommended_location_df['num_ratings'] / (recommended_location_df['num_ratings'] + 1) * default_rating  # Smoothing to prevent division by zero
         )
 
         recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
-
         return recommended_location_df.head(8)['id'].to_list()
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):
@@ -203,7 +201,9 @@ class RecommendationsManager():
         
         tag_visit_counts = defaultdict(int)
         origin_spot = Location.objects.get(id=location_id)
-        spots = Spot.objects.exclude(id=location_id).exclude(tags=None)
+        spots = Spot.objects.exclude(id=location_id).exclude(tags=None).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         locations_data = []
         for spot in spots:
@@ -216,7 +216,7 @@ class RecommendationsManager():
                     'rating': spot.get_avg_rating,
                     'distance_from_origin': distance_from_origin,
                     'activities': spot.get_activities,
-                    'amount': spot.get_amount_of_clicks(user)
+                    'amount': spot.amount
                 }
                 locations_data.append(spot_data)
             else:
@@ -282,7 +282,9 @@ class RecommendationsManager():
         distance_weight = 0.6
 
         origin_location = Location.objects.get(id=location_id)
-        foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list)
+        foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         locations_data = []
         for foodplace in foodplaces:
@@ -293,7 +295,7 @@ class RecommendationsManager():
                 'foodtags': [tag.name for tag in foodplace.tags.all()],
                 'rating': foodplace.get_avg_rating,
                 'distance_from_origin': distance_from_origin,
-                'amount': foodplace.get_amount_of_clicks(user)
+                'amount': foodplace.amount
             }
             locations_data.append(foodplace_data)
 
@@ -332,17 +334,11 @@ class RecommendationsManager():
         rating_weight = 0.2
         visited_weight = 0.2
 
-        try:
-            user_clicks = db.child("users").child(user.id).child("clicks").get()
-            clicks_data = user_clicks.val() or {}
-        except Exception as e:
-            print(f"An exception has occured while querying firebase data: {e}")
-            clicks_data = {}
-
-        print("After user clicks")
         locations_data = []
         tag_visit_counts = defaultdict(int)
-        spots = Spot.objects.exclude(tags=None)
+        spots = Spot.objects.exclude(tags=None).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         for spot in spots:
             if spot.id not in visited_list:
@@ -351,7 +347,7 @@ class RecommendationsManager():
                     'name': spot.name,
                     'tags': [tag.name for tag in spot.tags.all()],
                     'rating': spot.get_avg_rating,
-                    'amount' : spot.get_amount_of_clicks(user)
+                    'amount' : spot.amount
                 }
                 locations_data.append(spot_data)
             else:
@@ -395,7 +391,6 @@ class RecommendationsManager():
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
-        merged_data_sorted.to_clipboard()
         return merged_data_sorted.head(8)['id'].tolist()
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
@@ -407,7 +402,9 @@ class RecommendationsManager():
 
         locations_data = []
         tag_visit_counts = defaultdict(int)
-        spots = Spot.objects.exclude(tags=None).exclude(id=location_id)
+        spots = Spot.objects.exclude(tags=None).exclude(id=location_id).annotate(
+            amount=Count('userclick', filter=Q(userclick__user=user))
+        )
 
         for spot in spots:
             spot_data = {
@@ -415,7 +412,7 @@ class RecommendationsManager():
                 'name': spot.name,
                 'tags': [tag.name for tag in spot.tags.all()],
                 'rating': spot.get_avg_rating,
-                'amount': spot.get_amount_of_clicks(user)
+                'amount': spot.amount
             }
             locations_data.append(spot_data)
 

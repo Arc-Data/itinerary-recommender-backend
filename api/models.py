@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Sum
 from haversine import haversine, Unit
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -107,10 +107,10 @@ class Location(models.Model):
         return haversine(spot_coordinates, origin_coordinates, unit=Unit.METERS)
 
     def get_amount_of_clicks(self, user):
-        try:
-            amount = UserClick.objects.get(location=self, user=user).amount
-            return amount
-        except:
+        if UserClick.objects.filter(location=self, user=user).exists():
+            amount = UserClick.objects.filter(location=self, user=user).values('amount').aggregate(Sum('amount'))['amount__sum']
+            return amount if amount is not None else 0
+        else:
             return 0
 
     @property
