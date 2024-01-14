@@ -83,8 +83,8 @@ class LocationPlanViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
-        requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
-        queryset = queryset.exclude(id__in=requests)
+        # requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
+        # queryset = queryset.exclude(id__in=requests)
 
         if query:
             queryset = queryset.filter(name__istartswith=query)
@@ -111,12 +111,11 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
         location_type = self.request.query_params.get('type', None)
-        requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
-        queryset = queryset.exclude(id__in=requests)
+        # requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
+        # queryset = queryset.exclude(id__in=requests)
 
         if query:
             queryset = queryset.filter(name__istartswith=query)
-
 
         if hide:
             queryset = queryset.filter(is_closed=False)
@@ -1314,7 +1313,6 @@ def get_food_details(request, location_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def get_preference_percentages(request):
     preferences_count = Preferences.objects.aggregate(
         total_users=Count('user'),
@@ -1328,14 +1326,16 @@ def get_preference_percentages(request):
     )
 
     preference_percentages = {}
+    counts = []
     total_users = preferences_count['total_users']
     for preference, count in preferences_count.items():
         if preference != 'total_users' and preference.endswith('_users'):
             preference_name = preference[:-6]
             preference_percentages[preference_name] = (count / total_users) * 100
+            counts.append({'preference_name': preference_name, 'count': count})
 
-    return Response({'preference_percentages': preference_percentages}, status=status.HTTP_200_OK)
-
+    return Response({'preference_percentages': preference_percentages,
+                     'counts': counts}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -2196,6 +2196,7 @@ def get_foodplace_recommendations(request):
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 @api_view(["GET"])
 def monthly_report(request, month):
     current_year = datetime.now().year
@@ -2257,24 +2258,15 @@ def monthly_report(request, month):
             'percentage_completed_trips': percentage_completed,
         })
 
-    paginator_loc = PageNumberPagination()
-    paginator_loc.page_size = 10
-
-    paginator = PageNumberPagination()
-    paginator.page_size = 10
-
-    # not done
-    completed_trips_info = paginator.paginate_queryset(completed_trips_info, request)
-    pag_location_frequency = paginator_loc.paginate_queryset(list(location_frequency), request)
-
     context = {
         'completed_trips': len(completed_days),
         'unique_visitor_counts': unique_visitors_count,
-        'location_frequency': pag_location_frequency,
+        'location_frequency': list(location_frequency),
         'completed_trips_info': completed_trips_info,
     }
 
     return Response(context, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 def notify_and_change_password(request):    
