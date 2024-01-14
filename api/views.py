@@ -1013,7 +1013,8 @@ def create_ownership_request(request):
 
     OwnershipRequest.objects.create(
         user=user,
-        location=location
+        location=location,
+        status='1'
     )
 
     if image:
