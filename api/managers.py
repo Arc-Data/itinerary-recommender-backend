@@ -216,7 +216,7 @@ class RecommendationsManager():
                     'rating': spot.get_avg_rating,
                     'distance_from_origin': distance_from_origin,
                     'activities': spot.get_activities,
-                    'amount': spot.amount
+                    'amount': spot.get_amount_of_clicks(user)
                 }
                 locations_data.append(spot_data)
             else:
@@ -295,7 +295,7 @@ class RecommendationsManager():
                 'foodtags': [tag.name for tag in foodplace.tags.all()],
                 'rating': foodplace.get_avg_rating,
                 'distance_from_origin': distance_from_origin,
-                'amount': foodplace.amount
+                'amount': foodplace.get_amount_of_clicks(user)
             }
             locations_data.append(foodplace_data)
 
@@ -336,7 +336,7 @@ class RecommendationsManager():
 
         locations_data = []
         tag_visit_counts = defaultdict(int)
-        spots = Spot.objects.exclude(tags=None).annotate(
+        spots = Spot.objects.exclude(tags=None).exclude(id__in=visited_list).annotate(
             amount=Count('userclick', filter=Q(userclick__user=user))
         )
 
@@ -347,7 +347,7 @@ class RecommendationsManager():
                     'name': spot.name,
                     'tags': [tag.name for tag in spot.tags.all()],
                     'rating': spot.get_avg_rating,
-                    'amount' : spot.amount
+                    'amount' : spot.get_amount_of_clicks(user)
                 }
                 locations_data.append(spot_data)
             else:
@@ -412,7 +412,7 @@ class RecommendationsManager():
                 'name': spot.name,
                 'tags': [tag.name for tag in spot.tags.all()],
                 'rating': spot.get_avg_rating,
-                'amount': spot.amount
+                'amount': spot.get_amount_of_clicks(user)
             }
             locations_data.append(spot_data)
 
