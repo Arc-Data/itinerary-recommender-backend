@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Sum
 from haversine import haversine, Unit
 from django.core.validators import MaxValueValidator, MinValueValidator
 
