@@ -96,6 +96,7 @@ urlpatterns = [
     path('tags/get/', get_spot_tags, name="get_spot_tags"),
     
     path('requests/', get_all_ownership_requests, name="get_all_ownership_requests"),
+    path('request/<int:request_id>/update/', update_ownership_request, name="update_ownership_request"),
     path('request/<int:request_id>/approve/', approve_request, name="approve-request"),
 
     path('confirm/set/preferences/', get_set_preferences, name="get_set_preferences"),

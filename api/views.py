@@ -1044,6 +1044,15 @@ def get_all_ownership_requests(request):
 
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
+def update_ownership_request(request, request_id):
+    data = request.data
+    print(data)
+
+    approval_request = OwnershipRequest.objects.get(id=request_id)
+    return Response(status=status.HTTP_200_OK)
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
 def approve_request(request, request_id):
     approval_request = OwnershipRequest.objects.get(id=request_id)
     approval_request.is_approved=True
