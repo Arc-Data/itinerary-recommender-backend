@@ -161,7 +161,6 @@ class RecommendationsManager():
             all_food_places_data.append(location_data)
 
         all_food_places_df = pd.DataFrame(all_food_places_data)
-        all_food_places_df.to_clipboard()
 
         food_tags_df = pd.DataFrame(list(food_tag_collections.items()), columns=['food_tag', 'visited_count'])
         food_tags_df['weight'] = food_tags_df['visited_count'] / food_tags_df['visited_count'].sum()
@@ -395,7 +394,6 @@ class RecommendationsManager():
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
-        merged_data_sorted.to_clipboard()
         return merged_data_sorted.head(8)['id'].tolist()
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
