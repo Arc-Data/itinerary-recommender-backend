@@ -106,6 +106,13 @@ class Location(models.Model):
         origin_coordinates = (origin_spot.latitude, origin_spot.longitude)
         return haversine(spot_coordinates, origin_coordinates, unit=Unit.METERS)
 
+    def get_amount_of_clicks(self, user):
+        try:
+            amount = UserClick.objects.get(location=self, user=user).amount
+            return amount
+        except:
+            return 0
+
     @property
     def get_avg_rating(self):
         avg_rating = self.review_set.aggregate(Avg('rating'))['rating__avg']

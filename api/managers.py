@@ -200,13 +200,6 @@ class RecommendationsManager():
         activity_weight = 0.1
         jaccard_weight = 0.1
         visited_weight = 0.1
-
-        try:
-            user_clicks = db.child("users").child(user.id).child("clicks").get()
-            clicks_data = user_clicks.val() or {}
-        except Exception as e:
-            print(f"an unexpected error has occured: {e}")
-            clicks_data = {}
         
         tag_visit_counts = defaultdict(int)
         origin_spot = Location.objects.get(id=location_id)
@@ -223,6 +216,7 @@ class RecommendationsManager():
                     'rating': spot.get_avg_rating,
                     'distance_from_origin': distance_from_origin,
                     'activities': spot.get_activities,
+                    'amount': spot.get_amount_of_clicks(user)
                 }
                 locations_data.append(spot_data)
             else:
@@ -238,13 +232,7 @@ class RecommendationsManager():
         locations_data = locations_data.sort_values(by='distance_from_origin')
         locations_data = locations_data.head(15)
 
-        if clicks_data:
-            clicks_df = pd.DataFrame(clicks_data)
-            merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
-            merged_data['amount'] = merged_data['amount'].fillna(0)
-        else:
-            merged_data = locations_data
-            merged_data['amount'] = 0
+        merged_data = locations_data
 
         merged_data['binned_tags'] = binned_tags
 
@@ -293,13 +281,6 @@ class RecommendationsManager():
         rating_weight = 0.35
         distance_weight = 0.6
 
-        try:
-            user_clicks = db.child("users").child(user.id).child("clicks").get()
-            clicks_data = user_clicks.val() or {}
-        except Exception as e:
-            print(f"an unexpected error has occured: {e}")
-            clicks_data = {}
-
         origin_location = Location.objects.get(id=location_id)
         foodplaces = FoodPlace.objects.exclude(id=location_id).exclude(id__in=visit_list)
 
@@ -311,7 +292,8 @@ class RecommendationsManager():
                 'name': foodplace.name,
                 'foodtags': [tag.name for tag in foodplace.tags.all()],
                 'rating': foodplace.get_avg_rating,
-                'distance_from_origin': distance_from_origin
+                'distance_from_origin': distance_from_origin,
+                'amount': foodplace.get_amount_of_clicks(user)
             }
             locations_data.append(foodplace_data)
 
@@ -320,13 +302,7 @@ class RecommendationsManager():
         locations_data = locations_data.head(15)
         locations_data = locations_data.reset_index()
 
-        if clicks_data:
-            clicks_df = pd.DataFrame(clicks_data)
-            merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
-            merged_data['amount'] = merged_data['amount'].fillna(0)
-        else:
-            merged_data = locations_data
-            merged_data['amount'] = 0
+        merged_data = locations_data
 
         merged_data['binned_tags'] = 0
 
@@ -374,7 +350,8 @@ class RecommendationsManager():
                     'id': spot.id,
                     'name': spot.name,
                     'tags': [tag.name for tag in spot.tags.all()],
-                    'rating': spot.get_avg_rating
+                    'rating': spot.get_avg_rating,
+                    'amount' : spot.get_amount_of_clicks(user)
                 }
                 locations_data.append(spot_data)
             else:
@@ -382,20 +359,14 @@ class RecommendationsManager():
                     tag_name = tag.name
                     tag_visit_counts[tag_name] += 1
 
+
         locations_data = pd.DataFrame.from_records(locations_data)
         print("After Locations Data gets initialized into DF")
 
         tags_binary = pd.get_dummies(locations_data['tags'].explode()).groupby(level=0).max().astype(int)
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
 
-        if clicks_data:
-            clicks_df = pd.DataFrame(clicks_data)
-
-            merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
-            merged_data['amount'] = merged_data['amount'].fillna(0)
-        else:
-            merged_data = locations_data
-            merged_data['amount'] = 0
+        merged_data = locations_data
 
         merged_data['binned_tags'] = binned_tags
         print("After clicks and tags")
@@ -424,7 +395,7 @@ class RecommendationsManager():
         merged_data_sorted = merged_data.sort_values(by='scaled_score', ascending=False)
         keep_columns = ['id', 'name', 'tags', 'amount', 'binned_tags', 'rating', 'jaccard_similarity', 'weighted_score', 'visit_count', 'visit_count_score', 'scaled_score' ] 
         merged_data_sorted = merged_data_sorted[keep_columns]
-        print("Should have been sorted around here")
+        merged_data_sorted.to_clipboard()
         return merged_data_sorted.head(8)['id'].tolist()
 
     def get_location_recommendation(self, user, origin_binned_tags, location_id, visited_list):
@@ -433,14 +404,6 @@ class RecommendationsManager():
         jaccard_weight = 0.7
         rating_weight = 0.2
         clicks_weight = 0.1
-
-        try:
-            user_clicks = db.child("users").child(user.id).child("clicks").get()
-            clicks_data = user_clicks.val() or {}
-            print(clicks_data)
-        except Exception as e:
-            clicks_data = {}
-            print(f"An unexpected error has occurred: {e}")
 
         locations_data = []
         tag_visit_counts = defaultdict(int)
@@ -451,7 +414,8 @@ class RecommendationsManager():
                 'id': spot.id,
                 'name': spot.name,
                 'tags': [tag.name for tag in spot.tags.all()],
-                'rating': spot.get_avg_rating
+                'rating': spot.get_avg_rating,
+                'amount': spot.get_amount_of_clicks(user)
             }
             locations_data.append(spot_data)
 
@@ -460,14 +424,7 @@ class RecommendationsManager():
         binned_tags = tags_binary.apply(lambda row: row.to_numpy().tolist(), axis=1)
         locations_data['binned_tags'] = binned_tags 
 
-        if clicks_data:
-            clicks_df = pd.DataFrame(clicks_data)
-
-            merged_data = pd.merge(locations_data, clicks_df, left_on='id', right_on='location', how="left")
-            merged_data['amount'] = merged_data['amount'].fillna(0)
-        else:
-            merged_data = locations_data
-            merged_data['amount'] = 0
+        merged_data = locations_data
 
         merged_data['jaccard_similarity'] = merged_data.apply(
             lambda row: (

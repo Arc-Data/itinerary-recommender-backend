@@ -2303,10 +2303,10 @@ def send_password_change_notification_email(user, new_password):
 @permission_classes([IsAuthenticated])
 def user_click(request, location_id):
     user = request.user
-
-    location = get_object_or_404(Location, id=location_id)
+    location = Location.objects.get(id=location_id)
 
     click, created = UserClick.objects.get_or_create(user=user, location=location)
+    print(click, created)
     if not created:
         click.amount += 1
         click.save()
