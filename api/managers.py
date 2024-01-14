@@ -144,7 +144,7 @@ class RecommendationsManager():
     
     def get_foodplace_recommendations(self, visited_list, food_tag_collections):
         from .models import FoodPlace
-        tag_weight = 0.5
+        food_tag_weight = 0.5
         rating_weight = 0.5
         default_rating = 3.5  # Adjust this based on your dataset
 
@@ -169,25 +169,23 @@ class RecommendationsManager():
         location_scores = defaultdict(float)
 
         for _, row in all_food_places_df.iterrows():
+            tag_score = 0  
             for tag in row['tags']:
                 tag_weight = food_tags_df.loc[food_tags_df['food_tag'] == tag, 'weight'].values
                 if tag_weight:
-                    location_scores[row['id']] += tag_weight[0]
+                    tag_score += tag_weight[0]
+            location_scores[row['id']] = tag_score
 
         recommended_location_df = pd.DataFrame(list(location_scores.items()), columns=['id', 'tag_score'])
-
-        # Merge with FoodPlace to get additional details
         recommended_location_df = pd.merge(recommended_location_df, all_food_places_df, on='id')
 
-        # Calculate the final score using a weighted combination of tag_score, rating, and default rating
         recommended_location_df['final_score'] = (
-            recommended_location_df['tag_score'] * tag_weight +
-            recommended_location_df['rating'] * rating_weight +
+            recommended_location_df['tag_score'] * food_tag_weight +
+            recommended_location_df['rating'] * rating_weight + 
             recommended_location_df['num_ratings'] / (recommended_location_df['num_ratings'] + 1) * default_rating  # Smoothing to prevent division by zero
         )
 
         recommended_location_df = recommended_location_df.sort_values(by='final_score', ascending=False)
-
         return recommended_location_df.head(8)['id'].to_list()
     # @profile
     def get_spot_chain_recommendation(self, user, location_id, preferences, visited_list, activity_count):
@@ -351,7 +349,6 @@ class RecommendationsManager():
                     'rating': spot.get_avg_rating,
                     'amount' : spot.amount
                 }
-                print(spot)
                 locations_data.append(spot_data)
             else:
                 for tag in spot.tags.all():
