@@ -83,8 +83,8 @@ class LocationPlanViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
-        requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
-        queryset = queryset.exclude(id__in=requests)
+        # requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
+        # queryset = queryset.exclude(id__in=requests)
 
         if query:
             queryset = queryset.filter(name__istartswith=query)
@@ -111,12 +111,11 @@ class LocationViewSet(viewsets.ReadOnlyModelViewSet):
         query = self.request.query_params.get('query', None)
         hide = self.request.query_params.get('hide', None) 
         location_type = self.request.query_params.get('type', None)
-        requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
-        queryset = queryset.exclude(id__in=requests)
+        # requests = [request.location.id for request in OwnershipRequest.objects.filter(is_approved=False)]
+        # queryset = queryset.exclude(id__in=requests)
 
         if query:
             queryset = queryset.filter(name__istartswith=query)
-
 
         if hide:
             queryset = queryset.filter(is_closed=False)
