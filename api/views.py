@@ -2302,12 +2302,13 @@ def generate_strong_password(length=12):
 
 def send_password_change_notification_email(user, new_password):
     subject = 'Password Change Notification'
-    message = f'Thank you for testing our website. We very truly appreciate your efforts and contribution for our system and project.\n\n' \
-              f'However, to further improve our system, we have decided to change the password of accounts.\n' \
-              f'We are deeply sorry for the inconvenience, and we truly appreciate your efforts in testing in our system.\n' \
-              f'If you have decide to test our website again, your new password is: {new_password}\n\n' \
-              f'Please keep this information secure and do not share it with others.\n\n' \
-              f'Thank you!'
+    message = f'Thank you for trying out and testing our system CebuRoute, which is a part of our research into implementing a travel planner with a recommendation system for people who are interested in visiting Cebu.\n\n' \
+              f'As students and newbie developers, we might have been lax in terms of our security. In fact, the website has been flagged as deceptive by Google due to issues with form validation on the login page.\n' \
+              f'Rest assured that we are doing our best to protect your privacy and we are trying our best to resolve the issue with Google. \n' \
+              f'But to do so, we decided to reimplement the system so that it requires strong passwords. \n' \
+              f'If you decide to test our website again, you may log in using the new password we have set for you: {new_password} \n' \
+              f'You can also use the forgot password mechanism to customize your password (do not forget to input the new password given as your old password). \n' \
+              f'Once again, we are truly thankful for your cooperation and time to test our system, and we are very sorry for the oversight on our part, as we are also preparing for our final defense on January 15.'
     from_email = settings.EMAIL_FROM
     recipient_list = [user.email]
 
