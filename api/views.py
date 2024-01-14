@@ -1044,10 +1044,15 @@ def get_all_ownership_requests(request):
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def approve_request(request, request_id):
+    approval_status = request.data
+    
     approval_request = OwnershipRequest.objects.get(id=request_id)
-    approval_request.is_approved=True
-    approval_request.save()
+    approval_request.status = approval_status
 
+    if status == 2:
+        approval_request.is_approved = True
+
+    approval_request.save()
     user = approval_request.user
     location = approval_request.location
     location.owner = user

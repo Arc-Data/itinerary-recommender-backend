@@ -840,7 +840,7 @@ class OwnershipRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OwnershipRequest
-        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags', 'activity')
+        fields = ('id', 'is_approved', 'timestamp', 'details', 'requester', 'image', 'tags', 'activity', 'status')
 
     def get_image(self, obj):
         primary_image = obj.location.images.filter(is_primary_image=True).first()
