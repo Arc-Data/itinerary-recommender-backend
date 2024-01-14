@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.crypto import get_random_string
 from django.utils import timezone
@@ -25,8 +26,10 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f"Location with ID {location_id} does not exist"))
             return
 
-        # user_ids = [91, 100, 101, 102, 103]
-        user_ids = [34, 33, 31]
+        if settings.DEV_MODE == "PRODUCTION":
+            user_ids = [91, 100, 101, 102, 103]
+        else:
+            user_ids = [34, 33, 31]
 
         for user_id in user_ids:
             user = User.objects.get(pk=user_id)
