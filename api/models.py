@@ -178,9 +178,18 @@ class Location(models.Model):
 
 class OwnershipRequest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
+    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
     is_approved = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=1, 
+        choices=[
+            ('1', 'Pending'),
+            ('2', 'Approved'),
+            ('3', 'Rejected'),
+        ],
+        default=1
+    )
 
     class Meta:
         ordering = ['-timestamp']
