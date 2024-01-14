@@ -1728,11 +1728,16 @@ def get_top_locations_itinerary(request):
         itineraryitem__day__completed=True
     ).annotate(
         total_occurrences=Count('itineraryitem__day')
-    ).order_by('-total_occurrences')[:10]
+    ).order_by('-total_occurrences')
 
-    serializer = TopLocationItinerarySerializer(top_locations, many=True)
+    paginator = PageNumberPagination()
+    paginator.page_size = 10 
 
-    return Response({'top_locations_itinerary': serializer.data}, status=status.HTTP_200_OK)
+    result_page = paginator.paginate_queryset(top_locations, request)
+
+    serializer = TopLocationItinerarySerializer(result_page, many=True)
+
+    return paginator.get_paginated_response({'top_locations_itinerary': serializer.data})
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -2258,11 +2263,60 @@ def monthly_report(request, month):
             'percentage_completed_trips': percentage_completed,
         })
 
+    paginator_loc = PageNumberPagination()
+    paginator_loc.page_size = 10
+
+    paginator = PageNumberPagination()
+    paginator.page_size = 10
+
+    # not done
+    completed_trips_info = paginator.paginate_queryset(completed_trips_info, request)
+    pag_location_frequency = paginator_loc.paginate_queryset(list(location_frequency), request)
+
     context = {
         'completed_trips': len(completed_days),
         'unique_visitor_counts': unique_visitors_count,
-        'location_frequency': list(location_frequency),
+        'location_frequency': pag_location_frequency,
         'completed_trips_info': completed_trips_info,
     }
 
     return Response(context, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def notify_and_change_password(request):    
+    ids = [100] #target one user
+
+    # for all users:
+    #target_users = User.objects.all() 
+
+    #uncomment target_users code below if all
+    target_users = User.objects.filter(id__in=ids) 
+
+    for target_user in target_users:
+        new_password = generate_strong_password()
+        target_user.set_password(new_password)
+        target_user.save()
+
+        send_password_change_notification_email(target_user, new_password)
+
+    return Response({'message': 'Password changed successfully and notification sent.'})
+
+def generate_strong_password(length=12):
+    characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=[]{}|;:,.<>?'
+    password = get_random_string(length, characters)
+    return password
+
+def send_password_change_notification_email(user, new_password):
+    subject = 'Password Change Notification'
+    message = f'Thank you for trying out and testing our system CebuRoute, which is a part of our research into implementing a travel planner with a recommendation system for people who are interested in visiting Cebu.\n\n' \
+              f'As students and newbie developers, we might have been lax in terms of our security. \n' \
+              f'In fact, the website has been flagged as deceptive by Google due to issues with form validation on the login page.\n' \
+              f'Rest assured that we are doing our best to protect your privacy and we are trying our best to resolve the issue with Google. \n' \
+              f'But to do so, we decided to reimplement the system so that it requires strong passwords. \n' \
+              f'If you decide to test our website again, you may log in using the new password we have set for you: {new_password} \n' \
+              f'You can also use the forgot password mechanism to customize your password (do not forget to input the new password given as your old password). \n' \
+              f'Once again, we are truly thankful for your cooperation and time to test our system, and we are very sorry for the oversight on our part, as we are also preparing for our final defense on January 15.'
+    from_email = settings.EMAIL_FROM
+    recipient_list = [user.email]
+
+    send_mail(subject, message, from_email, recipient_list)
