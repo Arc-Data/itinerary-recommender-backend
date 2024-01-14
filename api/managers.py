@@ -123,7 +123,6 @@ class RecommendationsManager():
         keep_columns = ['id', 'names', 'tags', 'preferences', 'binned_tags', 'activity_score', 'order_penalty_factor', 'jaccard_similarity','activity_score','final_score']
         recommended_itineraries_data = recommended_itineraries_data[keep_columns]
         recommended_itineraries_data = recommended_itineraries_data.sort_values(by='final_score', ascending=False)
-        recommended_itineraries_data.to_clipboard()
         return recommended_itineraries_data.head(6)['id'].tolist()
         
 
