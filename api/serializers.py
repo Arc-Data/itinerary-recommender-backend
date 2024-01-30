@@ -577,14 +577,30 @@ class ItinerarySerializers(serializers.ModelSerializer):
 class ItineraryItemSerializer(serializers.ModelSerializer):
     details = LocationPlanSerializers(source='location', read_only=True)
     transport_type = serializers.SerializerMethodField()
+    expense_details = serializers.SerializerMethodField()
 
     class Meta:
         model = ItineraryItem
-        fields = ['id', 'location', 'day', 'details', 'transport_type']
+        fields = ['id', 'location', 'day', 'details', 'transport_type', 'expense_details']
 
     def get_transport_type(self, obj):
         return obj.get_transportation_type()
     
+    def get_expense_details(self, obj):
+        if obj.location.location_type == "1":
+            optional_fees = Spot.objects.get(id=obj.location.id).optional_fees
+            optional_serializer = FeeTypeSerializer(optional_fees, many=True)
+
+            required_fees = Spot.objects.get(id=obj.location.id).required_fees
+            required_serializer = FeeTypeSerializer(required_fees, many=True)
+
+            return {
+                'optional_expenses': optional_serializer.data,
+                'required_expenses': required_serializer.data
+            }
+        
+        return {}
+
 class ItineraryItemNameSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
 

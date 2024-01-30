@@ -238,6 +238,14 @@ class Spot(Location):
     def __str__(self):
         return self.name
 
+    @property 
+    def required_fees(self):
+        return self.feetype_set.filter(is_required=True)
+    
+    @property
+    def optional_fees(self):
+        return self.feetype_set.filter(is_required=False)
+
     @property
     def get_min_cost(self):
         all_fee_types = self.feetype_set.filter(is_required=True)
